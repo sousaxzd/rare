@@ -29,12 +29,8 @@ export interface AuthResponse {
   success: boolean;
   message?: string;
   token?: string;
-  user?: {
-    _id: string;
-    fullName: string;
-    email: string;
-    emailVerified: boolean;
-  };
+  user?: User;
+  deviceTrusted?: boolean;
 }
 
 export interface User {

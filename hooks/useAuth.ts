@@ -13,6 +13,9 @@ export function useAuth() {
     let mounted = true
 
     const loadUser = async () => {
+      // Verificar se há usuário temporário salvo (login com dispositivo confiável ou código)
+      let tempUser: User | null = null
+      
       try {
         // Verificar se está no cliente
         if (typeof window === 'undefined') {
@@ -20,15 +23,14 @@ export function useAuth() {
           return
         }
 
-        // Verificar se há usuário temporário salvo (login com dispositivo confiável)
+        // Tentar carregar usuário temporário
         try {
           const tempUserStr = sessionStorage.getItem('temp_user')
           if (tempUserStr) {
-            const tempUser = JSON.parse(tempUserStr)
-            if (mounted) {
+            tempUser = JSON.parse(tempUserStr)
+            if (mounted && tempUser) {
               setUser(tempUser)
-              // Limpar usuário temporário após usar
-              sessionStorage.removeItem('temp_user')
+              setLoading(false) // Definir loading como false imediatamente se tiver usuário temporário
             }
           }
         } catch (e) {
@@ -42,18 +44,31 @@ export function useAuth() {
           return
         }
 
+        // Se já temos usuário temporário, tentar carregar do backend para atualizar
+        // mas não esperar se der erro (já temos o usuário temporário)
         try {
           const response = await getMe()
           if (mounted) {
             if (response.success && response.user) {
               setUser(response.user)
-            } else {
-              // Token inválido, limpar apenas se realmente não houver usuário
-              // Não limpar em caso de erro de servidor
+              // Limpar usuário temporário após carregar do backend com sucesso
               try {
-                localStorage.removeItem('token')
+                sessionStorage.removeItem('temp_user')
               } catch (e) {
-                // Ignorar erros de localStorage
+                // Ignorar erros
+              }
+            } else {
+              // Se não conseguiu carregar do backend mas tem usuário temporário, manter
+              if (!tempUser) {
+                // Token inválido, limpar apenas se realmente não houver usuário
+                try {
+                  localStorage.removeItem('token')
+                  if (mounted) {
+                    setUser(null)
+                  }
+                } catch (e) {
+                  // Ignorar erros de localStorage
+                }
               }
             }
           }
@@ -83,16 +98,21 @@ export function useAuth() {
           if (isNetworkError) {
             console.warn('Backend indisponível, mantendo token mas não carregando usuário')
             // Não limpar token quando backend está indisponível
-            // Não definir usuário, apenas continuar
+            // Se tem usuário temporário, manter ele
+            if (!tempUser && mounted) {
+              // Não definir usuário se não tiver temporário
+            }
             return
           }
           
-          // Se for erro 401 (não autorizado), limpar token
+          // Se for erro 401 (não autorizado), limpar token apenas se não tiver usuário temporário
           if (httpStatus === 401) {
-            console.warn('Token inválido ou expirado (401), removendo token')
-            if (mounted) {
+            console.warn('Token inválido ou expirado (401)')
+            if (!tempUser && mounted) {
+              // Só limpar se não tiver usuário temporário
               try {
                 localStorage.removeItem('token')
+                setUser(null)
               } catch (e) {
                 // Ignorar erros de localStorage
               }
@@ -100,9 +120,10 @@ export function useAuth() {
             return
           }
           
-          // Para outros erros (500, 503, etc), manter token mas não carregar usuário
+          // Para outros erros (500, 503, etc), manter token e usuário temporário se existir
           // Pode ser erro temporário do servidor (reiniciando, etc)
           console.warn(`Erro ao carregar usuário (status ${httpStatus || 'unknown'}, mantendo token):`, errorMessage)
+          // Se tem usuário temporário, manter ele mesmo com erro
         }
       } catch (error: any) {
         // Erro ao carregar usuário - sempre tratar sem quebrar a aplicação
@@ -124,26 +145,37 @@ export function useAuth() {
           )
           
           if (isNetworkError) {
-            console.warn('Backend indisponível, mantendo token mas não carregando usuário')
+            console.warn('Backend indisponível, mantendo token e usuário temporário se existir')
             // Não limpar token quando backend está indisponível
-            // Não definir usuário, apenas continuar
+            // Se tem usuário temporário, manter ele
+            if (!tempUser && mounted) {
+              // Não definir usuário se não tiver temporário
+            }
           } else if (httpStatus === 401) {
-            // Erro 401 = não autorizado, limpar token
-            console.warn('Token inválido ou expirado (401), removendo token')
-            try {
-              localStorage.removeItem('token')
-            } catch (e) {
-              // Ignorar erros de localStorage
+            // Erro 401 = não autorizado, limpar token apenas se não tiver usuário temporário
+            console.warn('Token inválido ou expirado (401)')
+            if (!tempUser && mounted) {
+              try {
+                localStorage.removeItem('token')
+                setUser(null)
+              } catch (e) {
+                // Ignorar erros de localStorage
+              }
             }
           } else {
-            // Para outros erros (500, 503, etc), manter token
+            // Para outros erros (500, 503, etc), manter token e usuário temporário
             // Pode ser erro temporário do servidor
             console.warn(`Erro ao carregar usuário (status ${httpStatus || 'unknown'}, mantendo token):`, errorMessage)
+            // Se tem usuário temporário, manter ele mesmo com erro
           }
         }
       } finally {
         if (mounted) {
-          setLoading(false)
+          // Se não tem usuário temporário e não carregou do backend, definir loading como false
+          if (!tempUser) {
+            setLoading(false)
+          }
+          // Se tem usuário temporário, loading já foi definido como false antes
         }
       }
     }
