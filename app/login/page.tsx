@@ -87,20 +87,22 @@ export default function LoginPage() {
     
     try {
       const response = await verifyCode({ email, code, trustDevice })
+      
       if (response.success && response.token && response.user) {
-        // Salvar usuário temporariamente para uso imediato
-        if (typeof window !== 'undefined' && response.user) {
+        // O token JÁ foi salvo pela função verifyCode
+        // Agora salvar usuário temporariamente para uso imediato
+        if (typeof window !== 'undefined') {
           sessionStorage.setItem('temp_user', JSON.stringify(response.user))
           
-          // Disparar evento storage para forçar atualização do useAuth
+          // Disparar eventos para atualizar o useAuth
           window.dispatchEvent(new Event('storage'))
-          // Disparar evento customizado também
           window.dispatchEvent(new CustomEvent('auth-change', { detail: { user: response.user, token: response.token } }))
         }
         
-        // Delay maior para garantir que o token seja salvo e processado
+        // Delay para garantir que tudo foi processado
         await new Promise(resolve => setTimeout(resolve, 300))
-        // Usar replace para evitar problemas de histórico e garantir redirecionamento correto
+        
+        // Redirecionar para dashboard
         router.replace('/dashboard')
       }
     } catch (err) {

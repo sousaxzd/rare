@@ -78,7 +78,12 @@ export async function requestLoginCode(data: LoginData): Promise<{
   user?: User;
   requiresCode?: boolean;
 }> {
-  return apiPost('/auth/login/request-code', data);
+  const response = await apiPost<any>('/auth/login/request-code', data);
+  // Se dispositivo confiável, salvar token
+  if (response.trustedDevice && response.token && typeof window !== 'undefined') {
+    localStorage.setItem('token', response.token);
+  }
+  return response;
 }
 
 /**
