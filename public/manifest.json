@@ -1,0 +1,54 @@
+{
+  "name": "Vision Wallet",
+  "short_name": "Vision Wallet",
+  "description": "Advanced payment gateway management dashboard",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo_fundo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo_fundo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo_fundo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["finance", "business"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Acesse o dashboard principal",
+      "url": "/dashboard",
+      "icons": [{ "src": "/logo_fundo.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Depositar",
+      "short_name": "Depositar",
+      "description": "Criar um novo depósito",
+      "url": "/dashboard/deposit",
+      "icons": [{ "src": "/logo_fundo.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Transferir",
+      "short_name": "Transferir",
+      "description": "Realizar uma transferência",
+      "url": "/dashboard/transfer",
+      "icons": [{ "src": "/logo_fundo.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}
+

@@ -1,0 +1,337 @@
+/**
+ * Serviços para API Admin
+ */
+
+import { apiGet, apiPost, apiPut, apiDelete } from './api';
+
+// Tipos
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  taxID: string;
+  phone?: string;
+  balance: number;
+  saldo_split: number;
+  blocked: boolean;
+  status: string;
+  limits?: {
+    daily?: number;
+    monthly?: number;
+    perTransaction?: number;
+  };
+  dailyUsed?: number;
+  monthlyUsed?: number;
+  plan: string;
+  pixKey?: string;
+  pixKeyType?: string;
+  apiKey?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminUserDetails extends AdminUser {
+  statistics: {
+    totalPayments: number;
+    completedPayments: number;
+    totalReceived: number;
+    totalFees: number;
+    totalWithdraws: number;
+    totalWithdrawn: number;
+  };
+}
+
+export interface AdminUsersResponse {
+  success: boolean;
+  data: {
+    users: AdminUser[];
+    pagination: {
+      total: number;
+      limit: number;
+      offset: number;
+      hasMore: boolean;
+    };
+    statistics: {
+      total: number;
+      active: number;
+      blocked: number;
+      deleted: number;
+      totalBalance: number;
+      totalSplit: number;
+    };
+  };
+}
+
+export interface AdminStatsResponse {
+  success: boolean;
+  data: {
+    users: {
+      total: number;
+      active: number;
+      blocked: number;
+      deleted: number;
+      totalBalance: number;
+      totalSplit: number;
+    };
+    payments: {
+      total: number;
+      active: number;
+      completed: number;
+      pending: number;
+      cancelled: number;
+      totalValue: number;
+      totalNetValue: number;
+      totalFees: number;
+    };
+    withdraws: {
+      total: number;
+      completed: number;
+      failed: number;
+      processing: number;
+      totalAmount: number;
+    };
+    transfers?: {
+      total: number;
+      completed: number;
+      totalAmount: number;
+    };
+    registrations?: {
+      total: number;
+      last24h: number;
+      last7d: number;
+      last30d: number;
+    };
+    financial: {
+      totalReceived: number;
+      totalWithdrawn: number;
+      totalTransferred?: number;
+      totalMoneyMoved?: number;
+      totalFeesCollected: number;
+      systemBalance: number;
+      pendingPayments: number;
+    };
+    split: {
+      totalSplit: number;
+    };
+    generatedAt: string;
+  };
+}
+
+export interface Plan {
+  id: string;
+  name: string;
+  description?: string;
+  transactionFee: number;
+  transactionFeeInReais: string;
+  monthlyFee: number;
+  monthlyFeeInReais: string;
+  minTransactions: number;
+  maxTransactions: number | null;
+  downgradeTo: string | null;
+  order: number;
+  active: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PlanCreateRequest {
+  id: string;
+  name: string;
+  description?: string;
+  transactionFee: number;
+  monthlyFee: number;
+  minTransactions: number;
+  maxTransactions?: number | null;
+  downgradeTo?: string | null;
+  order?: number;
+}
+
+export interface PlanUpdateRequest {
+  name?: string;
+  description?: string;
+  transactionFee?: number;
+  monthlyFee?: number;
+  minTransactions?: number;
+  maxTransactions?: number | null;
+  downgradeTo?: string | null;
+  order?: number;
+  active?: boolean;
+}
+
+export interface PlanUpdateUserRequest {
+  userId: string;
+  plan?: string;
+  autoUpgrade?: boolean;
+}
+
+
+export interface PlanUpdateResponse {
+  success: boolean;
+  message: string;
+  data: {
+    plan: {
+      name: string;
+      transactionFee: number;
+      transactionFeeInReais: string;
+      monthlyFee: number;
+      monthlyFeeInReais: string;
+    };
+    autoUpgrade: boolean;
+    balance: number;
+    balanceInReais: string;
+    updatedAt: string;
+  };
+}
+
+/**
+ * Listar usuários (Admin)
+ */
+export async function getAdminUsers(params?: {
+  status?: string;
+  blocked?: boolean;
+  limit?: number;
+  offset?: number;
+}): Promise<AdminUsersResponse> {
+  const queryParams = new URLSearchParams();
+  if (params?.status) queryParams.append('status', params.status);
+  if (params?.blocked !== undefined) queryParams.append('blocked', String(params.blocked));
+  if (params?.limit) queryParams.append('limit', String(params.limit));
+  if (params?.offset) queryParams.append('offset', String(params.offset));
+
+  const query = queryParams.toString();
+  return apiGet<AdminUsersResponse>(`/v1/admin/users${query ? `?${query}` : ''}`);
+}
+
+/**
+ * Buscar detalhes de um usuário (Admin)
+ */
+export async function getAdminUser(userId: string): Promise<{ success: boolean; data: { user: AdminUserDetails; statistics: any } }> {
+  return apiGet(`/v1/admin/users/${userId}`);
+}
+
+/**
+ * Bloquear/Desbloquear usuário (Admin)
+ */
+export async function blockUser(userId: string, blocked: boolean): Promise<{ success: boolean; message: string }> {
+  return apiPost('/v1/user/block', { userId, blocked });
+}
+
+/**
+ * Obter estatísticas do sistema (Admin)
+ */
+export async function getAdminStats(): Promise<AdminStatsResponse> {
+  return apiGet<AdminStatsResponse>('/v1/admin/stats');
+}
+
+/**
+ * Obter logs de auditoria (Admin)
+ */
+export async function getAuditLogs(params?: {
+  action?: string;
+  entity?: string;
+  userId?: string;
+  startDate?: string;
+  endDate?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<{
+  success: boolean;
+  data: {
+    logs: any[];
+    pagination: {
+      total: number;
+      limit: number;
+      offset: number;
+      hasMore: boolean;
+    };
+  };
+}> {
+  const queryParams = new URLSearchParams();
+  if (params?.action) queryParams.append('action', params.action);
+  if (params?.entity) queryParams.append('entity', params.entity);
+  if (params?.userId) queryParams.append('userId', params.userId);
+  if (params?.startDate) queryParams.append('startDate', params.startDate);
+  if (params?.endDate) queryParams.append('endDate', params.endDate);
+  if (params?.limit) queryParams.append('limit', String(params.limit));
+  if (params?.offset) queryParams.append('offset', String(params.offset));
+
+  const query = queryParams.toString();
+  return apiGet(`/v1/admin/audit${query ? `?${query}` : ''}`);
+}
+
+/**
+ * Atualizar plano do usuário (Admin)
+ */
+export async function updateUserPlan(data: PlanUpdateUserRequest): Promise<PlanUpdateResponse> {
+  return apiPut<PlanUpdateResponse>('/v1/user/plan', data);
+}
+
+/**
+ * Listar todos os planos disponíveis
+ */
+export async function getPlans(): Promise<{ success: boolean; data: { plans: Plan[] } }> {
+  return apiGet('/v1/user/plan/list');
+}
+
+/**
+ * Obter informações do plano de um usuário
+ */
+export async function getUserPlan(userId: string): Promise<{
+  success: boolean;
+  data: {
+    currentPlan: Plan;
+    planDates: {
+      startDate: string | null;
+      endDate: string | null;
+      renewalDate: string | null;
+      daysRemaining: number | null;
+      autoRenew: boolean;
+    };
+    monthlyTransactions: number;
+    autoUpgrade: boolean;
+    lastPlanCheck: string | null;
+    planChangedAt: string | null;
+    upgradeEligibility: any;
+  };
+}> {
+  // Nota: Esta rota requer autenticação do próprio usuário
+  // Para admin, precisamos usar a API Key do usuário ou criar uma rota admin específica
+  // Por enquanto, vamos usar a rota admin que já existe
+  return apiGet(`/v1/user/plan?userId=${userId}`);
+}
+
+/**
+ * Listar todos os planos (Admin)
+ */
+export async function getAdminPlans(): Promise<{ success: boolean; data: { plans: Plan[] } }> {
+  return apiGet('/v1/admin/plans');
+}
+
+/**
+ * Buscar um plano específico (Admin)
+ */
+export async function getAdminPlan(planId: string): Promise<{ success: boolean; data: { plan: Plan } }> {
+  return apiGet(`/v1/admin/plans/${planId}`);
+}
+
+/**
+ * Criar um novo plano (Admin)
+ */
+export async function createPlan(data: PlanCreateRequest): Promise<{ success: boolean; message: string; data: { plan: Plan } }> {
+  return apiPost('/v1/admin/plans', data);
+}
+
+/**
+ * Atualizar um plano (Admin)
+ */
+export async function updatePlan(planId: string, data: PlanUpdateRequest): Promise<{ success: boolean; message: string; data: { plan: Plan } }> {
+  return apiPut(`/v1/admin/plans/${planId}`, data);
+}
+
+/**
+ * Desativar um plano (Admin)
+ */
+export async function deletePlan(planId: string): Promise<{ success: boolean; message: string }> {
+  return apiDelete(`/v1/admin/plans/${planId}`);
+}
+
