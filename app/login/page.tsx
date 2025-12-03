@@ -53,9 +53,12 @@ export default function LoginPage() {
         // Salvar token no localStorage
         if (typeof window !== 'undefined' && response.token) {
           localStorage.setItem('token', response.token)
+          // Forçar atualização do estado de autenticação
+          window.dispatchEvent(new Event('storage'))
         }
-        // Pequeno delay para garantir que o token seja salvo
-        await new Promise(resolve => setTimeout(resolve, 50))
+        // Delay maior para garantir que o token seja salvo e processado
+        await new Promise(resolve => setTimeout(resolve, 200))
+        // Usar replace para evitar problemas de histórico
         router.replace('/dashboard')
         return
       }

@@ -42,10 +42,15 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
           
           // Se não estiver autenticado e ainda tiver tentativas, tentar novamente após delays progressivos
           // Isso resolve problemas de timing quando o token é salvo logo antes do redirecionamento
+          // Aumentar delay inicial e número de tentativas para dispositivos confiáveis
           while (!authenticated && retryCount < maxRetries && mounted) {
-            await new Promise(resolve => setTimeout(resolve, 100 * (retryCount + 1)))
+            const delay = retryCount === 0 ? 200 : 150 * (retryCount + 1) // Delay maior na primeira tentativa
+            await new Promise(resolve => setTimeout(resolve, delay))
             authenticated = isAuthenticated()
             retryCount++
+            
+            // Se encontrou token, sair do loop imediatamente
+            if (authenticated) break
           }
           
           if (mounted) {
@@ -54,15 +59,20 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
             
             if (!authenticated) {
               // Redirecionar se não estiver autenticado após todas as tentativas
-              router.replace('/')
+              router.replace('/login')
             }
           }
         } catch (error) {
           console.error('Erro ao verificar autenticação:', error)
           if (mounted) {
-            // Em caso de erro, permitir acesso mas logar o erro
-            setIsAuthenticatedState(true) // Assumir autenticado em caso de erro
+            // Em caso de erro, verificar novamente se tem token antes de assumir autenticado
+            const hasToken = isAuthenticated()
+            setIsAuthenticatedState(hasToken)
             setIsChecking(false)
+            
+            if (!hasToken) {
+              router.replace('/login')
+            }
           }
         }
       } catch (error) {
