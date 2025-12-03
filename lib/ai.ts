@@ -46,18 +46,18 @@ export async function sendAIMessage(
     }
 
     const data = await response.json();
-    
+
     // Processar resposta da IA
     const content = data.content || data.message || data.text || '';
-    
+
     // Tentar extrair ação do JSON estruturado retornado pela IA
     let action = extractActionFromResponse(content);
-    
+
     // Se não encontrou ação estruturada, usar fallback de regex (compatibilidade)
     if (!action) {
       action = parseAIAction(content);
     }
-    
+
     // Se encontrou ação no JSON, usar a ação extraída diretamente
     // Isso garante que a ação seja processada mesmo se o conteúdo contiver JSON
 
@@ -77,19 +77,19 @@ export async function sendAIMessage(
 function extractActionFromResponse(content: string): AIResponse['action'] | null {
   try {
     // Tentar encontrar JSON na resposta (pode estar em bloco de código ou texto)
-    const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || 
-                     content.match(/```\s*([\s\S]*?)\s*```/) ||
-                     content.match(/\{[\s\S]*"action"[\s\S]*\}/);
-    
+    const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) ||
+      content.match(/```\s*([\s\S]*?)\s*```/) ||
+      content.match(/\{[\s\S]*"action"[\s\S]*\}/);
+
     if (jsonMatch) {
       const jsonStr = jsonMatch[1] || jsonMatch[0];
       const parsed = JSON.parse(jsonStr);
-      
+
       if (parsed.action) {
         return parsed.action;
       }
     }
-    
+
     // Tentar parse direto se a resposta for apenas JSON
     if (content.trim().startsWith('{')) {
       const parsed = JSON.parse(content);
@@ -101,7 +101,7 @@ function extractActionFromResponse(content: string): AIResponse['action'] | null
     // Se não conseguir parsear JSON, retornar null para usar fallback
     return null;
   }
-  
+
   return null;
 }
 
@@ -112,18 +112,18 @@ export function cleanContentForDisplay(content: string): string {
   if (!content || !content.trim()) {
     return '';
   }
-  
+
   let cleaned = content;
-  
+
   // Remover blocos de código JSON (```json ... ```)
   cleaned = cleaned.replace(/```json\s*[\s\S]*?```/gi, '');
-  
+
   // Remover blocos de código genéricos que contenham JSON com "action"
   cleaned = cleaned.replace(/```\s*\{[\s\S]*?"action"[\s\S]*?\}\s*```/gi, '');
-  
+
   // Remover JSON solto no texto que contenha "action"
   cleaned = cleaned.replace(/\{[\s\S]*?"action"[\s\S]*?\}/g, '');
-  
+
   // Se o conteúdo inteiro for JSON válido, retornar string vazia
   const trimmed = content.trim();
   if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
@@ -137,16 +137,16 @@ export function cleanContentForDisplay(content: string): string {
       // Não é JSON válido, manter conteúdo
     }
   }
-  
+
   // Limpar linhas vazias extras e espaços múltiplos
   cleaned = cleaned.replace(/\n\s*\n\s*\n/g, '\n\n'); // Máximo 2 quebras de linha
   cleaned = cleaned.trim();
-  
+
   // Se após limpeza ficou vazio ou só tem espaços, retornar string vazia
   if (!cleaned || cleaned.trim().length === 0) {
     return '';
   }
-  
+
   return cleaned;
 }
 
@@ -176,17 +176,17 @@ export function parseAIAction(content: string): AIResponse['action'] {
     /^como\s+(?:faço|fazer|posso|consigo)\s+(?:um\s+)?depósito\s*[?]?$/i,
     /^como\s+(?:faço|fazer|posso|consigo)\s+(?:um\s+)?saque\s*[?]?$/i,
   ];
-  
+
   // Verificar se é uma pergunta (termina com ? ou corresponde a padrões de pergunta)
   const trimmedContent = content.trim();
   const isQuestionMark = trimmedContent.endsWith('?');
   const matchesQuestionPattern = explainPatterns.some(pattern => pattern.test(trimmedContent));
-  
+
   if (isQuestionMark || matchesQuestionPattern) {
     // Se for pergunta, verificar se tem padrão COMPLETO de transferência (valor E chave juntos no mesmo padrão)
     // Padrão rigoroso: deve ter "enviar/transferir VALOR para CHAVE" no mesmo padrão
     const hasCompleteTransferPattern = /(?:enviar|transferir|mandar|quero|preciso|gostaria de|fazer|realizar)\s+(?:r\$\s*)?([\d.,]+)\s*(?:reais?|r\$)?\s+(?:para|pro|ao|à)\s+([a-zA-Z0-9@._+-]{5,})/i.test(content);
-    
+
     // Se for pergunta mas NÃO tiver padrão completo de transferência, é explicação
     if (!hasCompleteTransferPattern) {
       return {
@@ -200,9 +200,9 @@ export function parseAIAction(content: string): AIResponse['action'] {
     /(?:gerar|criar|fazer|gerar um|gerar o)\s+(?:pagamento|pix|qr code|qrcode)/i,
     /(?:quero|preciso|gostaria de)\s+(?:gerar|criar|fazer)\s+(?:um\s+)?(?:pagamento|pix)/i,
   ];
-  
+
   const hasPaymentIntent = paymentPatterns.some(pattern => pattern.test(content));
-  
+
   if (hasPaymentIntent) {
     // Tentar extrair valor de diferentes formatos
     const amountPatterns = [
@@ -214,7 +214,7 @@ export function parseAIAction(content: string): AIResponse['action'] {
       /(?:de|por|no\s+valor\s+de)\s+r\$\s*([\d.,]+)/i,
       /(?:de|por|no\s+valor\s+de)\s+([\d.,]+)\s*reais?/i,
     ];
-    
+
     let amountMatch = null;
     for (const pattern of amountPatterns) {
       const match = content.match(pattern);
@@ -223,7 +223,7 @@ export function parseAIAction(content: string): AIResponse['action'] {
         break;
       }
     }
-    
+
     // SÓ retornar create_payment se houver um valor válido
     if (!amountMatch) {
       // Se não houver valor, não é uma ação de criar pagamento, apenas explicação
@@ -231,13 +231,13 @@ export function parseAIAction(content: string): AIResponse['action'] {
         type: 'explain',
       };
     }
-    
+
     // Tentar extrair descrição
     const descriptionPatterns = [
       /descri[çc][ãa]o[:\s]+(.+?)(?:\.|$|para|com)/i,
       /(?:para|com|sobre)\s+(.+?)(?:\.|$)/i,
     ];
-    
+
     let descriptionMatch = null;
     for (const pattern of descriptionPatterns) {
       const match = content.match(pattern);
@@ -246,7 +246,7 @@ export function parseAIAction(content: string): AIResponse['action'] {
         break;
       }
     }
-    
+
     return {
       type: 'create_payment',
       data: {
@@ -260,39 +260,52 @@ export function parseAIAction(content: string): AIResponse['action'] {
   // Padrões mais rigorosos que exigem valor E chave juntos
   const transferPatterns = [
     // Padrão: "enviar R$ 100 para 12345678900"
-    /(?:enviar|transferir|mandar)\s+(?:r\$\s*)?([\d.,]+)\s*(?:reais?|r\$)?\s+(?:para|pro|ao|à)\s+([a-zA-Z0-9@._+-]{5,})/i,
+    /(?:enviar|transferir|mandar|pix|pagar)\s+(?:r\$\s*)?([\d.,]+)\s*(?:reais?|r\$)?\s+(?:para|pro|ao|à|chave|pix)\s+([a-zA-Z0-9@._+-]{5,})/i,
     // Padrão: "quero enviar 50 reais para email@exemplo.com"
-    /(?:quero|preciso|gostaria de)\s+(?:enviar|transferir|mandar)\s+(?:r\$\s*)?([\d.,]+)\s*(?:reais?|r\$)?\s+(?:para|pro|ao|à)\s+([a-zA-Z0-9@._+-]{5,})/i,
+    /(?:quero|preciso|gostaria de|vou)\s+(?:enviar|transferir|mandar|fazer|realizar)\s+(?:r\$\s*)?([\d.,]+)\s*(?:reais?|r\$)?\s+(?:para|pro|ao|à|chave|pix)\s+([a-zA-Z0-9@._+-]{5,})/i,
     // Padrão: "fazer transferência de R$ 200 para CPF 12345678900"
-    /(?:fazer|realizar)\s+(?:uma\s+)?transferência\s+(?:de\s+)?(?:r\$\s*)?([\d.,]+)\s*(?:reais?|r\$)?\s+(?:para|pro|ao|à)\s+([a-zA-Z0-9@._+-]{5,})/i,
+    /(?:fazer|realizar|criar)\s+(?:uma\s+)?(?:transferência|pix|envio)\s+(?:de\s+)?(?:r\$\s*)?([\d.,]+)\s*(?:reais?|r\$)?\s+(?:para|pro|ao|à|chave|pix)\s+([a-zA-Z0-9@._+-]{5,})/i,
+    // Padrão Invertido: "para 12345678900 enviar 100"
+    /(?:para|pro|ao|à|chave|pix)\s+([a-zA-Z0-9@._+-]{5,})\s+(?:enviar|transferir|mandar|depositar)\s+(?:r\$\s*)?([\d.,]+)/i,
   ];
-  
+
   // Verificar se há padrão completo de transferência com valor E chave
   let hasTransferIntent = false;
   let transferMatch = null;
-  
+
   for (const pattern of transferPatterns) {
     const match = content.match(pattern);
-    if (match && match[1] && match[2] && match[2].length >= 5) {
+    if (match) {
+      // Verificar qual grupo é o valor e qual é a chave
+      // Geralmente grupo 1 é valor e 2 é chave, exceto no padrão invertido
+      let val = match[1];
+      let key = match[2];
+
+      // Se o padrão for invertido (chave primeiro), trocar
+      if (pattern.source.includes('para') && pattern.source.indexOf('([a-zA-Z0-9') < pattern.source.indexOf('([\\d.,]+)')) {
+        val = match[2];
+        key = match[1];
+      }
+
       // Validar que o valor é numérico válido
-      const valueStr = match[1].replace(/\./g, '').replace(',', '.');
+      const valueStr = val.replace(/\./g, '').replace(',', '.');
       if (!isNaN(parseFloat(valueStr)) && parseFloat(valueStr) > 0) {
         hasTransferIntent = true;
-        transferMatch = match;
+        transferMatch = [match[0], val, key]; // Normalizar para [full, value, key]
         break;
       }
     }
   }
-  
+
   if (hasTransferIntent && transferMatch) {
     // Valor e chave já foram extraídos do match e validados
     const amountMatch = transferMatch[1];
     const pixKeyMatch = transferMatch[2]?.trim();
-    
+
     // Tentar identificar tipo da chave PIX
     let pixKeyType: 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'RANDOM' | null = null;
     const lowerContent = content.toLowerCase();
-    
+
     if (/cpf|^\d{11}$/.test(pixKeyMatch || '')) {
       pixKeyType = 'CPF';
     } else if (/cnpj|^\d{14}$/.test(pixKeyMatch || '')) {
@@ -304,13 +317,13 @@ export function parseAIAction(content: string): AIResponse['action'] {
     } else if (pixKeyMatch && pixKeyMatch.length === 32) {
       pixKeyType = 'RANDOM';
     }
-    
+
     // Tentar extrair descrição
     const descriptionPatterns = [
       /descri[çc][ãa]o[:\s]+(.+?)(?:\.|$|para|com)/i,
       /(?:para|com|sobre)\s+(.+?)(?:\.|$)/i,
     ];
-    
+
     let descriptionMatch = null;
     for (const pattern of descriptionPatterns) {
       const match = content.match(pattern);
@@ -319,7 +332,7 @@ export function parseAIAction(content: string): AIResponse['action'] {
         break;
       }
     }
-    
+
     // SÓ retornar create_transfer se houver valor E chave PIX
     if (!amountMatch || !pixKeyMatch) {
       // Se faltar informação essencial, não é uma ação, apenas explicação
@@ -327,7 +340,7 @@ export function parseAIAction(content: string): AIResponse['action'] {
         type: 'explain',
       };
     }
-    
+
     return {
       type: 'create_transfer',
       data: {
@@ -363,9 +376,9 @@ export function parseAIAction(content: string): AIResponse['action'] {
     /(?:como|quero|preciso)\s+(?:alterar|mudar|atualizar|modificar)/i,
     /(?:ir para|acessar|abrir)\s+(?:configura[çc][õo]es|config)/i,
   ];
-  
+
   const hasSettingsIntent = settingsPatterns.some(pattern => pattern.test(content));
-  
+
   if (hasSettingsIntent) {
     return {
       type: 'update_settings',
@@ -427,7 +440,7 @@ IMPORTANTE: Quando o usuário pedir para fazer algo, você DEVE executar automat
 
 **2. ENVIAR TRANSFERÊNCIAS PIX**
    Quando o usuário pedir para transferir dinheiro, retorne JSON com ação "create_transfer":
-   - Exemplos de intenção: "Enviar R$ 100 para 12345678900", "Transferir 50 reais para email@exemplo.com", "Mandou 200 pro CPF 12345678900"
+   - Exemplos de intenção: "Enviar R$ 100 para 12345678900", "Transferir 50 reais para email@exemplo.com", "Mandou 200 pro CPF 12345678900", "Pix de 50 para chave aleatoria"
    - Extraia: valor, chave PIX, tipo da chave e descrição (se houver)
    - Formato JSON: {"action": {"type": "create_transfer", "data": {"amount": "100", "pixKey": "12345678900", "pixKeyType": "CPF", "description": "opcional"}}}
    - Tipos de chave PIX (identifique automaticamente):
@@ -435,8 +448,8 @@ IMPORTANTE: Quando o usuário pedir para fazer algo, você DEVE executar automat
      * CNPJ: 14 dígitos numéricos (ex: 12345678000190)
      * EMAIL: contém @ (ex: usuario@email.com)
      * PHONE: 10-11 dígitos numéricos (ex: 11987654321)
-     * RANDOM: 32 caracteres alfanuméricos (chave aleatória)
-   - IMPORTANTE: Só retorne create_transfer se tiver valor E chave PIX explícitos. Se faltar informação, retorne "explain"
+     * RANDOM: 32 caracteres alfanuméricos ou qualquer outra string que não se encaixe nos anteriores
+   - IMPORTANTE: Só retorne create_transfer se tiver valor E chave PIX explícitos. Se faltar informação, retorne "explain" perguntando o dado faltante.
    - A taxa do plano é deduzida do valor enviado
    - Acesse em: /dashboard/transfer ou use o botão "Transferir" no dashboard
 

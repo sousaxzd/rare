@@ -1,105 +1,194 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { SidebarDashboard } from '@/components/sidebar-dashboard'
 import { DashboardTopbar } from '@/components/dashboard-topbar'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGift, faEnvelope, faCode, faRocket } from '@fortawesome/free-solid-svg-icons'
+import { faGift, faTrophy, faRocket, faLock, faCheckCircle, faStar } from '@fortawesome/free-solid-svg-icons'
+import { getBalance } from '@/lib/wallet'
 import { RippleButton } from '@/components/ripple-button'
 
 const rewards = [
-  { value: 10000, label: 'R$ 10.000', formatted: 'Pulseira Vision' },
-  { value: 30000, label: 'R$ 30.000', formatted: 'Placa 30 Mil' },
-  { value: 50000, label: 'R$ 50.000', formatted: 'Placa 50 Mil' },
-  { value: 100000, label: 'R$ 100.000', formatted: 'Placa 100 Mil' },
-  { value: 500000, label: 'R$ 500.000', formatted: 'Placa 500 Mil' },
-  { value: 1000000, label: 'R$ 1.000.000', formatted: 'Placa 1 Milhão' },
-  { value: 5000000, label: 'R$ 5.000.000', formatted: 'Placa 5 Milhões' },
-  { value: 10000000, label: 'R$ 10.000.000', formatted: 'Placa 10 Milhões' },
+  { value: 10000, label: 'R$ 10.000', title: 'Pulseira Vision', description: 'Exclusividade para quem começa a brilhar.', icon: faStar },
+  { value: 30000, label: 'R$ 30.000', title: 'Placa 30k', description: 'O primeiro grande marco da sua jornada.', icon: faTrophy },
+  { value: 50000, label: 'R$ 50.000', title: 'Placa 50k', description: 'Consolidando seu sucesso no digital.', icon: faTrophy },
+  { value: 100000, label: 'R$ 100.000', title: 'Placa 100k', description: 'Bem-vindo à elite dos 6 dígitos.', icon: faTrophy },
+  { value: 500000, label: 'R$ 500.000', title: 'Placa 500k', description: 'Meio milhão faturado. Incrível.', icon: faTrophy },
+  { value: 1000000, label: 'R$ 1.000.000', title: 'Placa 1M', description: 'O clube do milhão é para poucos.', icon: faRocket },
+  { value: 5000000, label: 'R$ 5.000.000', title: 'Placa 5M', description: 'Lenda viva do mercado.', icon: faRocket },
+  { value: 10000000, label: 'R$ 10.000.000', title: 'Placa 10M', description: 'O topo absoluto.', icon: faRocket },
 ]
 
 export default function GoalsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [currentBalance, setCurrentBalance] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const res = await getBalance()
+        if (res.success) {
+          setCurrentBalance(res.data.balance.total / 100)
+        }
+      } catch (error) {
+        console.error('Erro ao buscar saldo', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchBalance()
+  }, [])
+
+  // Calculate progress to next goal
+  const nextGoal = rewards.find(r => r.value > currentBalance) || rewards[rewards.length - 1]
+  const progress = Math.min(100, (currentBalance / nextGoal.value) * 100)
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background text-foreground">
       <SidebarDashboard open={sidebarOpen} onOpenChange={setSidebarOpen} />
 
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden relative">
         <DashboardTopbar onOpenSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
-        <main data-dashboard className="flex-1 overflow-auto">
-          <div className="p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-background/50 backdrop-blur-sm">
+          <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
             <DashboardHeader />
 
-            {/* Banner de Desenvolvimento */}
-            <div className="mt-6 border border-primary/30 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-primary/10 p-8 backdrop-blur-sm">
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div className="w-20 h-20 rounded-full bg-primary/20 border-2 border-primary/50 flex items-center justify-center">
-                  <FontAwesomeIcon icon={faCode} className="text-primary w-10 h-10" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground mb-2">
-                    Página em Desenvolvimento
-                  </h2>
-                  <p className="text-foreground/70 max-w-2xl">
-                    Estamos trabalhando para trazer um sistema completo de metas e premiações. 
-                    Em breve você poderá acompanhar seu progresso e conquistar recompensas incríveis!
-                  </p>
-                </div>
-              </div>
-            </div>
+            {/* Hero Section */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/20 via-background to-background border border-primary/10 p-8 lg:p-12">
+              <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-primary/20 rounded-full blur-3xl opacity-50 animate-pulse" />
 
-            {/* Lista de Premiações */}
-            <div className="mt-6">
-              <div className="flex items-center gap-3 mb-6">
-                <FontAwesomeIcon icon={faGift} className="text-primary w-6 h-6" />
-                <h2 className="text-xl font-bold text-foreground">Premiações Disponíveis</h2>
-              </div>
+              <div className="relative z-10">
+                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+                  <div className="space-y-4 max-w-2xl">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider">
+                      <FontAwesomeIcon icon={faTrophy} />
+                      Suas Conquistas
+                    </div>
+                    <h1 className="text-4xl lg:text-5xl font-bold tracking-tight">
+                      Desbloqueie seu <span className="text-primary">Potencial</span>
+                    </h1>
+                    <p className="text-lg text-muted-foreground">
+                      Cada marco atingido é uma prova do seu sucesso. Acompanhe seu progresso e receba prêmios exclusivos da Vision Wallet.
+                    </p>
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {rewards.map((reward, index) => (
-                  <div
-                    key={reward.value}
-                    className="border border-foreground/10 rounded-lg p-6 bg-foreground/5 hover:bg-foreground/10 transition-colors"
-                  >
-                    <div className="flex flex-col items-center text-center space-y-3">
-                      <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
-                        <span className="text-xs font-bold text-primary">
-                          {index + 1}
-                        </span>
+                  {/* Progress Card */}
+                  <div className="w-full lg:w-96 bg-card/50 backdrop-blur-md border border-border rounded-2xl p-6 shadow-xl">
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-sm font-medium text-muted-foreground">Próxima Meta</span>
+                      <span className="text-sm font-bold text-primary">{nextGoal.title}</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs font-medium">
+                        <span>R$ {currentBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        <span>{nextGoal.label}</span>
                       </div>
-                      <div>
-                        <p className="text-2xl font-bold text-foreground mb-1">
-                          {reward.formatted}
-                        </p>
-                        <p className="text-sm text-foreground/60">
-                          {reward.label}
-                        </p>
+                      <div className="h-3 w-full bg-secondary/30 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-1000 ease-out"
+                          style={{ width: `${progress}%` }}
+                        />
                       </div>
+                      <p className="text-xs text-right text-muted-foreground mt-1">
+                        {progress.toFixed(1)}% concluído
+                      </p>
                     </div>
                   </div>
-                ))}
+                </div>
               </div>
             </div>
 
-            {/* Aviso de Contato */}
-            <div className="mt-6 border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm p-6">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
-                  <FontAwesomeIcon icon={faRocket} className="text-primary w-6 h-6" />
+            {/* Rewards Grid */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-1 bg-primary rounded-full" />
+                <h2 className="text-2xl font-bold">Galeria de Prêmios</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {rewards.map((reward, index) => {
+                  const isUnlocked = currentBalance >= reward.value
+                  const isNext = !isUnlocked && reward === nextGoal
+
+                  return (
+                    <div
+                      key={reward.value}
+                      className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 ${isUnlocked
+                          ? 'bg-primary/5 border-primary/30 hover:border-primary/50'
+                          : isNext
+                            ? 'bg-card border-primary/20 shadow-[0_0_30px_-10px_rgba(var(--primary),0.3)] scale-[1.02]'
+                            : 'bg-card/50 border-border/50 opacity-70 hover:opacity-100'
+                        }`}
+                    >
+                      {/* Status Badge */}
+                      <div className="absolute top-4 right-4">
+                        {isUnlocked ? (
+                          <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
+                            <FontAwesomeIcon icon={faCheckCircle} />
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-muted/20 flex items-center justify-center text-muted-foreground">
+                            <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="p-6 space-y-4">
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-transform group-hover:scale-110 ${isUnlocked ? 'bg-primary/20 text-primary' : 'bg-muted/20 text-muted-foreground'
+                          }`}>
+                          <FontAwesomeIcon icon={reward.icon} />
+                        </div>
+
+                        <div>
+                          <h3 className={`text-xl font-bold mb-1 ${isUnlocked ? 'text-primary' : 'text-foreground'}`}>
+                            {reward.title}
+                          </h3>
+                          <p className="text-sm font-medium text-muted-foreground mb-3">
+                            {reward.label} em vendas
+                          </p>
+                          <p className="text-xs text-muted-foreground/80 leading-relaxed">
+                            {reward.description}
+                          </p>
+                        </div>
+
+                        {isNext && (
+                          <div className="pt-2">
+                            <div className="text-xs text-center text-primary font-medium bg-primary/10 py-2 rounded-lg">
+                              Próximo Objetivo
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Background Glow */}
+                      {isUnlocked && (
+                        <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl" />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Support CTA */}
+            <div className="rounded-2xl bg-card border border-border p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-6">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary text-2xl">
+                  <FontAwesomeIcon icon={faGift} />
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
-                    Alcançou uma meta antes do lançamento?
-                  </h3>
-                  <p className="text-foreground/70 mb-4">
-                    Se você já alcançou alguma dessas metas antes do lançamento oficial desta página, 
-                    entre em contato com nosso suporte para garantir que sua premiação seja registrada corretamente.
+                <div>
+                  <h3 className="text-xl font-bold mb-2">Já atingiu uma meta?</h3>
+                  <p className="text-muted-foreground max-w-xl">
+                    Se você já alcançou o faturamento necessário para uma das placas, entre em contato com nosso time de suporte para solicitar o envio do seu prêmio.
                   </p>
                 </div>
               </div>
+              <RippleButton className="whitespace-nowrap px-8 py-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+                Solicitar Prêmio
+              </RippleButton>
             </div>
           </div>
         </main>
