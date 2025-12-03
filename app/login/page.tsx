@@ -21,11 +21,22 @@ export default function LoginPage() {
   const [newPassword, setNewPassword] = useState('')
   const [passwordValidation, setPasswordValidation] = useState<{ valid: boolean; errors: string[] }>({ valid: true, errors: [] })
 
-  // Redirecionar se já estiver logado
+  // Redirecionar se já estiver logado (apenas se ainda estiver na página de login)
   useEffect(() => {
-    if (isAuthenticated()) {
-      router.push('/')
+    const checkAuth = () => {
+      if (isAuthenticated()) {
+        // Verificar se ainda estamos na página de login antes de redirecionar
+        // Isso evita redirecionamentos indesejados durante o processo de login
+        if (window.location.pathname === '/login') {
+          router.replace('/dashboard')
+        }
+      }
     }
+    
+    // Pequeno delay para evitar verificação muito cedo
+    const timeoutId = setTimeout(checkAuth, 100)
+    
+    return () => clearTimeout(timeoutId)
   }, [router])
 
   const handleRequestCode = async (e: React.FormEvent) => {
@@ -51,6 +62,8 @@ export default function LoginPage() {
     try {
       const response = await verifyCode({ email, code })
       if (response.success && response.token) {
+        // Pequeno delay para garantir que o token seja salvo no localStorage antes do redirecionamento
+        await new Promise(resolve => setTimeout(resolve, 50))
         // Usar replace para evitar problemas de histórico e garantir redirecionamento correto
         router.replace('/dashboard')
       }
@@ -91,6 +104,8 @@ export default function LoginPage() {
     try {
       const response = await resetPassword(email, code, newPassword)
       if (response.success && response.token) {
+        // Pequeno delay para garantir que o token seja salvo no localStorage antes do redirecionamento
+        await new Promise(resolve => setTimeout(resolve, 50))
         // Usar replace para evitar problemas de histórico e garantir redirecionamento correto
         router.replace('/dashboard')
       }

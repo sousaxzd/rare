@@ -22,6 +22,8 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     if (!isMounted) return
 
     let mounted = true
+    let retryCount = 0
+    const maxRetries = 5
 
     const checkAuth = async () => {
       try {
@@ -36,13 +38,22 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
         if (!mounted) return
 
         try {
-          const authenticated = isAuthenticated()
+          let authenticated = isAuthenticated()
+          
+          // Se não estiver autenticado e ainda tiver tentativas, tentar novamente após delays progressivos
+          // Isso resolve problemas de timing quando o token é salvo logo antes do redirecionamento
+          while (!authenticated && retryCount < maxRetries && mounted) {
+            await new Promise(resolve => setTimeout(resolve, 100 * (retryCount + 1)))
+            authenticated = isAuthenticated()
+            retryCount++
+          }
+          
           if (mounted) {
             setIsAuthenticatedState(authenticated)
             setIsChecking(false)
             
             if (!authenticated) {
-              // Redirecionar se não estiver autenticado
+              // Redirecionar se não estiver autenticado após todas as tentativas
               router.replace('/')
             }
           }
