@@ -256,14 +256,14 @@ export async function createWithdraw(data: CreateWithdrawData): Promise<CreateWi
  * Buscar detalhes de um pagamento específico
  */
 export async function getPaymentById(id: string): Promise<{ success: boolean; data: Payment & { netValue?: number; qrCode?: string } }> {
-  return apiGet(`/v1/payment/get/${id}`);
+  return apiGet(`/auth/payment/${id}`);
 }
 
 /**
  * Buscar detalhes de um saque específico
  */
 export async function getWithdrawById(id: string): Promise<{ success: boolean; data: Withdraw & { correlationID?: string; pixKeyType?: string; transactionId?: string; completedAt?: string; failedAt?: string; failureReason?: string } }> {
-  return apiGet(`/v1/withdraw/get/${id}`);
+  return apiGet(`/auth/withdraw/${id}`);
 }
 
 /**

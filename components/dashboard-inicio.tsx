@@ -61,17 +61,15 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
 
       try {
         setLoading(true)
-        const [balanceRes, paymentsRes, withdrawsRes, userDataRes] = await Promise.all([
+        // Carregar dados em paralelo para melhor performance
+        const [balanceRes, paymentsRes, withdrawsRes] = await Promise.all([
           getBalance(),
           listPayments({ limit: 20 }),
           listWithdraws({ limit: 20 }),
-          getUserData().catch(() => null) // Não quebrar se falhar
         ])
 
-        // Atualizar preferência de IA se disponível
-        if (userDataRes?.success && userDataRes.data?.aiEnabled !== undefined) {
-          setAiEnabled(userDataRes.data.aiEnabled)
-        }
+        // AI está habilitado por padrão
+        setAiEnabled(true)
 
         const balanceData = balanceRes.data.balance.total / 100
         setBalance(balanceData)
