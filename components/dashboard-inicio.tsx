@@ -39,6 +39,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
   const [balance, setBalance] = useState<number | null>(null)
   const [transactions, setTransactions] = useState<TransactionDisplay[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [detailsModalOpen, setDetailsModalOpen] = useState(false)
   const [selectedTransactionId, setSelectedTransactionId] = useState<string>('')
   const [selectedTransactionType, setSelectedTransactionType] = useState<'payment' | 'withdraw'>('payment')
@@ -61,6 +62,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
 
       try {
         setLoading(true)
+        setError(false)
         // Carregar dados em paralelo para melhor performance
         const [balanceRes, paymentsRes, withdrawsRes] = await Promise.all([
           getBalance(),
@@ -152,6 +154,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
 
         // Para outros erros, logar mas não quebrar
         console.warn('Erro ao carregar dados do dashboard, continuando sem dados')
+        setError(true)
       } finally {
         // Garantir tempo mínimo de loading para sincronização visual (800ms)
         const elapsed = Date.now() - startTime
@@ -165,6 +168,13 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
 
     loadData()
   }, [])
+
+  const reloadData = () => {
+    // Re-executar o efeito de carregamento
+    // Como o efeito depende de [], não podemos simplesmente chamá-lo novamente
+    // Vamos extrair a lógica ou forçar um reload simples
+    window.location.reload()
+  }
 
   const handleAISubmit = async () => {
     if (!aiInput.trim() || aiLoading) return
@@ -536,6 +546,29 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
               </button>
             )}
           </div>
+        </div>
+      )}
+
+
+
+      {/* Mensagem de Erro */}
+      {error && !loading && (
+        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-500">
+              <FontAwesomeIcon icon={faTimes} className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="font-medium text-red-500">Erro ao carregar dados</p>
+              <p className="text-sm text-red-500/80">Não foi possível carregar suas informações.</p>
+            </div>
+          </div>
+          <button
+            onClick={reloadData}
+            className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium"
+          >
+            Tentar novamente
+          </button>
         </div>
       )}
 
