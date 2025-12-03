@@ -136,28 +136,28 @@ export function getToken(): string | null {
  * Solicitar código para alterar email
  */
 export async function requestEmailChangeCode(newEmail: string): Promise<{ success: boolean; message: string }> {
-  return apiPost('/auth/change-email/request-code', { newEmail });
+  return apiPost('/profile/email/request-code', { newEmail });
 }
 
 /**
  * Alterar email do usuário
  */
 export async function changeEmail(newEmail: string, code: string): Promise<{ success: boolean; message: string; user: User }> {
-  return apiPost('/auth/change-email/verify-code', { newEmail, code });
+  return apiPut('/profile/email/verify-code', { newEmail, code });
 }
 
 /**
  * Alterar telefone do usuário
  */
 export async function changePhone(phone: string): Promise<{ success: boolean; message: string; user: User }> {
-  return apiPost('/auth/change-phone', { phone });
+  return apiPut('/profile/phone', { phone });
 }
 
 /**
  * Alterar nome do usuário
  */
 export async function changeName(fullName: string): Promise<{ success: boolean; message: string; user: User }> {
-  return apiPost('/auth/change-name', { fullName });
+  return apiPut('/profile/name', { fullName });
 }
 
 /**
@@ -167,7 +167,7 @@ export async function changeAvatar(file: File): Promise<{ success: boolean; mess
   const formData = new FormData();
   formData.append('avatar', file);
   
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}/api/auth/change-avatar`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}/api/profile/avatar`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${getToken()}`,
@@ -187,14 +187,14 @@ export async function changeAvatar(file: File): Promise<{ success: boolean; mess
  * Solicitar código para alterar senha
  */
 export async function requestPasswordChangeCode(oldPassword?: string, forgotPassword?: boolean): Promise<{ success: boolean; message: string }> {
-  return apiPost('/auth/change-password/request-code', { oldPassword, forgotPassword });
+  return apiPost('/profile/password/request-code', { oldPassword, forgotPassword });
 }
 
 /**
  * Alterar senha do usuário
  */
 export async function changePassword(newPassword: string, code: string): Promise<{ success: boolean; message: string; user: User }> {
-  return apiPost('/auth/change-password/verify-code', { newPassword, code });
+  return apiPut('/profile/password/verify-code', { newPassword, code });
 }
 
 /**
