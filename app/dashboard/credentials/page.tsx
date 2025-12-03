@@ -384,7 +384,7 @@ export default function CredentialsPage() {
         <DashboardTopbar onOpenSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
         <main data-dashboard className="flex-1 overflow-auto">
-          <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+          <div className="p-6 lg:p-8 w-full">
             <div className="mb-6">
               <h1 className="text-3xl font-bold text-foreground mb-2">Gerenciamento de Credenciais</h1>
               <p className="text-foreground/70 text-sm">Gerencie suas credenciais de API e configure IPs autorizados.</p>

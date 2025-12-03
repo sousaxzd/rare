@@ -19,7 +19,7 @@ export default function DashboardPage() {
           <DashboardTopbar onOpenSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
           <main data-dashboard className="flex-1 overflow-auto">
-            <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+            <div className="p-6 lg:p-8 w-full">
               <ErrorBoundary>
                 <DashboardHeader />
               </ErrorBoundary>

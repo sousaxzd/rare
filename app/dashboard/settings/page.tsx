@@ -334,7 +334,7 @@ export default function SettingsPage() {
           <div className="p-6 lg:p-8">
             <DashboardHeader />
 
-            <div className="mt-6 max-w-7xl w-full space-y-6">
+            <div className="mt-6 w-full space-y-6">
               {/* Categoria: Informações */}
               <div className="border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm overflow-hidden">
                 <div className="p-6 border-b border-foreground/10">
