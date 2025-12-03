@@ -226,8 +226,6 @@ export default function TransferPage() {
                   </div>
                 )}
 
-                <Separator />
-
                 <form onSubmit={handleTransfer} className="space-y-5">
               {/* Informações de destino */}
               <div className="space-y-4">

@@ -33,7 +33,8 @@ export function useAuth() {
             if (response.success && response.user) {
               setUser(response.user)
             } else {
-              // Token inválido, limpar
+              // Token inválido, limpar apenas se realmente não houver usuário
+              // Não limpar em caso de erro de servidor
               try {
                 localStorage.removeItem('token')
               } catch (e) {
@@ -41,31 +42,88 @@ export function useAuth() {
               }
             }
           }
-        } catch (getMeError) {
-          // Erro ao buscar usuário - tratar separadamente
-          throw getMeError
-        }
-      } catch (error) {
-        // Erro ao carregar usuário - sempre tratar sem quebrar a aplicação
-        if (mounted) {
-          // Se for erro de servidor indisponível, não limpar token, apenas não carregar usuário
-          if (error instanceof Error && (
-            error.message.includes('Servidor indisponível') ||
-            error.message.includes('Failed to fetch') ||
-            error.message.includes('NetworkError') ||
-            error.message.includes('ECONNREFUSED')
-          )) {
+        } catch (getMeError: any) {
+          // Verificar status HTTP primeiro (mais confiável)
+          const httpStatus = getMeError?.status || getMeError?.response?.status
+          const errorMessage = getMeError?.message || ''
+          
+          // Status 0 ou undefined geralmente indica erro de rede (sem resposta do servidor)
+          const isNetworkError = (
+            httpStatus === 0 ||
+            httpStatus === undefined ||
+            errorMessage.includes('Servidor indisponível') ||
+            errorMessage.includes('Failed to fetch') ||
+            errorMessage.includes('NetworkError') ||
+            errorMessage.includes('ECONNREFUSED') ||
+            errorMessage.includes('ERR_CONNECTION_REFUSED') ||
+            errorMessage.includes('ERR_NETWORK_CHANGED') ||
+            errorMessage.includes('Tempo de espera esgotado') ||
+            getMeError?.name === 'AbortError' ||
+            // Verificar se é erro de conexão (sem resposta do servidor)
+            (getMeError?.cause && typeof getMeError.cause === 'object' && 'code' in getMeError.cause && 
+             ['ECONNREFUSED', 'ETIMEDOUT', 'ENOTFOUND'].includes(getMeError.cause.code as string))
+          )
+          
+          // Se for erro de rede, manter token e não limpar
+          if (isNetworkError) {
             console.warn('Backend indisponível, mantendo token mas não carregando usuário')
             // Não limpar token quando backend está indisponível
             // Não definir usuário, apenas continuar
-          } else {
-            // Para outros erros (autenticação inválida, etc), limpar token
-            console.error('Erro ao carregar usuário:', error)
+            return
+          }
+          
+          // Se for erro 401 (não autorizado), limpar token
+          if (httpStatus === 401) {
+            console.warn('Token inválido ou expirado (401), removendo token')
+            if (mounted) {
+              try {
+                localStorage.removeItem('token')
+              } catch (e) {
+                // Ignorar erros de localStorage
+              }
+            }
+            return
+          }
+          
+          // Para outros erros (500, 503, etc), manter token mas não carregar usuário
+          // Pode ser erro temporário do servidor (reiniciando, etc)
+          console.warn(`Erro ao carregar usuário (status ${httpStatus || 'unknown'}, mantendo token):`, errorMessage)
+        }
+      } catch (error: any) {
+        // Erro ao carregar usuário - sempre tratar sem quebrar a aplicação
+        if (mounted) {
+          const httpStatus = error?.status || error?.response?.status
+          const errorMessage = error instanceof Error ? error.message : String(error)
+          
+          // Status 0 ou undefined geralmente indica erro de rede
+          const isNetworkError = (
+            httpStatus === 0 ||
+            httpStatus === undefined ||
+            errorMessage.includes('Servidor indisponível') ||
+            errorMessage.includes('Failed to fetch') ||
+            errorMessage.includes('NetworkError') ||
+            errorMessage.includes('ECONNREFUSED') ||
+            errorMessage.includes('ERR_CONNECTION_REFUSED') ||
+            errorMessage.includes('ERR_NETWORK_CHANGED') ||
+            errorMessage.includes('Tempo de espera esgotado')
+          )
+          
+          if (isNetworkError) {
+            console.warn('Backend indisponível, mantendo token mas não carregando usuário')
+            // Não limpar token quando backend está indisponível
+            // Não definir usuário, apenas continuar
+          } else if (httpStatus === 401) {
+            // Erro 401 = não autorizado, limpar token
+            console.warn('Token inválido ou expirado (401), removendo token')
             try {
               localStorage.removeItem('token')
             } catch (e) {
               // Ignorar erros de localStorage
             }
+          } else {
+            // Para outros erros (500, 503, etc), manter token
+            // Pode ser erro temporário do servidor
+            console.warn(`Erro ao carregar usuário (status ${httpStatus || 'unknown'}, mantendo token):`, errorMessage)
           }
         }
       } finally {

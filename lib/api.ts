@@ -53,10 +53,28 @@ export async function apiRequest<T>(
       return {} as T;
     }
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      // Se não conseguir fazer parse do JSON, pode ser erro de rede ou servidor
+      if (!response.ok) {
+        // Criar erro com status para facilitar tratamento
+        const error = new Error(`Erro na requisição: ${response.statusText}`) as Error & { status?: number; response?: Response };
+        error.status = response.status;
+        error.response = response;
+        throw error;
+      }
+      // Se response.ok mas não tem JSON, retornar objeto vazio
+      return {} as T;
+    }
 
     if (!response.ok) {
-      throw new Error(data.error || data.message || `Erro na requisição: ${response.statusText}`);
+      // Criar erro com status para facilitar tratamento
+      const error = new Error(data.error || data.message || `Erro na requisição: ${response.statusText}`) as Error & { status?: number; response?: Response };
+      error.status = response.status;
+      error.response = response;
+      throw error;
     }
 
     return data;
@@ -65,7 +83,9 @@ export async function apiRequest<T>(
     if (error instanceof Error) {
       // Erro de abort (timeout)
       if (error.name === 'AbortError') {
-        throw new Error('Tempo de espera esgotado. O servidor pode estar indisponível.');
+        const timeoutError = new Error('Tempo de espera esgotado. O servidor pode estar indisponível.') as Error & { status?: number };
+        timeoutError.status = 0; // Status 0 indica erro de rede
+        throw timeoutError;
       }
       
       // Erros de rede (backend não disponível)
@@ -77,9 +97,12 @@ export async function apiRequest<T>(
         error.message.includes('ERR_CONNECTION_REFUSED') ||
         error.message.includes('ERR_NETWORK_CHANGED')
       ) {
-        throw new Error('Servidor indisponível. Verifique se o backend está rodando.');
+        const networkError = new Error('Servidor indisponível. Verifique se o backend está rodando.') as Error & { status?: number };
+        networkError.status = 0; // Status 0 indica erro de rede
+        throw networkError;
       }
       
+      // Se já tem status, manter
       throw error;
     }
     throw new Error('Erro desconhecido na requisição');
