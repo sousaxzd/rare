@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faWallet, faArrowUp, faArrowDown, faEye, faEyeSlash, faArrowRight, faPaperPlane, faInbox, faSpinner, faCopy, faCheck } from '@fortawesome/free-solid-svg-icons'
+import { faWallet, faArrowUp, faArrowDown, faEye, faEyeSlash, faArrowRight, faPaperPlane, faInbox, faSpinner, faCopy, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
 import { RippleButton } from './ripple-button'
@@ -35,6 +35,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
   const [aiLoading, setAiLoading] = useState(false)
   const [pendingAction, setPendingAction] = useState<{ type: 'create_payment' | 'create_transfer'; data?: any } | null>(null)
   const [aiMessages, setAiMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string; copyPaste?: string }>>([])
+  const [aiPlaceholderResponse, setAiPlaceholderResponse] = useState('')
   const [balance, setBalance] = useState<number | null>(null)
   const [transactions, setTransactions] = useState<TransactionDisplay[]>([])
   const [loading, setLoading] = useState(true)
@@ -46,7 +47,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
   const [copiedPixKey, setCopiedPixKey] = useState<string | null>(null)
   const [aiEnabled, setAiEnabled] = useState<boolean>(true) // Default true
   const { notifyPaymentReceived, notifyWithdrawCompleted } = useNotifications()
-  
+
   useEffect(() => {
     const loadData = async () => {
       // Verificar se está autenticado antes de fazer requisições
@@ -66,7 +67,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
           listWithdraws({ limit: 20 }),
           getUserData().catch(() => null) // Não quebrar se falhar
         ])
-        
+
         // Atualizar preferência de IA se disponível
         if (userDataRes?.success && userDataRes.data?.aiEnabled !== undefined) {
           setAiEnabled(userDataRes.data.aiEnabled)
@@ -135,7 +136,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
         setTransactions(sortedTransactions)
       } catch (error) {
         console.error('Erro ao carregar dados:', error)
-        
+
         // Se for erro de servidor indisponível, não quebrar a aplicação
         if (error instanceof Error) {
           if (error.message.includes('Servidor indisponível')) {
@@ -143,23 +144,23 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
             // Não quebrar a aplicação, apenas não carregar dados
             return
           }
-          
+
           // Se for erro de autenticação, não mostrar erro, apenas não carregar dados
           if (error.message.includes('Autenticação')) {
             // Token inválido ou expirado, será tratado pelo useAuth
             return
           }
         }
-        
+
         // Para outros erros, logar mas não quebrar
         console.warn('Erro ao carregar dados do dashboard, continuando sem dados')
       } finally {
         // Garantir tempo mínimo de loading para sincronização visual (800ms)
         const elapsed = Date.now() - startTime
         const remaining = Math.max(0, minLoadingTime - elapsed)
-        
+
         setTimeout(() => {
-        setLoading(false)
+          setLoading(false)
         }, remaining)
       }
     }
@@ -179,7 +180,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
       const balanceRes = await getBalance().catch(() => null)
       const userBalance = balanceRes ? balanceRes.data.balance.total : undefined
       const userPlan = balanceRes?.data?.plan?.name || 'FREE'
-      
+
       const systemContext = buildSystemContext({
         name: user?.fullName,
         balance: userBalance,
@@ -197,7 +198,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
 
       // Processar ação automaticamente
       const action = response.action || parseAIAction(response.content)
-      
+
       // Limpar conteúdo removendo JSON para exibição
       const cleanedContent = cleanContentForDisplay(response.content)
 
@@ -206,18 +207,23 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
         // Se houver conteúdo limpo (sem JSON), mostrar. Caso contrário, mostrar mensagem padrão
         const displayContent = cleanedContent || 'Como posso ajudá-lo hoje?'
         setAiMessages(prev => [...prev, { role: 'assistant', content: displayContent }])
+        setAiPlaceholderResponse(displayContent)
         setAiLoading(false)
         return
       }
 
-          // Ações informacionais
-          if (action && action.type === 'show_balance') {
+      // Ações informacionais
+      if (action && action.type === 'show_balance') {
         const res = await getBalance().catch(() => null)
         if (res) {
           const current = res.data.balance.total / 100
-          setAiMessages(prev => [...prev, { role: 'assistant', content: `💰 Seu saldo atual é de R$ ${current.toFixed(2).replace('.', ',')}` }])
+          const msg = `💰 Seu saldo atual é de R$ ${current.toFixed(2).replace('.', ',')}`
+          setAiMessages(prev => [...prev, { role: 'assistant', content: msg }])
+          setAiPlaceholderResponse(msg)
         } else {
-          setAiMessages(prev => [...prev, { role: 'assistant', content: 'Não consegui obter seu saldo agora.' }])
+          const msg = 'Não consegui obter seu saldo agora.'
+          setAiMessages(prev => [...prev, { role: 'assistant', content: msg }])
+          setAiPlaceholderResponse(msg)
         }
       } else if (action && action.type === 'show_last_transactions') {
         try {
@@ -225,66 +231,78 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
             listPayments({ limit: 5 }),
             listWithdraws({ limit: 5 })
           ])
-          const payments = (paymentsRes.data.payments || []).slice(0, 3).map(p => `+ R$ ${((p.netValue || p.value)/100).toFixed(2)} ${p.description ? `- ${p.description}` : ''}`)
-          const withdraws = (withdrawsRes.data.withdraws || []).slice(0, 3).map(w => `- R$ ${(w.value/100).toFixed(2)} ${w.description ? `- ${w.description}` : ''}`)
+          const payments = (paymentsRes.data.payments || []).slice(0, 3).map(p => `+ R$ ${((p.netValue || p.value) / 100).toFixed(2)} ${p.description ? `- ${p.description}` : ''}`)
+          const withdraws = (withdrawsRes.data.withdraws || []).slice(0, 3).map(w => `- R$ ${(w.value / 100).toFixed(2)} ${w.description ? `- ${w.description}` : ''}`)
           const lines = [...payments, ...withdraws]
-          setAiMessages(prev => [...prev, { role: 'assistant', content: lines.length ? `🧾 Últimas transações:\n${lines.join('\n')}` : 'Você ainda não possui transações.' }])
+          const msg = lines.length ? `🧾 Últimas transações:\n${lines.join('\n')}` : 'Você ainda não possui transações.'
+          setAiMessages(prev => [...prev, { role: 'assistant', content: msg }])
+          setAiPlaceholderResponse(lines.length ? '🧾 Últimas transações exibidas no console.' : 'Você ainda não possui transações.')
         } catch {
-          setAiMessages(prev => [...prev, { role: 'assistant', content: 'Não consegui obter as últimas transações agora.' }])
+          const msg = 'Não consegui obter as últimas transações agora.'
+          setAiMessages(prev => [...prev, { role: 'assistant', content: msg }])
+          setAiPlaceholderResponse(msg)
         }
       } else if (action && (action.type === 'create_payment' || action.type === 'create_transfer')) {
         // Verificar se há dados suficientes antes de pedir confirmação
         // Validar valor para pagamento: deve existir, não ser vazio, e ser um número válido
         const paymentValue = action.type === 'create_payment' ? action.data?.value : null
-        const isValidPaymentValue = paymentValue && 
-          paymentValue !== '' && 
-          paymentValue !== null && 
+        const isValidPaymentValue = paymentValue &&
+          paymentValue !== '' &&
+          paymentValue !== null &&
           !isNaN(parseFloat(paymentValue.toString().replace(/\./g, '').replace(',', '.')))
-        
+
         // Validar transferência: deve ter valor E chave PIX
         const transferAmount = action.type === 'create_transfer' ? action.data?.amount : null
         const transferPixKey = action.type === 'create_transfer' ? action.data?.pixKey : null
-        const isValidTransferAmount = transferAmount && 
-          transferAmount !== '' && 
-          transferAmount !== null && 
+        const isValidTransferAmount = transferAmount &&
+          transferAmount !== '' &&
+          transferAmount !== null &&
           !isNaN(parseFloat(transferAmount.toString().replace(/\./g, '').replace(',', '.')))
-        const isValidTransferPixKey = transferPixKey && 
-          transferPixKey !== '' && 
+        const isValidTransferPixKey = transferPixKey &&
+          transferPixKey !== '' &&
           transferPixKey !== null
-        
+
         const hasPaymentData = action.type === 'create_payment' && isValidPaymentValue
         const hasTransferData = action.type === 'create_transfer' && isValidTransferAmount && isValidTransferPixKey
-        
+
         if (!hasPaymentData && !hasTransferData) {
           // Se não houver dados suficientes, mostrar conteúdo limpo ou mensagem padrão
           const displayContent = cleanedContent || 'Preciso de mais informações para realizar essa ação. Por favor, informe o valor e a chave PIX.'
           setAiMessages(prev => [...prev, { role: 'assistant', content: displayContent }])
+          setAiPlaceholderResponse(displayContent)
         } else {
           // Requer confirmação do usuário apenas se houver dados válidos
           setPendingAction(action as { type: 'create_payment' | 'create_transfer'; data?: any })
-          
+
           // Formatar valores para exibição
           const formatValue = (val: string | number) => {
             const num = parseFloat(val.toString().replace(/\./g, '').replace(',', '.'))
             return num.toFixed(2).replace('.', ',')
           }
-          
+
           const confirmText = action.type === 'create_payment'
             ? `Você confirma que a Vision AI irá gerar um pagamento de R$ ${formatValue(paymentValue!)}${action.data?.description ? `\n\nDescrição: ${action.data.description}` : ''}?`
             : `Você confirma que a Vision AI irá transferir R$ ${formatValue(transferAmount!)} para a chave PIX ${transferPixKey}${action.data?.description ? `\n\nDescrição: ${action.data.description}` : ''}?`
-          
-          setAiMessages(prev => [...prev, { role: 'assistant', content: `⚠️ ${confirmText}\n\nClique em Sim para confirmar ou Não para cancelar.` }])
+
+          const msg = `⚠️ ${confirmText}\n\nClique em Sim para confirmar ou Não para cancelar.`
+          setAiMessages(prev => [...prev, { role: 'assistant', content: msg }])
+          setAiPlaceholderResponse(action.type === 'create_payment'
+            ? `Confirmar pagamento de R$ ${formatValue(paymentValue!)}?`
+            : `Confirmar transferência de R$ ${formatValue(transferAmount!)} para ${transferPixKey}?`)
         }
       } else {
         // Adicionar resposta da IA ao chat (sem JSON)
         const displayContent = cleanedContent || 'Como posso ajudá-lo hoje?'
         setAiMessages(prev => [...prev, { role: 'assistant', content: displayContent }])
+        setAiPlaceholderResponse(displayContent)
       }
     } catch (error) {
-      setAiMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: `❌ Erro: ${error instanceof Error ? error.message : 'Erro ao processar sua solicitação'}` 
+      const errorMsg = `❌ Erro: ${error instanceof Error ? error.message : 'Erro ao processar sua solicitação'}`
+      setAiMessages(prev => [...prev, {
+        role: 'assistant',
+        content: errorMsg
       }])
+      setAiPlaceholderResponse(errorMsg)
     } finally {
       setAiLoading(false)
     }
@@ -295,7 +313,9 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
     const action = pendingAction
     setPendingAction(null)
     if (!confirm) {
-      setAiMessages(prev => [...prev, { role: 'assistant', content: 'Operação cancelada.' }])
+      const msg = 'Operação cancelada.'
+      setAiMessages(prev => [...prev, { role: 'assistant', content: msg }])
+      setAiPlaceholderResponse(msg)
       return
     }
     await executeAIAction(action)
@@ -305,22 +325,24 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
     try {
       if (action.type === 'create_payment') {
         const { value, description } = action.data || {}
-        
+
         if (!value) {
-          setAiMessages(prev => [...prev, { 
-            role: 'assistant', 
-            content: 'Por favor, informe o valor do pagamento. Exemplo: "Gerar pagamento de R$ 100"' 
+          setAiMessages(prev => [...prev, {
+            role: 'assistant',
+            content: 'Por favor, informe o valor do pagamento. Exemplo: "Gerar pagamento de R$ 100"'
           }])
+          setAiPlaceholderResponse('Por favor, informe o valor do pagamento.')
           return
         }
 
         const numericValue = parseFloat(value.toString().replace(/\./g, '').replace(',', '.'))
-        
+
         if (isNaN(numericValue) || numericValue <= 0) {
-          setAiMessages(prev => [...prev, { 
-            role: 'assistant', 
-            content: 'Valor inválido. Por favor, informe um valor válido. Exemplo: "Gerar pagamento de R$ 100"' 
+          setAiMessages(prev => [...prev, {
+            role: 'assistant',
+            content: 'Valor inválido. Por favor, informe um valor válido. Exemplo: "Gerar pagamento de R$ 100"'
           }])
+          setAiPlaceholderResponse('Valor inválido. Por favor, informe um valor válido.')
           return
         }
 
@@ -331,50 +353,55 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
 
         const copyPaste = paymentResponse.data?.copyPaste
         const successMessage = `✅ Pagamento gerado com sucesso!\n\nValor: R$ ${numericValue.toFixed(2)}\n${description ? `Descrição: ${description}\n` : ''}${copyPaste ? `\n📋 Código PIX copiado! Use o botão abaixo para colar na área de transferência.` : 'Você pode visualizar o QR Code na página de Extrato.'}`
-        
-        setAiMessages(prev => [...prev, { 
-          role: 'assistant', 
+
+        setAiMessages(prev => [...prev, {
+          role: 'assistant',
           content: successMessage,
           copyPaste: copyPaste || undefined // Adicionar código PIX à mensagem
         }])
-        
+        setAiPlaceholderResponse('✅ Pagamento gerado com sucesso!')
+
         // Recarregar dados
         const balanceRes = await getBalance()
         setBalance(balanceRes.data.balance.total / 100)
       } else if (action.type === 'create_transfer') {
         const { amount, pixKey, pixKeyType, description } = action.data || {}
-        
+
         if (!amount) {
-          setAiMessages(prev => [...prev, { 
-            role: 'assistant', 
-            content: 'Por favor, informe o valor da transferência. Exemplo: "Enviar R$ 100 para 12345678900"' 
+          setAiMessages(prev => [...prev, {
+            role: 'assistant',
+            content: 'Por favor, informe o valor da transferência. Exemplo: "Enviar R$ 100 para 12345678900"'
           }])
+          setAiPlaceholderResponse('Por favor, informe o valor da transferência.')
           return
         }
 
         if (!pixKey) {
-          setAiMessages(prev => [...prev, { 
-            role: 'assistant', 
-            content: 'Por favor, informe a chave PIX do destinatário. Exemplo: "Enviar R$ 100 para 12345678900"' 
+          setAiMessages(prev => [...prev, {
+            role: 'assistant',
+            content: 'Por favor, informe a chave PIX do destinatário. Exemplo: "Enviar R$ 100 para 12345678900"'
           }])
+          setAiPlaceholderResponse('Por favor, informe a chave PIX do destinatário.')
           return
         }
 
         if (!pixKeyType) {
-          setAiMessages(prev => [...prev, { 
-            role: 'assistant', 
-            content: 'Não foi possível identificar o tipo da chave PIX. Por favor, informe claramente: CPF, CNPJ, EMAIL, PHONE ou RANDOM' 
+          setAiMessages(prev => [...prev, {
+            role: 'assistant',
+            content: 'Não foi possível identificar o tipo da chave PIX. Por favor, informe claramente: CPF, CNPJ, EMAIL, PHONE ou RANDOM'
           }])
+          setAiPlaceholderResponse('Não foi possível identificar o tipo da chave PIX.')
           return
         }
 
         const numericAmount = parseFloat(amount.toString().replace(/\./g, '').replace(',', '.'))
-        
+
         if (isNaN(numericAmount) || numericAmount <= 0) {
-          setAiMessages(prev => [...prev, { 
-            role: 'assistant', 
-            content: 'Valor inválido. Por favor, informe um valor válido. Exemplo: "Enviar R$ 100 para 12345678900"' 
+          setAiMessages(prev => [...prev, {
+            role: 'assistant',
+            content: 'Valor inválido. Por favor, informe um valor válido. Exemplo: "Enviar R$ 100 para 12345678900"'
           }])
+          setAiPlaceholderResponse('Valor inválido. Por favor, informe um valor válido.')
           return
         }
 
@@ -387,16 +414,19 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
 
         const successMessage = `✅ Transferência enviada com sucesso!\n\nValor: R$ ${numericAmount.toFixed(2)}\nDestinatário: ${pixKey}\nTipo: ${pixKeyType}\n${description ? `Descrição: ${description}\n` : ''}A transferência está sendo processada.`
         setAiMessages(prev => [...prev, { role: 'assistant', content: successMessage }])
-        
+        setAiPlaceholderResponse('✅ Transferência enviada com sucesso!')
+
         // Recarregar dados
         const balanceRes = await getBalance()
         setBalance(balanceRes.data.balance.total / 100)
       }
     } catch (error) {
-      setAiMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: `❌ Erro: ${error instanceof Error ? error.message : 'Erro ao executar ação'}` 
+      const errorMsg = `❌ Erro: ${error instanceof Error ? error.message : 'Erro ao executar ação'}`
+      setAiMessages(prev => [...prev, {
+        role: 'assistant',
+        content: errorMsg
       }])
+      setAiPlaceholderResponse(errorMsg)
     }
   }
 
@@ -418,30 +448,30 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
     } catch (error) {
       console.error('Erro ao salvar no localStorage:', error)
     }
-    
+
     // Copiar para área de transferência
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(copyPaste).then(() => {
-      setCopiedPixKey(copyPaste)
-      setTimeout(() => setCopiedPixKey(null), 2000)
-      
+        setCopiedPixKey(copyPaste)
+        setTimeout(() => setCopiedPixKey(null), 2000)
+
         // Mostrar mensagem de sucesso
-        setAiMessages(prev => [...prev, { 
-          role: 'assistant', 
-          content: '✅ Código PIX copiado! Vá para a página de Transferências para usar.' 
+        setAiMessages(prev => [...prev, {
+          role: 'assistant',
+          content: '✅ Código PIX copiado! Vá para a página de Transferências para usar.'
         }])
       }).catch((error) => {
         console.error('Erro ao copiar:', error)
-        setAiMessages(prev => [...prev, { 
-          role: 'assistant', 
-          content: '❌ Erro ao copiar código PIX. Tente novamente.' 
+        setAiMessages(prev => [...prev, {
+          role: 'assistant',
+          content: '❌ Erro ao copiar código PIX. Tente novamente.'
         }])
       })
     } else {
       // Fallback para navegadores sem clipboard API
-      setAiMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: '✅ Código PIX salvo! Vá para a página de Transferências para usar.' 
+      setAiMessages(prev => [...prev, {
+        role: 'assistant',
+        content: '✅ Código PIX salvo! Vá para a página de Transferências para usar.'
       }])
     }
   }
@@ -464,154 +494,64 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
 
   return (
     <div className="space-y-6">
+      {/* AI Assistant - Moved outside container */}
+      {aiEnabled && (
+        <div className="relative">
+          <input
+            type="text"
+            value={aiInput}
+            onChange={(e) => setAiInput(e.target.value)}
+            onKeyPress={handleAIKeyPress}
+            placeholder={aiPlaceholderResponse || "Peça para IA que ela faz por você! (BETA TESTING)"}
+            disabled={aiLoading || !!pendingAction}
+            className={`w-full pl-4 pr-24 py-3 rounded-xl bg-foreground/5 border border-foreground/10 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all text-sm disabled:opacity-70 ${aiPlaceholderResponse ? 'placeholder:text-primary/80' : ''
+              }`}
+          />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+            {pendingAction ? (
+              <>
+                <button
+                  onClick={() => confirmPendingAction(true)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors"
+                  title="Confirmar"
+                >
+                  <FontAwesomeIcon icon={faCheck} className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => confirmPendingAction(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+                  title="Cancelar"
+                >
+                  <FontAwesomeIcon icon={faTimes} className="w-4 h-4" />
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleAISubmit}
+                disabled={aiLoading || !aiInput.trim()}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FontAwesomeIcon
+                  icon={aiLoading ? faSpinner : faPaperPlane}
+                  className={`w-4 h-4 ${aiLoading ? 'animate-spin' : ''}`}
+                />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Seção Principal: Saldo e Botões */}
       <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
-        {/* AI Assistant - Só mostrar se estiver ativada */}
-        {aiEnabled && (
-          <div className="mb-6">
-          {loading ? (
-            <>
-              <Skeleton className="h-12 w-full rounded-lg mb-1" />
-              <Skeleton className="h-3 w-32 ml-1" />
-            </>
-          ) : (
-            <>
-              {/* Chat Messages */}
-              {aiMessages.length > 0 && (
-                <div className="mb-4 space-y-3 max-h-64 overflow-y-auto">
-                  {aiMessages.slice(-3).map((msg, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div
-                        className={`max-w-[85%] rounded-lg px-4 py-2 text-sm ${
-                          msg.role === 'user'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-foreground/5 text-foreground border border-foreground/10'
-                        }`}
-                      >
-                        <p className="whitespace-pre-wrap">
-                          {msg.content.split(/(\*\*.*?\*\*)/g).map((part, i) => {
-                            if (part.startsWith('**') && part.endsWith('**')) {
-                              // Remove os ** e renderiza em negrito
-                              const text = part.slice(2, -2)
-                              return <strong key={i} className="font-bold">{text}</strong>
-                            }
-                            return <span key={i}>{part}</span>
-                          })}
-                        </p>
-                        {msg.copyPaste && msg.role === 'assistant' && (
-                          <div className="mt-3 pt-3 border-t border-foreground/10">
-                            <div className="flex items-center gap-2 p-2 rounded bg-foreground/5 border border-foreground/10">
-                              <code className="flex-1 text-xs font-mono text-foreground/80 break-all">
-                                {msg.copyPaste}
-                              </code>
-                              <RippleButton
-                                onClick={() => handleCopyPixToTransfer(msg.copyPaste!)}
-                                className="px-3 py-1.5 bg-primary text-primary-foreground rounded text-xs hover:bg-primary/90 transition-colors flex items-center gap-1.5 shrink-0"
-                              >
-                                <FontAwesomeIcon 
-                                  icon={copiedPixKey === msg.copyPaste ? faCheck : faCopy} 
-                                  className="w-3 h-3" 
-                                />
-                                <span>{copiedPixKey === msg.copyPaste ? 'Copiado!' : 'Copiar'}</span>
-                              </RippleButton>
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-2">
-                              💡 O código foi salvo e será preenchido automaticamente na página de Transferências
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Input Field */}
-              <div className="relative">
-                <input
-                  type="text"
-                  value={aiInput}
-                  onChange={(e) => setAiInput(e.target.value)}
-                  onKeyPress={handleAIKeyPress}
-                  placeholder="Peça para IA que ela faz por você! (BETA TESTING)"
-                  disabled={aiLoading}
-                  className="w-full pl-4 pr-12 py-3 rounded-lg bg-input border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm disabled:opacity-50"
-                />
-                <button
-                  onClick={handleAISubmit}
-                  disabled={aiLoading || !aiInput.trim()}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <FontAwesomeIcon
-                    icon={aiLoading ? faSpinner : faPaperPlane}
-                    className={`w-4 h-4 ${aiLoading ? 'animate-spin' : ''}`}
-                  />
-                </button>
-              </div>
-
-              {/* Confirmation Bar - Só mostrar se houver dados válidos */}
-              {pendingAction && (() => {
-                // Validar se há dados suficientes antes de mostrar a barra
-                const hasValidPaymentData = pendingAction.type === 'create_payment' && 
-                  pendingAction.data?.value && 
-                  pendingAction.data.value !== '' && 
-                  pendingAction.data.value !== null &&
-                  !isNaN(parseFloat(pendingAction.data.value.toString().replace(/\./g, '').replace(',', '.')))
-                
-                const hasValidTransferData = pendingAction.type === 'create_transfer' && 
-                  pendingAction.data?.amount && 
-                  pendingAction.data.amount !== '' && 
-                  pendingAction.data.amount !== null &&
-                  !isNaN(parseFloat(pendingAction.data.amount.toString().replace(/\./g, '').replace(',', '.'))) &&
-                  pendingAction.data?.pixKey && 
-                  pendingAction.data.pixKey !== '' && 
-                  pendingAction.data.pixKey !== null
-                
-                if (!hasValidPaymentData && !hasValidTransferData) {
-                  // Se não houver dados válidos, limpar pendingAction e não mostrar barra
-                  setPendingAction(null)
-                  return null
-                }
-                
-                return (
-                  <div className="mt-3 p-3 rounded-lg bg-foreground/5 border border-foreground/10 flex flex-col gap-3">
-                    <p className="text-sm text-foreground">Confirma a execução desta ação?</p>
-                    <div className="flex gap-2">
-                      <RippleButton
-                        onClick={() => confirmPendingAction(true)}
-                        className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm"
-                      >
-                        Sim
-                      </RippleButton>
-                      <RippleButton
-                        onClick={() => confirmPendingAction(false)}
-                        className="px-4 py-2 rounded-md bg-foreground/5 text-foreground hover:bg-foreground/10 transition-colors text-sm"
-                      >
-                        Não
-                      </RippleButton>
-                    </div>
-                  </div>
-                )
-              })()}
-              <p className="text-[10px] text-muted-foreground mt-1 ml-1">Powered by Vision AI</p>
-            </>
-          )}
-          <Separator className="mb-6" />
-          </div>
-        )}
-
         {/* Saldo */}
         <div className="flex items-center justify-between mb-6">
           {loading ? (
             <Skeleton className="h-16 w-64" />
           ) : (
             <p className="text-5xl font-bold text-foreground">
-              {showBalance 
-                ? balance !== null 
-                  ? `R$ ${balance.toFixed(2).replace('.', ',')}` 
+              {showBalance
+                ? balance !== null
+                  ? `R$ ${balance.toFixed(2).replace('.', ',')}`
                   : 'R$ 0,00'
                 : '••••••'}
             </p>
@@ -620,13 +560,13 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
             onClick={() => setShowBalance(!showBalance)}
             className="p-2 hover:bg-muted rounded-lg transition-colors"
           >
-            <FontAwesomeIcon 
-              icon={showBalance ? faEye : faEyeSlash} 
-              className="w-4 h-4 text-muted-foreground" 
+            <FontAwesomeIcon
+              icon={showBalance ? faEye : faEyeSlash}
+              className="w-4 h-4 text-muted-foreground"
             />
           </RippleButton>
         </div>
-        
+
         {/* Botões */}
         <div className="grid grid-cols-2 gap-4">
           {loading ? (
@@ -682,24 +622,21 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
           <div className="space-y-0">
             {transactions.map((transaction, idx) => (
               <div key={transaction.id}>
-                <div 
-                  className={`flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity py-4 ${
-                    idx < transactions.length - 1 ? 'border-b border-border' : ''
-                  }`}
+                <div
+                  className={`flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity py-4 ${idx < transactions.length - 1 ? 'border-b border-border' : ''
+                    }`}
                   onClick={() => {
                     setSelectedTransactionId(transaction.id)
                     setSelectedTransactionType(transaction.transactionType)
                     setDetailsModalOpen(true)
                   }}
                 >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    transaction.type === 'received' ? 'bg-green-500/10' : 'bg-red-500/10'
-                  }`}>
-                    <FontAwesomeIcon 
-                      icon={transaction.type === 'received' ? faArrowDown : faArrowUp} 
-                      className={`w-4 h-4 ${
-                        transaction.type === 'received' ? 'text-green-500' : 'text-red-500'
-                      }`}
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${transaction.type === 'received' ? 'bg-green-500/10' : 'bg-red-500/10'
+                    }`}>
+                    <FontAwesomeIcon
+                      icon={transaction.type === 'received' ? faArrowDown : faArrowUp}
+                      className={`w-4 h-4 ${transaction.type === 'received' ? 'text-green-500' : 'text-red-500'
+                        }`}
                     />
                   </div>
                   <div className="flex-1">
@@ -710,10 +647,9 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
                       {transaction.date}
                     </p>
                   </div>
-                  <p className={`text-sm font-bold ${
-                    transaction.type === 'received' ? 'text-green-500' : 'text-red-500'
-                  }`}>
-                    {showBalance 
+                  <p className={`text-sm font-bold ${transaction.type === 'received' ? 'text-green-500' : 'text-red-500'
+                    }`}>
+                    {showBalance
                       ? `${transaction.type === 'received' ? '+' : '-'}R$ ${Math.abs(transaction.amount).toFixed(2).replace('.', ',')}`
                       : '••••••'}
                   </p>
