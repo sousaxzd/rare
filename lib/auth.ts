@@ -254,3 +254,38 @@ export async function removeTrustedDevice(deviceId: string): Promise<{ success: 
 export async function removeAllTrustedDevices(): Promise<{ success: boolean; message: string }> {
   return apiDelete('/v1/user/trusted-devices');
 }
+
+/**
+ * Interface para sessão ativa
+ */
+export interface Session {
+  id: string;
+  deviceName: string;
+  userAgent: string;
+  ip: string;
+  lastActivity: string;
+  createdAt: string;
+  expiresAt: string;
+  isCurrent: boolean;
+}
+
+/**
+ * Listar sessões ativas
+ */
+export async function getSessions(): Promise<{ success: boolean; data: Session[] }> {
+  return apiGet('/v1/user/sessions');
+}
+
+/**
+ * Revogar sessão específica
+ */
+export async function revokeSession(sessionId: string): Promise<{ success: boolean; message: string }> {
+  return apiDelete(`/v1/user/sessions/${sessionId}`);
+}
+
+/**
+ * Revogar todas as sessões (exceto a atual)
+ */
+export async function revokeAllSessions(): Promise<{ success: boolean; message: string; revokedCount?: number }> {
+  return apiDelete('/v1/user/sessions');
+}

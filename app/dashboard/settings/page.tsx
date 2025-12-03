@@ -8,7 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPhone, faEnvelope, faUser, faImage, faLock, faSpinner, faCheck, faArrowRight, faArrowLeft, faCalendar, faBell, faDownload, faShieldAlt, faCreditCard, faIdCard, faDesktop, faMobile, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { RippleButton } from '@/components/ripple-button'
 import { useAuth } from '@/hooks/useAuth'
-import { changePhone, requestEmailChangeCode, changeEmail, changeName, changeAvatar, requestPasswordChangeCode, changePassword, updateAIEnabled, getTrustedDevices, removeTrustedDevice, removeAllTrustedDevices, TrustedDevice } from '@/lib/auth'
+import { changePhone, requestEmailChangeCode, changeEmail, changeName, changeAvatar, requestPasswordChangeCode, changePassword, updateAIEnabled, getTrustedDevices, removeTrustedDevice, removeAllTrustedDevices, TrustedDevice, getSessions, revokeSession, revokeAllSessions, Session } from '@/lib/auth'
 import { validatePassword } from '@/lib/passwordValidator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
@@ -63,6 +63,10 @@ export default function SettingsPage() {
   // Estado de dispositivos confiáveis
   const [trustedDevices, setTrustedDevices] = useState<TrustedDevice[]>([])
   const [loadingDevices, setLoadingDevices] = useState(false)
+  
+  // Estado de sessões ativas
+  const [sessions, setSessions] = useState<Session[]>([])
+  const [loadingSessions, setLoadingSessions] = useState(false)
 
   // Inicializar valores quando o usuário carregar
   useEffect(() => {
@@ -76,9 +80,10 @@ export default function SettingsPage() {
     }
   }, [user])
 
-  // Carregar dispositivos confiáveis
+  // Carregar dispositivos confiáveis e sessões
   useEffect(() => {
     loadTrustedDevices()
+    loadSessions()
   }, [])
 
   const loadTrustedDevices = async () => {
@@ -120,6 +125,54 @@ export default function SettingsPage() {
       toastSuccess('Todos os dispositivos foram removidos')
     } catch (error) {
       toastError(error instanceof Error ? error.message : 'Erro ao remover dispositivos')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadSessions = async () => {
+    try {
+      setLoadingSessions(true)
+      const response = await getSessions()
+      if (response.success) {
+        setSessions(response.data)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar sessões:', error)
+    } finally {
+      setLoadingSessions(false)
+    }
+  }
+
+  const handleRevokeSession = async (sessionId: string) => {
+    if (!confirm('Tem certeza que deseja encerrar esta sessão? O usuário será desconectado deste dispositivo.')) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      await revokeSession(sessionId)
+      await loadSessions()
+      toastSuccess('Sessão encerrada com sucesso')
+    } catch (error) {
+      toastError(error instanceof Error ? error.message : 'Erro ao encerrar sessão')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRevokeAllSessions = async () => {
+    if (!confirm('Tem certeza que deseja encerrar todas as outras sessões? Você permanecerá logado apenas neste dispositivo.')) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      const response = await revokeAllSessions()
+      await loadSessions()
+      toastSuccess(response.revokedCount ? `${response.revokedCount} sessão(ões) encerrada(s)` : 'Todas as outras sessões foram encerradas')
+    } catch (error) {
+      toastError(error instanceof Error ? error.message : 'Erro ao encerrar sessões')
     } finally {
       setLoading(false)
     }
@@ -1209,6 +1262,93 @@ export default function SettingsPage() {
                           >
                             <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
                           </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  </div>
+              </div>
+
+                  {/* Sessões Ativas */}
+              <div className="border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm overflow-hidden">
+                <div className="p-6 border-b border-foreground/10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-lg font-bold text-foreground">Sessões Ativas</h2>
+                      <p className="text-sm text-foreground/60 mt-1">Gerencie suas sessões logadas em diferentes dispositivos</p>
+                    </div>
+                    {sessions.filter(s => !s.isCurrent).length > 0 && (
+                      <RippleButton
+                        onClick={handleRevokeAllSessions}
+                        className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg text-sm transition-colors"
+                        disabled={loading}
+                      >
+                        Encerrar Outras Sessões
+                      </RippleButton>
+                    )}
+                  </div>
+                </div>
+                <div className="p-6">
+                  {loadingSessions ? (
+                    <div className="flex items-center justify-center py-8">
+                      <FontAwesomeIcon icon={faSpinner} className="w-5 h-5 animate-spin text-foreground/60" />
+                    </div>
+                  ) : sessions.length === 0 ? (
+                    <div className="text-center py-8">
+                      <FontAwesomeIcon icon={faDesktop} className="w-12 h-12 text-foreground/30 mb-3" />
+                      <p className="text-sm text-foreground/60">Nenhuma sessão ativa</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {sessions.map((session) => (
+                        <div
+                          key={session.id}
+                          className={`flex items-center justify-between p-4 rounded-lg border ${
+                            session.isCurrent 
+                              ? 'bg-primary/10 border-primary/30' 
+                              : 'bg-foreground/5 border-foreground/10'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 flex-1">
+                            <FontAwesomeIcon 
+                              icon={session.userAgent?.includes('Mobile') ? faMobile : faDesktop} 
+                              className={`w-5 h-5 ${session.isCurrent ? 'text-primary' : 'text-foreground/60'}`} 
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-sm font-semibold text-foreground truncate">
+                                  {session.deviceName || 'Dispositivo desconhecido'}
+                                </h3>
+                                {session.isCurrent && (
+                                  <span className="px-2 py-0.5 text-xs font-medium bg-primary/20 text-primary rounded">
+                                    Atual
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-foreground/60 truncate">
+                                {session.userAgent || 'N/A'}
+                              </p>
+                              <p className="text-xs text-foreground/40 mt-1">
+                                IP: {session.ip} • Última atividade: {new Date(session.lastActivity).toLocaleDateString('pt-BR', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                          {!session.isCurrent && (
+                            <button
+                              onClick={() => handleRevokeSession(session.id)}
+                              disabled={loading}
+                              className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Encerrar sessão"
+                            >
+                              <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       ))}
                     </div>
