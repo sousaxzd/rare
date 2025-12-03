@@ -19,5 +19,10 @@ export const navItems = [
     href: '/terms',
     description: 'Termos de uso',
   },
+  {
+    label: 'Changelogs',
+    href: '/changelogs',
+    description: 'Atualizações do sistema',
+  },
 ]
 

@@ -1,23 +1,32 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck, faFire } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faFire, faStar, faBuilding, faGem, faRocket, faTimes, faInfoCircle } from '@fortawesome/free-solid-svg-icons'
 import { FAQ } from '@/components/pricing/faq'
-import { getAvailablePlans, AvailablePlan } from '@/lib/user-plan'
+import { AvailablePlan, getMyPlan } from '@/lib/user-plan'
+import { RippleButton } from '@/components/ripple-button'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function Pricing() {
+  const router = useRouter()
+  const { user, isAuthenticated } = useAuth()
   const [plans, setPlans] = useState<AvailablePlan[]>([])
   const [loading, setLoading] = useState(true)
+  const [currentPlanId, setCurrentPlanId] = useState<string | null>(null)
 
   useEffect(() => {
     loadPlans()
-  }, [])
+    if (isAuthenticated && user) {
+      loadCurrentPlan()
+    }
+  }, [isAuthenticated, user])
 
   const loadPlans = async () => {
     try {
-      // Usar a rota pública de planos com timeout
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 10000)
 
@@ -33,9 +42,8 @@ export default function Pricing() {
 
       const data = await response.json()
       if (data.success) {
-        // Converter os planos para o formato esperado
         const formattedPlans = Object.values(data.data.plans).map((plan: any) => ({
-          id: plan.id || plan.name,
+          id: (plan.id || plan.name || '').toUpperCase(),
           name: plan.name,
           transactionFee: plan.transactionFee,
           transactionFeeInReais: (plan.transactionFee / 100).toFixed(2),
@@ -46,33 +54,29 @@ export default function Pricing() {
           downgradeTo: plan.downgradeTo || null,
           order: plan.order || 0,
         }))
+        // Sort by monthly fee
+        formattedPlans.sort((a: any, b: any) => a.monthlyFee - b.monthlyFee)
         setPlans(formattedPlans)
       }
     } catch (error) {
-      // Tratar erros de conexão/rede
-      if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          console.warn('Timeout ao carregar planos')
-        } else if (
-          error.message.includes('Failed to fetch') ||
-          error.message.includes('NetworkError') ||
-          error.message.includes('ECONNREFUSED')
-        ) {
-          console.warn('Servidor indisponível ao carregar planos')
-        } else {
-          console.error('Erro ao carregar planos:', error)
-        }
-      } else {
-        console.error('Erro desconhecido ao carregar planos:', error)
-      }
-      // Continuar sem planos ao invés de quebrar a página
+      console.error('Erro ao carregar planos:', error)
     } finally {
       setLoading(false)
     }
   }
 
-  const smallPlans = plans.filter(p => ['FREE', 'CARBON', 'DIAMOND', 'RICH'].includes(p.id.toUpperCase()))
-  const enterprisePlan = plans.find(p => p.id.toUpperCase() === 'ENTERPRISE')
+  const loadCurrentPlan = async () => {
+    try {
+      const response = await getMyPlan()
+      if (response.success && response.data.currentPlan) {
+        // Usar id ou name, normalizando para uppercase
+        const planId = (response.data.currentPlan.id || response.data.currentPlan.name || '').toUpperCase()
+        setCurrentPlanId(planId)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar plano atual:', error)
+    }
+  }
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -81,188 +85,260 @@ export default function Pricing() {
     }).format(value / 100)
   }
 
-  const getMinTransactions = (plan: AvailablePlan) => {
-    const min = plan.minTransactions || 0
-    if (min === 0) {
-      return 'Até 300 transações/mês'
+  const getPlanIcon = (planId: string) => {
+    switch (planId.toUpperCase()) {
+      case 'FREE': return faStar
+      case 'CARBON': return faFire
+      case 'DIAMOND': return faGem
+      case 'RICH': return faRocket
+      case 'ENTERPRISE': return faBuilding
+      default: return faCheck
     }
-    return `Mínimo de ${min.toLocaleString('pt-BR')} transações/mês`
   }
 
-  const getMaxTransactions = (plan: AvailablePlan) => {
-    const max = plan.maxTransactions
-    if (max === null || max === undefined) {
-      return ''
+  const getPlanColor = (planId: string) => {
+    switch (planId.toUpperCase()) {
+      case 'FREE': return 'text-blue-400'
+      case 'CARBON': return 'text-orange-500'
+      case 'DIAMOND': return 'text-cyan-400'
+      case 'RICH': return 'text-purple-500'
+      case 'ENTERPRISE': return 'text-emerald-500'
+      default: return 'text-foreground'
     }
-    return `Máximo sugerido: ${max.toLocaleString('pt-BR')} transações/mês`
-  }
-
-  const SmallPlanCard = ({ plan }: { plan: AvailablePlan }) => {
-    const isPrimary = plan.id.toUpperCase() === 'CARBON'
-    
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className={`relative w-full rounded-xl border-2 ${
-          isPrimary
-            ? 'border-primary/70 bg-primary/5'
-            : 'border-foreground/10 bg-foreground/2'
-        } p-4 shadow-lg transition-all hover:shadow-xl`}
-      >
-        {isPrimary && (
-          <>
-            <div
-              className="absolute -inset-3 z-0 rounded-xl pointer-events-none"
-              style={{
-                background:
-                  'radial-gradient(circle at 50% 50%, rgba(255,107,53,0.22) 0%, rgba(255,107,53,0.08) 60%, transparent 100%)',
-                filter: 'blur(8px)',
-              }}
-            />
-            <div className="absolute -top-2 right-3 z-10">
-              <span className="px-2 py-1 bg-primary text-primary-foreground text-xs font-semibold rounded-full flex items-center gap-1">
-                <FontAwesomeIcon icon={faFire} className="w-2.5 h-2.5" />
-                Popular
-              </span>
-            </div>
-          </>
-        )}
-        
-        <div className="relative z-10 flex flex-col gap-3">
-          <div>
-            <h2 className="text-xl font-bold text-foreground">{plan.name}</h2>
-          </div>
-          
-          <div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-extrabold text-foreground">
-                {plan.monthlyFee === 0 ? 'Grátis' : formatCurrency(plan.monthlyFee)}
-              </span>
-              {plan.monthlyFee > 0 && (
-                <span className="text-foreground/70 text-xs">/mês</span>
-              )}
-            </div>
-            <p className="text-foreground/60 text-xs mt-1">
-              Taxa: {formatCurrency(plan.transactionFee)} por transação
-            </p>
-          </div>
-
-          <div className="pt-2 border-t border-foreground/10 space-y-1">
-            <p className="text-xs text-foreground/70 font-medium">
-              {getMinTransactions(plan)}
-            </p>
-            <p className="text-xs text-foreground/60">
-              {getMaxTransactions(plan)}
-            </p>
-          </div>
-        </div>
-      </motion.div>
-    )
-  }
-
-  const EnterpriseCard = ({ plan }: { plan: AvailablePlan }) => {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="relative w-full rounded-3xl border-2 border-primary/50 bg-gradient-to-br from-primary/10 via-primary/5 to-foreground/2 p-6 md:p-8 shadow-lg transition-all hover:shadow-2xl"
-      >
-        <div
-          className="absolute -inset-6 z-0 rounded-[2rem] pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(circle at 50% 50%, rgba(255,107,53,0.25) 0%, rgba(255,107,53,0.10) 50%, transparent 100%)',
-            filter: 'blur(16px)',
-          }}
-        />
-
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
-          <div className="flex-1 min-w-0">
-            <h2 className="text-3xl font-bold text-foreground mb-2">{plan.name}</h2>
-            <p className="text-foreground/70 text-sm mb-4">Solução corporativa completa</p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-extrabold text-foreground">
-                {formatCurrency(plan.monthlyFee)}
-              </span>
-              <span className="text-foreground/70 text-sm">/mês</span>
-            </div>
-            <p className="text-foreground/60 text-xs mt-1">
-              Taxa: {formatCurrency(plan.transactionFee)} por transação
-            </p>
-            <div className="mt-4 pt-4 border-t border-foreground/10 space-y-2">
-              <p className="text-sm text-foreground/70 font-medium">
-                {getMinTransactions(plan)}
-              </p>
-              <p className="text-sm text-foreground/60">
-                {getMaxTransactions(plan)}
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex-1 min-w-0 flex items-center justify-center">
-            <p className="text-3xl md:text-4xl font-bold text-foreground text-center">
-              Para grandes volumes
-            </p>
-          </div>
-        </div>
-      </motion.div>
-    )
   }
 
   if (loading) {
     return (
-      <main>
-        <div className="py-4">
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        </div>
-      </main>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
+  const allPlans = plans
+
+  // Função para determinar o estado do botão do plano
+  const getPlanButtonState = (plan: AvailablePlan) => {
+    if (!isAuthenticated || !currentPlanId) {
+      return { disabled: false, text: 'Escolher' }
+    }
+
+    // Comparação case-insensitive
+    const planIdUpper = plan.id.toUpperCase()
+    const currentPlanIdUpper = currentPlanId.toUpperCase()
+
+    const currentPlan = allPlans.find(p => p.id.toUpperCase() === currentPlanIdUpper)
+    if (!currentPlan) {
+      return { disabled: false, text: 'Escolher' }
+    }
+
+    // Se é o plano atual
+    if (planIdUpper === currentPlanIdUpper) {
+      return { disabled: true, text: 'Atual' }
+    }
+
+    // Se é um plano anterior (menor monthlyFee)
+    if (plan.monthlyFee < currentPlan.monthlyFee) {
+      return { disabled: true, text: 'Downgrade' }
+    }
+
+    // Se é um plano superior, pode fazer upgrade
+    return { disabled: false, text: 'Escolher' }
+  }
+
   return (
-    <main>
-      <div className="py-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex flex-col items-center justify-center gap-4 mb-12"
-        >
-          <h1 className="text-4xl md:text-5xl font-bold text-center">Planos e Preços</h1>
-          <p className="text-foreground/70 text-lg text-center max-w-2xl">
-            Escolha o plano que melhor atende às suas necessidades.
-          </p>
-        </motion.div>
-
-        <div className="flex flex-col gap-6 max-w-7xl mx-auto">
-          {/* 4 Cards Pequenos */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {smallPlans.map((plan) => (
-              <SmallPlanCard key={plan.id} plan={plan} />
-            ))}
-          </div>
-
-          {/* ENTERPRISE - Card Grande */}
-          {enterprisePlan && <EnterpriseCard plan={enterprisePlan} />}
+    <main className="min-h-screen py-12 px-4 md:px-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16 space-y-4">
+          <motion.h1
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl md:text-5xl font-bold tracking-tight text-foreground"
+          >
+            Compare os Planos
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-lg text-foreground/60 max-w-2xl mx-auto"
+          >
+            Encontre o plano ideal para o volume do seu negócio.
+          </motion.p>
         </div>
 
+        {/* Pricing Table Container */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-          className="mt-16 text-center"
+          transition={{ delay: 0.2 }}
+          className="overflow-x-auto pb-8"
         >
-          <p className="text-foreground/60 text-sm">
-            Todos os planos incluem renovação automática e upgrade/downgrade conforme o volume de transações.
-          </p>
-        </motion.div>
+          <div className="min-w-[800px]">
+            {/* Header Row */}
+            <div className="grid grid-cols-6 divide-x divide-foreground/10 border-b border-foreground/10">
+              <div className="p-6 flex flex-col justify-between">
+                <div>
+                  <span className="text-sm font-semibold text-foreground/50 uppercase tracking-wider">Planos</span>
+                  <p className="text-xs text-foreground/60 mt-1 max-w-[180px]">
+                    Analise os recursos e escolha o plano ideal para impulsionar o seu negócio com segurança e eficiência.
+                  </p>
+                </div>
+                <span className="text-lg font-bold text-foreground">Recursos</span>
+              </div>
+              {allPlans.map((plan) => (
+                <div key={plan.id} className="p-6 flex flex-col items-center text-center gap-4 relative">
+                  {plan.id.toUpperCase() === 'CARBON' && (
+                    <div className="absolute top-0 inset-x-0 h-1 bg-primary rounded-b-full" />
+                  )}
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-foreground/5 ${getPlanColor(plan.id)}`}>
+                    <FontAwesomeIcon icon={getPlanIcon(plan.id)} className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-foreground">{plan.name}</h3>
+                    <div className="mt-2 h-12 flex flex-col items-center justify-center gap-0">
+                      <span className="text-xl font-bold">
+                        {plan.monthlyFee === 0 ? 'Grátis' : formatCurrency(plan.monthlyFee)}
+                      </span>
+                      {plan.monthlyFee === 0 ? (
+                        <span className="text-[10px] text-foreground/50">Ilimitado</span>
+                      ) : (
+                        <span className="text-[10px] text-foreground/50">/mês</span>
+                      )}
+                    </div>
+                  </div>
+                  {(() => {
+                    const buttonState = getPlanButtonState(plan)
+                    return (
+                      <RippleButton
+                        onClick={() => !buttonState.disabled && router.push('/dashboard/settings')}
+                        disabled={buttonState.disabled}
+                        className={`w-full py-2 rounded-lg text-xs font-medium ${
+                          buttonState.disabled
+                            ? 'bg-foreground/5 text-foreground/40 cursor-not-allowed'
+                            : plan.id.toUpperCase() === 'CARBON'
+                            ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                            : 'bg-foreground/10 text-foreground hover:bg-foreground/20'
+                        }`}
+                      >
+                        {buttonState.text}
+                      </RippleButton>
+                    )
+                  })()}
+                </div>
+              ))}
+            </div>
 
-        <hr className="my-16 border-foreground/10" />
+            {/* Feature Rows */}
+            <div className="divide-y divide-foreground/10 border-b border-foreground/10">
+              {/* Taxas */}
+              <div className="grid grid-cols-6 divide-x divide-foreground/10 hover:bg-foreground/2 transition-colors">
+                <div className="p-4 flex items-center gap-2 text-sm font-medium text-foreground/80">
+                  Taxa por Transação
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <FontAwesomeIcon icon={faInfoCircle} className="w-3 h-3 text-foreground/40" />
+                      </TooltipTrigger>
+                      <TooltipContent>Valor cobrado por cada transação aprovada</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                {allPlans.map((plan) => (
+                  <div key={plan.id} className="p-4 flex items-center justify-center text-sm font-bold text-foreground">
+                    {formatCurrency(plan.transactionFee)}
+                  </div>
+                ))}
+              </div>
+
+              {/* Volume Mínimo */}
+              <div className="grid grid-cols-6 divide-x divide-foreground/10 hover:bg-foreground/2 transition-colors">
+                <div className="p-4 flex items-center gap-2 text-sm font-medium text-foreground/80">
+                  Volume Mínimo
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <FontAwesomeIcon icon={faInfoCircle} className="w-3 h-3 text-foreground/40" />
+                      </TooltipTrigger>
+                      <TooltipContent>Quantidade mínima de transações para manter o plano</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                {allPlans.map((plan) => (
+                  <div key={plan.id} className="p-4 flex items-center justify-center text-sm text-foreground/70">
+                    {plan.minTransactions === 0 ? 'Sem mínimo' : `${plan.minTransactions?.toLocaleString('pt-BR')} transações/mês`}
+                  </div>
+                ))}
+              </div>
+
+              {/* Volume Máximo */}
+              <div className="grid grid-cols-6 divide-x divide-foreground/10 hover:bg-foreground/2 transition-colors">
+                <div className="p-4 flex items-center gap-2 text-sm font-medium text-foreground/80">
+                  Capacidade Sugerida
+                </div>
+                {allPlans.map((plan) => (
+                  <div key={plan.id} className="p-4 flex items-center justify-center text-sm text-foreground/70">
+                    {plan.maxTransactions ? `${plan.maxTransactions.toLocaleString('pt-BR')} transações/mês` : 'Ilimitado'}
+                  </div>
+                ))}
+              </div>
+
+              {/* Features Booleanas (Simuladas para visual) */}
+              <div className="grid grid-cols-6 divide-x divide-foreground/10 hover:bg-foreground/2 transition-colors">
+                <div className="p-4 flex items-center text-sm font-medium text-foreground/80">Dashboard Completo</div>
+                {allPlans.map((plan) => (
+                  <div key={plan.id} className="p-4 flex items-center justify-center">
+                    <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-green-500" />
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-6 divide-x divide-foreground/10 hover:bg-foreground/2 transition-colors">
+                <div className="p-4 flex items-center text-sm font-medium text-foreground/80">API de Pagamentos</div>
+                {allPlans.map((plan) => (
+                  <div key={plan.id} className="p-4 flex items-center justify-center">
+                    <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-green-500" />
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-6 divide-x divide-foreground/10 hover:bg-foreground/2 transition-colors">
+                <div className="p-4 flex items-center text-sm font-medium text-foreground/80">Webhooks em Tempo Real</div>
+                {allPlans.map((plan) => (
+                  <div key={plan.id} className="p-4 flex items-center justify-center">
+                    <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-green-500" />
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-6 divide-x divide-foreground/10 hover:bg-foreground/2 transition-colors">
+                <div className="p-4 flex items-center text-sm font-medium text-foreground/80">Suporte Prioritário</div>
+                {allPlans.map((plan) => (
+                  <div key={plan.id} className="p-4 flex items-center justify-center">
+                    {['FREE'].includes(plan.id.toUpperCase()) ? (
+                      <FontAwesomeIcon icon={faTimes} className="w-4 h-4 text-foreground/20" />
+                    ) : (
+                      <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-green-500" />
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-6 divide-x divide-foreground/10 hover:bg-foreground/2 transition-colors">
+                <div className="p-4 flex items-center text-sm font-medium text-foreground/80">Gerente de Contas</div>
+                {allPlans.map((plan) => (
+                  <div key={plan.id} className="p-4 flex items-center justify-center">
+                    {plan.id.toUpperCase() === 'ENTERPRISE' ? (
+                      <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <FontAwesomeIcon icon={faTimes} className="w-4 h-4 text-foreground/20" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
         <FAQ />
       </div>

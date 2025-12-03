@@ -15,7 +15,7 @@ interface DashboardTopbarProps {
 export function DashboardTopbar({ onOpenSidebar }: DashboardTopbarProps) {
   const { user } = useAuth()
   const [goalsData, setGoalsData] = useState<{ currentValue: number; goalValue: number; goalLabel: string } | null>(null)
-  
+
   useEffect(() => {
     const loadNextGoal = async () => {
       try {
@@ -37,11 +37,11 @@ export function DashboardTopbar({ onOpenSidebar }: DashboardTopbarProps) {
         console.error('Erro ao carregar próxima meta:', error)
       }
     }
-    
+
     if (user) {
       loadNextGoal()
     }
-  }, [user])
+  }, [user?._id])
 
   return (
     <header className="flex items-center justify-between h-14 px-4 lg:px-6 border-b border-foreground/10 bg-background sticky top-0 z-50">
@@ -57,11 +57,14 @@ export function DashboardTopbar({ onOpenSidebar }: DashboardTopbarProps) {
 
       <div className="flex items-center gap-2 flex-shrink-0">
         {user && goalsData && (
-          <NextGoal 
-            currentValue={goalsData.currentValue} 
-            goalValue={goalsData.goalValue}
-            goalName={goalsData.goalLabel}
-          />
+          <>
+            <NextGoal
+              currentValue={goalsData.currentValue}
+              goalValue={goalsData.goalValue}
+              goalName={goalsData.goalLabel}
+            />
+            <div className="h-6 w-px bg-foreground/10 mx-2 hidden md:block" />
+          </>
         )}
         <UserMenu />
       </div>

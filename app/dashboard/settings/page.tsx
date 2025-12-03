@@ -32,7 +32,7 @@ export default function SettingsPage() {
     updatePreferences: updateNotificationPreferences,
   } = useNotifications()
   const { isInstallable, isInstalled, install: installPWA } = usePWA()
-  
+
   // Estados para cada seção
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -51,19 +51,19 @@ export default function SettingsPage() {
   const [passwordStep, setPasswordStep] = useState<'form' | 'code'>('form')
   const [forgotPassword, setForgotPassword] = useState(false)
   const [passwordValidation, setPasswordValidation] = useState<{ valid: boolean; errors: string[] }>({ valid: true, errors: [] })
-  
+
   // Estados de segurança de transferências
   const [transferSecurityEnabled, setTransferSecurityEnabled] = useState(false)
   const [securityStep, setSecurityStep] = useState<'form' | 'code'>('form')
   const [securityCode, setSecurityCode] = useState('')
-  
+
   // Estado de IA
   const [aiEnabled, setAiEnabled] = useState<boolean>(true)
-  
+
   // Estado de dispositivos confiáveis
   const [trustedDevices, setTrustedDevices] = useState<TrustedDevice[]>([])
   const [loadingDevices, setLoadingDevices] = useState(false)
-  
+
   // Estado de sessões ativas
   const [sessions, setSessions] = useState<Session[]>([])
   const [loadingSessions, setLoadingSessions] = useState(false)
@@ -77,6 +77,15 @@ export default function SettingsPage() {
         const date = new Date(user.birthDate)
         setBirthDate(date.toISOString().split('T')[0])
       }
+
+      // Sincronizar configurações do usuário
+      if (user.aiEnabled !== undefined) {
+        setAiEnabled(user.aiEnabled)
+      }
+
+      if (user.transferSecurityEnabled !== undefined) {
+        setTransferSecurityEnabled(user.transferSecurityEnabled)
+      }
     }
   }, [user])
 
@@ -86,15 +95,15 @@ export default function SettingsPage() {
     const loadData = async () => {
       // Pequeno delay para garantir que o token foi processado após login
       await new Promise(resolve => setTimeout(resolve, 300))
-      
+
       if (user) {
         loadTrustedDevices()
         loadSessions()
       }
     }
-    
+
     loadData()
-  }, [user])
+  }, [user?._id])
 
   const loadTrustedDevices = async () => {
     try {
@@ -196,51 +205,7 @@ export default function SettingsPage() {
     }
   }
 
-  // Carregar status de segurança e IA
-  useEffect(() => {
-    // Aguardar um pouco para garantir que o token foi processado após login
-    const loadSettings = async () => {
-      // Pequeno delay para garantir que o token foi salvo após login com dispositivo confiável
-      await new Promise(resolve => setTimeout(resolve, 300))
-      
-      try {
-        const [securityRes, userDataRes] = await Promise.all([
-          getSecurityStatus().catch((err: any) => {
-            // Ignorar erros 401 silenciosamente (token ainda sendo processado)
-            if (err?.status === 401) {
-              return null
-            }
-            console.warn('Erro ao carregar status de segurança:', err)
-            return null
-          }),
-          getUserData().catch((err: any) => {
-            // Ignorar erros 401 silenciosamente (token ainda sendo processado)
-            if (err?.status === 401) {
-              return null
-            }
-            console.warn('Erro ao carregar dados do usuário:', err)
-            return null
-          })
-        ])
-        
-        if (securityRes) {
-          setTransferSecurityEnabled(securityRes.data.transferSecurityEnabled)
-        }
-        
-        if (userDataRes?.success && userDataRes.data?.aiEnabled !== undefined) {
-          setAiEnabled(userDataRes.data.aiEnabled)
-        }
-      } catch (error) {
-        // Erros já foram tratados individualmente acima
-        console.error('Erro ao carregar configurações:', error)
-      }
-    }
-    
-    // Só carregar se o usuário estiver disponível (autenticado)
-    if (user) {
-      loadSettings()
-    }
-  }, [user])
+
 
   // Construir URL do avatar
   const getAvatarUrl = () => {
@@ -493,55 +458,55 @@ export default function SettingsPage() {
                   <div>
                     <div className="flex items-center gap-4 mb-3">
                       <Avatar className="h-16 w-16 rounded-xl border-2 border-primary/20">
-                      <AvatarImage src={getAvatarUrl()} alt={user?.fullName || 'User'} />
+                        <AvatarImage src={getAvatarUrl()} alt={user?.fullName || 'User'} />
                         <AvatarFallback className="bg-primary/20 text-primary rounded-xl text-lg font-semibold">
-                        {user?.fullName ? getInitials(user.fullName) : 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
+                          {user?.fullName ? getInitials(user.fullName) : 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
                         <h3 className="text-sm font-semibold text-foreground">Avatar</h3>
                         <p className="text-xs text-foreground/60">Altere sua foto de perfil</p>
-                    </div>
-                    <RippleButton
-                      onClick={() => setActiveSection(activeSection === 'avatar' ? null : 'avatar')}
-                      className="px-4 py-2 bg-foreground/5 hover:bg-foreground/10 rounded-lg text-sm transition-colors"
-                    >
-                        {activeSection === 'avatar' ? 'Cancelar' : 'Alterar'}
-                    </RippleButton>
-                  </div>
-                  {activeSection === 'avatar' && (
-                      <form onSubmit={handleChangeAvatar} className="space-y-3">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
-                        className="w-full px-4 py-2 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground file:cursor-pointer hover:file:bg-primary/90"
-                        disabled={loading}
-                        required
-                      />
-                      {avatarFile && (
-                        <p className="text-xs text-foreground/60">Arquivo selecionado: {avatarFile.name}</p>
-                      )}
-                      <button
-                        type="submit"
-                        disabled={loading || !avatarFile}
-                        className="w-full py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      </div>
+                      <RippleButton
+                        onClick={() => setActiveSection(activeSection === 'avatar' ? null : 'avatar')}
+                        className="px-4 py-2 bg-foreground/5 hover:bg-foreground/10 rounded-lg text-sm transition-colors"
                       >
-                        {loading ? (
-                          <>
-                            <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-                            <span>Enviando...</span>
-                          </>
-                        ) : (
-                          <>
-                            <FontAwesomeIcon icon={faCheck} />
-                            <span>Salvar</span>
-                          </>
+                        {activeSection === 'avatar' ? 'Cancelar' : 'Alterar'}
+                      </RippleButton>
+                    </div>
+                    {activeSection === 'avatar' && (
+                      <form onSubmit={handleChangeAvatar} className="space-y-3">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                          className="w-full px-4 py-2 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground file:cursor-pointer hover:file:bg-primary/90"
+                          disabled={loading}
+                          required
+                        />
+                        {avatarFile && (
+                          <p className="text-xs text-foreground/60">Arquivo selecionado: {avatarFile.name}</p>
                         )}
-                      </button>
-                    </form>
-                  )}
-                </div>
+                        <button
+                          type="submit"
+                          disabled={loading || !avatarFile}
+                          className="w-full py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {loading ? (
+                            <>
+                              <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                              <span>Enviando...</span>
+                            </>
+                          ) : (
+                            <>
+                              <FontAwesomeIcon icon={faCheck} />
+                              <span>Salvar</span>
+                            </>
+                          )}
+                        </button>
+                      </form>
+                    )}
+                  </div>
 
                   <Separator />
                   {/* Nome */}
@@ -706,16 +671,16 @@ export default function SettingsPage() {
                         <div>
                           <h3 className="text-sm font-semibold text-foreground">CPF</h3>
                           <p className="text-xs text-foreground/60">
-                            {user?.taxID 
+                            {user?.taxID
                               ? (() => {
-                                  const numbers = user.taxID.replace(/\D/g, '')
-                                  if (numbers.length === 11) {
-                                    return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
-                                  } else if (numbers.length === 14) {
-                                    return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
-                                  }
-                                  return user.taxID
-                                })()
+                                const numbers = user.taxID.replace(/\D/g, '')
+                                if (numbers.length === 11) {
+                                  return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+                                } else if (numbers.length === 14) {
+                                  return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+                                }
+                                return user.taxID
+                              })()
                               : 'Não informado'}
                           </p>
                         </div>
@@ -831,7 +796,7 @@ export default function SettingsPage() {
                     )}
                   </div>
                 </div>
-                  </div>
+              </div>
 
               {/* Categoria: Taxas e Planos */}
               <div className="border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm overflow-hidden">
@@ -948,40 +913,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {/* Categoria: Assistente de IA */}
-              <div className="border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm overflow-hidden">
-                <div className="p-6 border-b border-foreground/10">
-                  <h2 className="text-lg font-bold text-foreground">Assistente de IA</h2>
-                  <p className="text-sm text-foreground/60 mt-1">Gerencie o assistente de IA do dashboard</p>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-foreground/5 border border-foreground/10">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">Ativar Assistente de IA</p>
-                      <p className="text-xs text-foreground/60">Mostrar o assistente de IA na tela inicial do dashboard</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={aiEnabled}
-                        onChange={async (e) => {
-                          const newValue = e.target.checked
-                          setAiEnabled(newValue)
-                          try {
-                            await updateAIEnabled(newValue)
-                            toastSuccess('Preferência de IA atualizada!')
-                          } catch (error) {
-                            setAiEnabled(!newValue) // Reverter em caso de erro
-                            toastError('Erro ao atualizar preferência de IA')
-                          }
-                        }}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-foreground/20 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                    </label>
-                  </div>
-                </div>
-              </div>
+
 
               {/* Categoria: Segurança */}
               <div className="border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm overflow-hidden">
@@ -1032,12 +964,12 @@ export default function SettingsPage() {
                             )}
                             <div className="p-3 rounded-lg bg-foreground/5 border border-foreground/10">
                               <Checkbox
-                                  id="forgotPassword"
-                                  checked={forgotPassword}
+                                id="forgotPassword"
+                                checked={forgotPassword}
                                 onCheckedChange={(checked) => setForgotPassword(checked === true)}
                                 label="Esqueci minha senha"
-                                  disabled={loading}
-                                />
+                                disabled={loading}
+                              />
                             </div>
                             <button
                               type="submit"
@@ -1135,8 +1067,8 @@ export default function SettingsPage() {
                         <div>
                           <h3 className="text-sm font-semibold text-foreground">Segurança de Transferências</h3>
                           <p className="text-xs text-foreground/60">
-                            {transferSecurityEnabled 
-                              ? 'Ativada - Todas as transferências requerem código por e-mail' 
+                            {transferSecurityEnabled
+                              ? 'Ativada - Todas as transferências requerem código por e-mail'
                               : 'Desativada - Transferências são processadas sem verificação'}
                           </p>
                         </div>
@@ -1153,7 +1085,7 @@ export default function SettingsPage() {
                         }}
                         className="px-4 py-2 bg-foreground/5 hover:bg-foreground/10 rounded-lg text-sm transition-colors"
                       >
-                        {transferSecurityEnabled 
+                        {transferSecurityEnabled
                           ? (activeSection === 'transfer-security' ? 'Cancelar' : 'Desativar')
                           : 'Ativar'}
                       </RippleButton>
@@ -1233,9 +1165,9 @@ export default function SettingsPage() {
                     )}
                   </div>
                 </div>
-                  </div>
+              </div>
 
-                  {/* Dispositivos Confiáveis */}
+              {/* Dispositivos Confiáveis */}
               <div className="border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm overflow-hidden">
                 <div className="p-6 border-b border-foreground/10">
                   <div className="flex items-center justify-between">
@@ -1273,9 +1205,9 @@ export default function SettingsPage() {
                           className="flex items-center justify-between p-4 rounded-lg bg-foreground/5 border border-foreground/10"
                         >
                           <div className="flex items-center gap-3 flex-1">
-                            <FontAwesomeIcon 
-                              icon={device.userAgent?.includes('Mobile') ? faMobile : faDesktop} 
-                              className="w-5 h-5 text-primary" 
+                            <FontAwesomeIcon
+                              icon={device.userAgent?.includes('Mobile') ? faMobile : faDesktop}
+                              className="w-5 h-5 text-primary"
                             />
                             <div className="flex-1 min-w-0">
                               <h3 className="text-sm font-semibold text-foreground truncate">
@@ -1307,10 +1239,10 @@ export default function SettingsPage() {
                       ))}
                     </div>
                   )}
-                  </div>
+                </div>
               </div>
 
-                  {/* Sessões Ativas */}
+              {/* Sessões Ativas */}
               <div className="border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm overflow-hidden">
                 <div className="p-6 border-b border-foreground/10">
                   <div className="flex items-center justify-between">
@@ -1344,16 +1276,15 @@ export default function SettingsPage() {
                       {sessions.map((session) => (
                         <div
                           key={session.id}
-                          className={`flex items-center justify-between p-4 rounded-lg border ${
-                            session.isCurrent 
-                              ? 'bg-primary/10 border-primary/30' 
-                              : 'bg-foreground/5 border-foreground/10'
-                          }`}
+                          className={`flex items-center justify-between p-4 rounded-lg border ${session.isCurrent
+                            ? 'bg-primary/10 border-primary/30'
+                            : 'bg-foreground/5 border-foreground/10'
+                            }`}
                         >
                           <div className="flex items-center gap-3 flex-1">
-                            <FontAwesomeIcon 
-                              icon={session.userAgent?.includes('Mobile') ? faMobile : faDesktop} 
-                              className={`w-5 h-5 ${session.isCurrent ? 'text-primary' : 'text-foreground/60'}`} 
+                            <FontAwesomeIcon
+                              icon={session.userAgent?.includes('Mobile') ? faMobile : faDesktop}
+                              className={`w-5 h-5 ${session.isCurrent ? 'text-primary' : 'text-foreground/60'}`}
                             />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
@@ -1397,49 +1328,49 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-                  {/* Instalar App */}
+              {/* Instalar App */}
               <div className="border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm overflow-hidden">
                 <div className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <FontAwesomeIcon icon={faDownload} className="text-primary w-5 h-5" />
-                        <div>
-                          <h3 className="text-sm font-semibold text-foreground">Instalar App</h3>
-                          <p className="text-xs text-foreground/60">
-                            {isInstalled 
-                              ? 'App instalado' 
-                              : isInstallable
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <FontAwesomeIcon icon={faDownload} className="text-primary w-5 h-5" />
+                      <div>
+                        <h3 className="text-sm font-semibold text-foreground">Instalar App</h3>
+                        <p className="text-xs text-foreground/60">
+                          {isInstalled
+                            ? 'App instalado'
+                            : isInstallable
                               ? 'Instale o Vision Wallet no seu dispositivo'
                               : 'Instale o app para uma experiência melhor'}
-                          </p>
-                        </div>
+                        </p>
                       </div>
                     </div>
+                  </div>
 
-                    {isInstalled ? (
-                      <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-                        <p className="text-sm text-green-500">✓ Vision Wallet está instalado no seu dispositivo</p>
-                      </div>
-                    ) : isInstallable ? (
-                      <RippleButton
-                        onClick={async () => {
-                          const installed = await installPWA()
-                          if (installed) {
+                  {isInstalled ? (
+                    <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                      <p className="text-sm text-green-500">✓ Vision Wallet está instalado no seu dispositivo</p>
+                    </div>
+                  ) : isInstallable ? (
+                    <RippleButton
+                      onClick={async () => {
+                        const installed = await installPWA()
+                        if (installed) {
                           toastSuccess('App instalado com sucesso!')
-                          } else {
+                        } else {
                           toastError('Erro ao instalar o app. Tente novamente.')
-                          }
-                        }}
-                        className="w-full py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
-                      >
-                        <FontAwesomeIcon icon={faDownload} />
-                        <span>Instalar Vision Wallet</span>
-                      </RippleButton>
-                    ) : (
-                      <p className="text-xs text-foreground/60">
-                        O app pode ser instalado quando você usar um navegador compatível.
-                      </p>
-                    )}
+                        }
+                      }}
+                      className="w-full py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <FontAwesomeIcon icon={faDownload} />
+                      <span>Instalar Vision Wallet</span>
+                    </RippleButton>
+                  ) : (
+                    <p className="text-xs text-foreground/60">
+                      O app pode ser instalado quando você usar um navegador compatível.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

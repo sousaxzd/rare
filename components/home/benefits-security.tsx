@@ -26,42 +26,20 @@ const securityBenefits = [
 
 export function BenefitsSecuritySection() {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6 }}
-      className="mt-20 mb-12 flex flex-col lg:flex-row justify-between w-full gap-8"
-    >
+    <section className="mt-20 mb-12 flex flex-col lg:flex-row justify-between w-full gap-8 relative">
       {/* Left Column - Text Content */}
-      <div className="w-full lg:w-1/2 flex flex-col gap-2">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="flex items-center gap-1"
-        >
+      <div className="w-full lg:w-1/2 flex flex-col gap-2 relative z-10">
+        <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+
+        <div className="flex items-center gap-1">
           <FontAwesomeIcon icon={faShieldAlt} className="text-primary text-[12px]" />
           <span className="text-primary/50 text-[12px]">|</span>
           <span className="text-primary font-semibold text-[12px]">Segurança e Performance</span>
-        </motion.div>
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-4xl md:text-5xl font-bold text-foreground"
-        >
+        </div>
+        <h1 className="text-4xl md:text-5xl font-bold text-foreground">
           Opere com rapidez, segurança e anonimato total
-        </motion.h1>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="flex flex-col gap-1"
-        >
+        </h1>
+        <div className="flex flex-col gap-1">
           <p className="text-foreground/70 text-sm md:text-base max-w-xl leading-relaxed">
             Transações instantâneas protegidas por criptografia de nível bancário. Venda sem revelar sua identidade e opere com total discrição.
           </p>
@@ -72,18 +50,14 @@ export function BenefitsSecuritySection() {
             <span className="text-[12px] text-foreground/80">Ver planos e preços</span>
             <FontAwesomeIcon icon={faChevronRight} className="text-foreground/70 text-[12px]" />
           </Link>
-        </motion.div>
+        </div>
         <hr className="border-foreground/10 my-4" />
 
         {/* Benefits List */}
         <div className="flex flex-col gap-6 mt-2">
           {securityBenefits.map((benefit, index) => (
-            <motion.div
+            <div
               key={index}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
               className="flex flex-row gap-4 justify-between items-start"
             >
               <div className="flex items-center gap-2 flex-shrink-0">
@@ -97,76 +71,21 @@ export function BenefitsSecuritySection() {
               <p className="text-foreground/60 text-xs md:text-sm leading-tight md:max-w-xs max-w-1/2 text-right lg:text-left">
                 {benefit.description}
               </p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
 
-      {/* Right Column - Visual Elements with Dashed Lines */}
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.3 }}
-        className="w-full lg:w-2/5 h-auto rounded-lg p-7 border border-dashed border-foreground/10 lg:block hidden"
-      >
-        <div className="flex flex-col">
-          <p className="text-foreground/60 uppercase text-xs font-[monospace]">Sua segurança</p>
-          <p className="text-foreground/60 text-xs leading-tight md:max-w-sm mt-2">
-            Proteção de nível bancário para todas as suas transações e dados pessoais.
-          </p>
-        </div>
-
-        <div className="mt-5 flex flex-row gap-4">
-          {/* Dashed vertical line */}
-          <div className="h-auto w-[1px] border-l border-dashed border-foreground/10" />
-
-          <div className="flex flex-col gap-6 flex-1">
-            {/* Security Card */}
-            <div className="flex flex-col gap-2">
-              <p className="text-foreground/60 uppercase text-xs font-[monospace]">Criptografia</p>
-              <div className="p-4 border border-foreground/10 rounded-lg bg-foreground/2">
-                <div className="flex flex-row gap-3 items-center">
-                  <div className="w-16 h-16 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center flex-shrink-0">
-                    <FontAwesomeIcon icon={faShieldAlt} className="text-primary text-2xl" />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <p className="text-foreground/70 text-[10px] uppercase font-[monospace]">AES-256</p>
-                    <p className="text-foreground/70 text-[11px] leading-tight">
-                      Proteção de nível bancário para todas as suas transações e dados pessoais.
-                    </p>
-                  </div>
-                </div>
-                <div className="h-[40%] w-full rounded-md bg-[repeating-linear-gradient(45deg,rgba(255,107,53,0.10)_0,rgba(255,107,53,0.10)_1,transparent_1px,transparent_8px)] mt-3" />
-              </div>
-            </div>
-
-            {/* Speed Card */}
-            <div className="flex flex-col gap-2">
-              <p className="text-foreground/60 uppercase text-xs font-[monospace]">Velocidade</p>
-              <div className="p-4 border border-foreground/10 rounded-lg bg-foreground/2">
-                <div className="flex flex-row gap-3 items-center">
-                  <div className="w-16 h-16 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center flex-shrink-0">
-                    <FontAwesomeIcon icon={faBolt} className="text-primary text-2xl" />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <p className="text-foreground/70 text-[10px] uppercase font-[monospace]">Instantâneo</p>
-                    <p className="text-foreground/70 text-[11px] leading-tight">
-                      Transações processadas em segundos, 24 horas por dia, 7 dias por semana.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-row gap-2 mt-3">
-                  <div className="h-[1px] w-full border-b border-dashed border-foreground/10 self-center" />
-                  <FontAwesomeIcon icon={faBolt} className="text-primary/30 text-xs" />
-                  <div className="h-[1px] w-full border-b border-dashed border-foreground/10 self-center" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </motion.section>
+      {/* Right Column - Image with Glow */}
+      <div className="w-full lg:w-1/2 h-auto relative flex items-center justify-end lg:block hidden">
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 blur-[120px] rounded-full opacity-60 pointer-events-none" />
+        <img
+          src="/roboanonimo.png"
+          alt="Segurança e Anonimato"
+          className="relative z-10 w-full h-auto object-contain max-h-[600px] scale-110 translate-x-10"
+        />
+      </div>
+    </section>
   )
 }
 

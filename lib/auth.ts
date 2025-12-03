@@ -45,6 +45,7 @@ export interface User {
   updatedAt: string;
   admin?: boolean;
   aiEnabled?: boolean; // Added aiEnabled field
+  transferSecurityEnabled?: boolean; // Added transferSecurityEnabled field
   taxID?: string; // CPF/CNPJ (somente leitura)
 }
 
@@ -70,8 +71,8 @@ export async function signup(data: SignupData): Promise<AuthResponse> {
 /**
  * Solicitar código de verificação para login
  */
-export async function requestLoginCode(data: LoginData): Promise<{ 
-  success: boolean; 
+export async function requestLoginCode(data: LoginData): Promise<{
+  success: boolean;
   message: string;
   trustedDevice?: boolean;
   token?: string;
@@ -171,11 +172,11 @@ export async function changeName(fullName: string): Promise<{ success: boolean; 
 export async function changeAvatar(file: File): Promise<{ success: boolean; message: string; user: User }> {
   const formData = new FormData();
   formData.append('avatar', file);
-  
+
   // Usar a mesma constante do api.ts para consistência
   // @ts-ignore - process.env está disponível no Next.js
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
-  
+
   const response = await fetch(`${BACKEND_URL}/api/profile/avatar`, {
     method: 'PUT',
     headers: {
@@ -183,12 +184,12 @@ export async function changeAvatar(file: File): Promise<{ success: boolean; mess
     },
     body: formData,
   });
-  
+
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.error || data.message || 'Erro ao alterar avatar');
   }
-  
+
   return data;
 }
 

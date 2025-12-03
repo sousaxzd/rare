@@ -323,7 +323,7 @@ export default function TransactionsPage() {
                                 </td>
                                 <td className={`px-3 sm:px-6 py-4 text-right text-sm font-bold whitespace-nowrap ${transaction.type === 'income' ? 'text-green-500' : 'text-foreground'
                                   }`}>
-                                  {transaction.type === 'income' ? '+' : '-'}R$ {Math.abs(transaction.amount).toFixed(2).replace('.', ',')}
+                                  {transaction.type === 'income' ? '+' : '-'}R$ {(Math.abs(transaction.amount) / 100).toFixed(2).replace('.', ',')}
                                 </td>
                               </tr>
                             )

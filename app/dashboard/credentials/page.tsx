@@ -1,17 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { SidebarDashboard } from '@/components/sidebar-dashboard'
 import { DashboardTopbar } from '@/components/dashboard-topbar'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { 
-  faKey, 
-  faCopy, 
-  faRotate, 
-  faPlus, 
-  faTrash, 
-  faEye, 
+import {
+  faKey,
+  faCopy,
+  faRotate,
+  faPlus,
+  faTrash,
+  faEye,
   faEyeSlash,
   faCheck,
   faSpinner,
@@ -24,13 +24,13 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { RippleButton } from '@/components/ripple-button'
 import { Separator } from '@/components/ui/separator'
-import { 
-  listApiKeys, 
-  getApiKeyPermissions, 
-  createApiKey, 
-  resetApiKey, 
+import {
+  listApiKeys,
+  getApiKeyPermissions,
+  createApiKey,
+  resetApiKey,
   resetSecondaryApiKey,
-  updateApiKey, 
+  updateApiKey,
   deleteApiKey,
   listAuthorizedIPs,
   addAuthorizedIP,
@@ -58,13 +58,13 @@ export default function CredentialsPage() {
   const [showResetDialog, setShowResetDialog] = useState<{ key: ApiKey; newKey?: string } | null>(null)
   const [showEditDialog, setShowEditDialog] = useState<ApiKey | null>(null)
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
-  
+
   // Estados do formulário de criação
   const [newKeyName, setNewKeyName] = useState('')
   const [newKeyPermissions, setNewKeyPermissions] = useState<string[]>([])
   const [newKeyWebhookUrl, setNewKeyWebhookUrl] = useState('')
   const [creating, setCreating] = useState(false)
-  
+
   // Estados do formulário de edição
   const [editKeyName, setEditKeyName] = useState('')
   const [editKeyPermissions, setEditKeyPermissions] = useState<string[]>([])
@@ -76,8 +76,13 @@ export default function CredentialsPage() {
   const [newIP, setNewIP] = useState('')
   const [addingIP, setAddingIP] = useState(false)
 
+  const dataLoaded = useRef(false)
+
   useEffect(() => {
-    loadData()
+    if (!dataLoaded.current) {
+      loadData()
+      dataLoaded.current = true
+    }
   }, [])
 
   const loadData = async () => {
@@ -90,7 +95,7 @@ export default function CredentialsPage() {
         // Buscar a chave da API key principal para poder copiar
         import('@/lib/apiKeys').then(m => m.getMainApiKey()).catch(() => ({ success: true, data: { apiKey: '', webhookUrl: null } }))
       ])
-      
+
       // Adicionar a chave à API key principal se não tiver
       const keys = keysRes.data.apiKeys.map(key => {
         if (key.type === 'main' && !key.key) {
@@ -98,7 +103,7 @@ export default function CredentialsPage() {
         }
         return key
       })
-      
+
       setApiKeys(keys)
       setPermissions(permsRes.data.permissions)
       setAuthorizedIPs(ipsRes.data.authorizedIPs)
@@ -120,7 +125,7 @@ export default function CredentialsPage() {
     if (!confirm(`Tem certeza que deseja resetar a chave "${key.name || 'API Key'}"? A chave anterior será invalidada.`)) {
       return
     }
-    
+
     try {
       setLoading(true)
       let response
@@ -156,18 +161,18 @@ export default function CredentialsPage() {
         permissions: newKeyPermissions,
         webhookUrl: newKeyWebhookUrl.trim() || undefined
       })
-      
-      setShowResetDialog({ 
-        key: { 
-          type: 'secondary', 
+
+      setShowResetDialog({
+        key: {
+          type: 'secondary',
           name: response.data.name,
           permissions: response.data.permissions,
           active: true,
           createdAt: new Date().toISOString()
-        } as ApiKey, 
-        newKey: response.data.apiKey 
+        } as ApiKey,
+        newKey: response.data.apiKey
       })
-      
+
       setNewKeyName('')
       setNewKeyPermissions([])
       setNewKeyWebhookUrl('')
@@ -182,7 +187,7 @@ export default function CredentialsPage() {
 
   const handleUpdate = async () => {
     if (!showEditDialog) return
-    
+
     if (showEditDialog.type === 'main') {
       // Atualizar apenas webhook da principal
       try {
@@ -191,7 +196,7 @@ export default function CredentialsPage() {
         await updateMainApiKey({
           webhookUrl: editKeyWebhookUrl.trim() || undefined
         })
-        
+
         setShowEditDialog(null)
         await loadData()
       } catch (error) {
@@ -201,12 +206,12 @@ export default function CredentialsPage() {
       }
       return
     }
-    
+
     if (showEditDialog.id === undefined) {
       alert('Não é possível atualizar esta chave')
       return
     }
-    
+
     if (!editKeyName.trim() || editKeyPermissions.length === 0) {
       alert('Preencha o nome e selecione pelo menos uma permissão')
       return
@@ -220,7 +225,7 @@ export default function CredentialsPage() {
         active: editKeyActive,
         webhookUrl: editKeyWebhookUrl.trim() || undefined
       })
-      
+
       setShowEditDialog(null)
       await loadData()
     } catch (error) {
@@ -248,7 +253,7 @@ export default function CredentialsPage() {
       }
       return
     }
-    
+
     if (key.id === undefined) {
       alert('Não é possível deletar esta chave')
       return
@@ -271,13 +276,13 @@ export default function CredentialsPage() {
 
   const togglePermission = (permission: string, isEdit: boolean = false) => {
     if (isEdit) {
-      setEditKeyPermissions(prev => 
+      setEditKeyPermissions(prev =>
         prev.includes(permission)
           ? prev.filter(p => p !== permission)
           : [...prev, permission]
       )
     } else {
-      setNewKeyPermissions(prev => 
+      setNewKeyPermissions(prev =>
         prev.includes(permission)
           ? prev.filter(p => p !== permission)
           : [...prev, permission]
@@ -419,111 +424,111 @@ export default function CredentialsPage() {
                 </RippleButton>
               </div>
 
-            {loading ? (
-              <div className="space-y-4">
-                {[1, 2].map((i) => (
-                  <Skeleton key={i} className="h-32 w-full rounded-lg" />
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {apiKeys.map((key) => (
-                  <div
-                    key={key.type === 'main' ? 'main' : key.id}
-                    className="border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm p-4 sm:p-6"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-                          <FontAwesomeIcon icon={faKey} className="w-5 h-5 text-primary flex-shrink-0" />
-                          <h3 className="text-base sm:text-lg font-bold text-foreground break-words">
-                            {key.name || `API Key ${key.type === 'main' ? '' : `#${key.id}`}`}
-                          </h3>
-                          {key.active === false && (
-                            <span className="px-2 py-1 bg-red-500/20 text-red-500 text-xs font-semibold rounded flex-shrink-0">
-                              Desativada
-                            </span>
-                          )}
-                        </div>
-                        
-                        <div className="space-y-2 mt-4">
-                          <div>
-                            <span className="text-xs text-muted-foreground">Permissões: </span>
-                            <div className="flex flex-wrap gap-2 mt-1">
-                              {key.permissions.map((perm) => (
-                                <span
-                                  key={perm}
-                                  className="px-2 py-1 bg-foreground/5 text-foreground text-xs rounded break-words"
-                                >
-                                  {permissions[perm] || perm}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                          
-                          {key.webhookUrl && (
-                            <div className="break-all">
-                              <span className="text-xs text-muted-foreground">Webhook: </span>
-                              <span className="text-xs text-foreground font-mono break-all">{key.webhookUrl}</span>
-                            </div>
-                          )}
-                          
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-xs text-muted-foreground">
-                              Criada em: {format(new Date(key.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                            </span>
-                            {key.lastUsedAt && (
-                              <span className="text-xs text-muted-foreground">
-                                Último uso: {format(new Date(key.lastUsedAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+              {loading ? (
+                <div className="space-y-4">
+                  {[1, 2].map((i) => (
+                    <Skeleton key={i} className="h-32 w-full rounded-lg" />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {apiKeys.map((key) => (
+                    <div
+                      key={key.type === 'main' ? 'main' : key.id}
+                      className="border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm p-4 sm:p-6"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                            <FontAwesomeIcon icon={faKey} className="w-5 h-5 text-primary flex-shrink-0" />
+                            <h3 className="text-base sm:text-lg font-bold text-foreground break-words">
+                              {key.name || `API Key ${key.type === 'main' ? '' : `#${key.id}`}`}
+                            </h3>
+                            {key.active === false && (
+                              <span className="px-2 py-1 bg-red-500/20 text-red-500 text-xs font-semibold rounded flex-shrink-0">
+                                Desativada
                               </span>
                             )}
                           </div>
+
+                          <div className="space-y-2 mt-4">
+                            <div>
+                              <span className="text-xs text-muted-foreground">Permissões: </span>
+                              <div className="flex flex-wrap gap-2 mt-1">
+                                {key.permissions.map((perm) => (
+                                  <span
+                                    key={perm}
+                                    className="px-2 py-1 bg-foreground/5 text-foreground text-xs rounded break-words"
+                                  >
+                                    {permissions[perm] || perm}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+
+                            {key.webhookUrl && (
+                              <div className="break-all">
+                                <span className="text-xs text-muted-foreground">Webhook: </span>
+                                <span className="text-xs text-foreground font-mono break-all">{key.webhookUrl}</span>
+                              </div>
+                            )}
+
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-xs text-muted-foreground">
+                                Criada em: {format(new Date(key.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                              </span>
+                              {key.lastUsedAt && (
+                                <span className="text-xs text-muted-foreground">
+                                  Último uso: {format(new Date(key.lastUsedAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-shrink-0 sm:ml-4">
+                          {key.key && (
+                            <RippleButton
+                              onClick={() => handleCopy(key.key!, key.type === 'main' ? 'main' : String(key.id))}
+                              className="p-2 hover:bg-foreground/10 rounded-lg transition-colors"
+                              title="Copiar chave"
+                            >
+                              <FontAwesomeIcon
+                                icon={copiedKey === (key.type === 'main' ? 'main' : String(key.id)) ? faCheck : faCopy}
+                                className={`w-4 h-4 ${copiedKey === (key.type === 'main' ? 'main' : String(key.id)) ? 'text-green-500' : 'text-foreground'}`}
+                              />
+                            </RippleButton>
+                          )}
+
+                          <RippleButton
+                            onClick={() => openEditDialog(key)}
+                            className="p-2 hover:bg-foreground/10 rounded-lg transition-colors"
+                            title="Editar"
+                          >
+                            <FontAwesomeIcon icon={faEdit} className="w-4 h-4 text-foreground" />
+                          </RippleButton>
+
+                          <RippleButton
+                            onClick={() => handleDelete(key)}
+                            className="p-2 hover:bg-red-500/10 rounded-lg transition-colors"
+                            title="Deletar"
+                          >
+                            <FontAwesomeIcon icon={faTrash} className="w-4 h-4 text-red-500" />
+                          </RippleButton>
+
+                          <RippleButton
+                            onClick={() => handleReset(key)}
+                            className="p-2 hover:bg-foreground/10 rounded-lg transition-colors"
+                            title="Resetar chave"
+                          >
+                            <FontAwesomeIcon icon={faRotate} className="w-4 h-4 text-foreground" />
+                          </RippleButton>
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-2 flex-shrink-0 sm:ml-4">
-                        {key.key && (
-                          <RippleButton
-                            onClick={() => handleCopy(key.key!, key.type === 'main' ? 'main' : String(key.id))}
-                            className="p-2 hover:bg-foreground/10 rounded-lg transition-colors"
-                            title="Copiar chave"
-                          >
-                            <FontAwesomeIcon 
-                              icon={copiedKey === (key.type === 'main' ? 'main' : String(key.id)) ? faCheck : faCopy} 
-                              className={`w-4 h-4 ${copiedKey === (key.type === 'main' ? 'main' : String(key.id)) ? 'text-green-500' : 'text-foreground'}`}
-                            />
-                          </RippleButton>
-                        )}
-                        
-                        <RippleButton
-                          onClick={() => openEditDialog(key)}
-                          className="p-2 hover:bg-foreground/10 rounded-lg transition-colors"
-                          title="Editar"
-                        >
-                          <FontAwesomeIcon icon={faEdit} className="w-4 h-4 text-foreground" />
-                        </RippleButton>
-                        
-                        <RippleButton
-                          onClick={() => handleDelete(key)}
-                          className="p-2 hover:bg-red-500/10 rounded-lg transition-colors"
-                          title="Deletar"
-                        >
-                          <FontAwesomeIcon icon={faTrash} className="w-4 h-4 text-red-500" />
-                        </RippleButton>
-                        
-                        <RippleButton
-                          onClick={() => handleReset(key)}
-                          className="p-2 hover:bg-foreground/10 rounded-lg transition-colors"
-                          title="Resetar chave"
-                        >
-                          <FontAwesomeIcon icon={faRotate} className="w-4 h-4 text-foreground" />
-                        </RippleButton>
-                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
             </div>
 
             <Separator className="my-8" />
@@ -598,9 +603,8 @@ export default function CredentialsPage() {
                         <tr key={ipData.ip} className={idx < authorizedIPs.length - 1 ? 'border-b border-foreground/10' : ''}>
                           <td className="px-3 sm:px-4 py-3 text-sm text-foreground font-mono break-all">{ipData.ip}</td>
                           <td className="px-3 sm:px-4 py-3">
-                            <span className={`text-xs font-semibold px-2 py-1 rounded whitespace-nowrap ${
-                              ipData.active ? 'bg-green-500/20 text-green-500' : 'bg-gray-500/20 text-gray-500'
-                            }`}>
+                            <span className={`text-xs font-semibold px-2 py-1 rounded whitespace-nowrap ${ipData.active ? 'bg-green-500/20 text-green-500' : 'bg-gray-500/20 text-gray-500'
+                              }`}>
                               {ipData.active ? 'Ativo' : 'Inativo'}
                             </span>
                           </td>
@@ -688,7 +692,7 @@ export default function CredentialsPage() {
               Crie uma nova API Key com permissões específicas
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 mt-4">
             <div>
               <Label htmlFor="keyName">Nome</Label>
@@ -700,7 +704,7 @@ export default function CredentialsPage() {
                 className="mt-1"
               />
             </div>
-            
+
             <div>
               <Label>Permissões</Label>
               <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
@@ -722,7 +726,7 @@ export default function CredentialsPage() {
                 ))}
               </div>
             </div>
-            
+
             <div>
               <Label htmlFor="webhookUrl">Webhook URL (opcional)</Label>
               <Input
@@ -737,7 +741,7 @@ export default function CredentialsPage() {
                 URL para receber notificações de eventos desta API Key
               </p>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-2 pt-4">
               <RippleButton
                 onClick={() => setShowCreateDialog(false)}
@@ -771,12 +775,12 @@ export default function CredentialsPage() {
             <DialogHeader>
               <DialogTitle>API Key Resetada</DialogTitle>
               <DialogDescription>
-                {showResetDialog.newKey 
+                {showResetDialog.newKey
                   ? 'Sua nova API Key foi gerada. Copie e guarde em local seguro.'
                   : 'Resetando API Key...'}
               </DialogDescription>
             </DialogHeader>
-            
+
             {showResetDialog.newKey && (
               <div className="space-y-4 mt-4">
                 <div>
@@ -798,7 +802,7 @@ export default function CredentialsPage() {
                     ⚠️ Esta chave não será exibida novamente. Guarde em local seguro!
                   </p>
                 </div>
-                
+
                 <RippleButton
                   onClick={() => setShowResetDialog(null)}
                   className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
@@ -821,7 +825,7 @@ export default function CredentialsPage() {
                 Atualize as configurações desta API Key
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4 mt-4">
               {showEditDialog.type === 'main' ? (
                 // Para API Key principal, mostrar apenas webhook
@@ -850,7 +854,7 @@ export default function CredentialsPage() {
                       className="mt-1"
                     />
                   </div>
-                  
+
                   <div>
                     <Label>Permissões</Label>
                     <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
@@ -872,7 +876,7 @@ export default function CredentialsPage() {
                       ))}
                     </div>
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="editWebhookUrl">Webhook URL (opcional)</Label>
                     <Input
@@ -884,7 +888,7 @@ export default function CredentialsPage() {
                       className="mt-1"
                     />
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="editActive"
@@ -897,7 +901,7 @@ export default function CredentialsPage() {
                   </div>
                 </>
               )}
-              
+
               <div className="flex flex-col sm:flex-row gap-2 pt-4">
                 <RippleButton
                   onClick={() => setShowEditDialog(null)}

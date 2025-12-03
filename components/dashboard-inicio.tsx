@@ -1,19 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faWallet, faArrowUp, faArrowDown, faEye, faEyeSlash, faArrowRight, faPaperPlane, faInbox, faSpinner, faCopy, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons'
+import { faWallet, faArrowUp, faArrowDown, faEye, faEyeSlash, faArrowRight, faPaperPlane, faInbox, faSpinner, faCopy, faCheck, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
 import { RippleButton } from './ripple-button'
-import { getBalance, listPayments, listWithdraws, Payment, Withdraw, createPayment, createWithdraw, getUserData } from '@/lib/wallet'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { createPayment, createWithdraw } from '@/lib/wallet'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { TransactionDetailsModal } from './transaction-details-modal'
 import { useNotifications } from '@/hooks/useNotifications'
 import { sendAIMessage, parseAIAction, buildSystemContext, cleanContentForDisplay } from '@/lib/ai'
 import { useAuth } from '@/hooks/useAuth'
+import { useWallet } from '@/components/providers/wallet-provider'
 
 interface DashboardInicioProps {
   loading?: boolean
@@ -30,15 +32,16 @@ interface TransactionDisplay {
 
 export function DashboardInicio({ loading: externalLoading }: DashboardInicioProps) {
   const { user, loading: authLoading } = useAuth()
+  const { balance: walletBalance, payments, withdraws, loading: walletLoading, refreshWallet } = useWallet()
+
   const [showBalance, setShowBalance] = useState(true)
   const [aiInput, setAiInput] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
   const [pendingAction, setPendingAction] = useState<{ type: 'create_payment' | 'create_transfer'; data?: any } | null>(null)
   const [aiMessages, setAiMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string; copyPaste?: string }>>([])
   const [aiPlaceholderResponse, setAiPlaceholderResponse] = useState('')
-  const [balance, setBalance] = useState<number | null>(null)
+
   const [transactions, setTransactions] = useState<TransactionDisplay[]>([])
-  const [loading, setLoading] = useState(true)
   const [detailsModalOpen, setDetailsModalOpen] = useState(false)
   const [selectedTransactionId, setSelectedTransactionId] = useState<string>('')
   const [selectedTransactionType, setSelectedTransactionType] = useState<'payment' | 'withdraw'>('payment')
@@ -48,123 +51,99 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
   const [aiEnabled, setAiEnabled] = useState<boolean>(true) // Default true
   const { notifyPaymentReceived, notifyWithdrawCompleted } = useNotifications()
 
+  // Refs for auto-scrolling or other needs could go here
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Load AI messages from localStorage on mount
   useEffect(() => {
-    const loadData = async () => {
-      // Verificar se está autenticado antes de fazer requisições
-      if (typeof window !== 'undefined' && !localStorage.getItem('token')) {
-        setTimeout(() => setLoading(false), 800)
-        return
-      }
-
-      const startTime = Date.now()
-      const minLoadingTime = 800
-
-      try {
-        setLoading(true)
-        // Carregar dados em paralelo para melhor performance
-        const [balanceRes, paymentsRes, withdrawsRes] = await Promise.all([
-          getBalance(),
-          listPayments({ limit: 20 }),
-          listWithdraws({ limit: 20 }),
-        ])
-
-        // AI está habilitado por padrão
-        setAiEnabled(true)
-
-        const balanceData = balanceRes.data.balance.total / 100
-        setBalance(balanceData)
-
-        // Combinar pagamentos e saques em uma lista de transações
-        const allTransactions: TransactionDisplay[] = []
-
-        // Adicionar pagamentos completados como recebidos
-        paymentsRes.data.payments
-          .filter(p => p.status === 'COMPLETED' || p.status === 'PAID' || p.status === 'PENDING')
-          .forEach(p => {
-            allTransactions.push({
-              id: p.id,
-              type: 'received',
-              transactionType: 'payment',
-              description: p.description || 'Pagamento recebido',
-              amount: (p.netValue || p.value) / 100,
-              date: p.createdAt
-            })
-          })
-
-        // Adicionar saques como enviados (incluir todos os status exceto FAILED)
-        withdrawsRes.data.withdraws
-          .filter(w => w.status !== 'FAILED')
-          .forEach(w => {
-            allTransactions.push({
-              id: w.id,
-              type: 'sent',
-              transactionType: 'withdraw',
-              description: w.description || 'Saque realizado',
-              amount: w.value / 100,
-              date: w.createdAt
-            })
-          })
-
-        // Verificar novos pagamentos para notificações
-        paymentsRes.data.payments
-          .filter(p => (p.status === 'COMPLETED' || p.status === 'PAID') && !lastPaymentIds.has(p.id))
-          .forEach(p => {
-            notifyPaymentReceived(p.netValue || p.value, p.description)
-          })
-
-        // Verificar novos saques para notificações
-        withdrawsRes.data.withdraws
-          .filter(w => w.status === 'COMPLETED' && !lastWithdrawIds.has(w.id))
-          .forEach(w => {
-            notifyWithdrawCompleted(w.value, w.description)
-          })
-
-        // Atualizar IDs conhecidos
-        const newPaymentIds = new Set(paymentsRes.data.payments.map(p => p.id))
-        const newWithdrawIds = new Set(withdrawsRes.data.withdraws.map(w => w.id))
-        setLastPaymentIds(newPaymentIds)
-        setLastWithdrawIds(newWithdrawIds)
-
-        // Ordenar por data (mais recente primeiro) e pegar as últimas 5
-        allTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        const sortedTransactions = allTransactions.slice(0, 5).map(t => ({
-          ...t,
-          date: format(new Date(t.date), "dd/MM/yyyy HH:mm", { locale: ptBR })
-        }))
-        setTransactions(sortedTransactions)
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error)
-
-        // Se for erro de servidor indisponível, não quebrar a aplicação
-        if (error instanceof Error) {
-          if (error.message.includes('Servidor indisponível')) {
-            console.warn('Backend indisponível, continuando sem carregar dados')
-            // Não quebrar a aplicação, apenas não carregar dados
-            return
-          }
-
-          // Se for erro de autenticação, não mostrar erro, apenas não carregar dados
-          if (error.message.includes('Autenticação')) {
-            // Token inválido ou expirado, será tratado pelo useAuth
-            return
-          }
+    if (typeof window !== 'undefined') {
+      const savedMessages = localStorage.getItem('vision_ai_messages')
+      if (savedMessages) {
+        try {
+          setAiMessages(JSON.parse(savedMessages))
+        } catch (e) {
+          console.error('Erro ao carregar mensagens da IA:', e)
         }
-
-        // Para outros erros, logar mas não quebrar
-        console.warn('Erro ao carregar dados do dashboard, continuando sem dados')
-      } finally {
-        // Garantir tempo mínimo de loading para sincronização visual (800ms)
-        const elapsed = Date.now() - startTime
-        const remaining = Math.max(0, minLoadingTime - elapsed)
-
-        setTimeout(() => {
-          setLoading(false)
-        }, remaining)
       }
     }
-
-    loadData()
   }, [])
+
+  // Save AI messages to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== 'undefined' && aiMessages.length > 0) {
+      localStorage.setItem('vision_ai_messages', JSON.stringify(aiMessages))
+    }
+  }, [aiMessages])
+
+  // Process transactions from WalletContext
+  useEffect(() => {
+    if (!walletLoading && (payments.length > 0 || withdraws.length > 0)) {
+      // Combinar pagamentos e saques em uma lista de transações
+      const allTransactions: TransactionDisplay[] = []
+
+      // Adicionar pagamentos completados como recebidos
+      payments
+        .filter(p => p.status === 'COMPLETED' || p.status === 'PAID' || p.status === 'PENDING')
+        .forEach(p => {
+          allTransactions.push({
+            id: p.id,
+            type: 'received',
+            transactionType: 'payment',
+            description: p.description || 'Pagamento recebido',
+            amount: (p.netValue || p.value) / 100,
+            date: p.createdAt
+          })
+        })
+
+      // Adicionar saques como enviados (incluir todos os status exceto FAILED)
+      withdraws
+        .filter(w => w.status !== 'FAILED')
+        .forEach(w => {
+          allTransactions.push({
+            id: w.id,
+            type: 'sent',
+            transactionType: 'withdraw',
+            description: w.description || 'Saque realizado',
+            amount: w.value / 100,
+            date: w.createdAt
+          })
+        })
+
+      // Verificar novos pagamentos para notificações
+      payments
+        .filter(p => (p.status === 'COMPLETED' || p.status === 'PAID') && !lastPaymentIds.has(p.id))
+        .forEach(p => {
+          notifyPaymentReceived(p.netValue || p.value, p.description)
+        })
+
+      // Verificar novos saques para notificações
+      withdraws
+        .filter(w => w.status === 'COMPLETED' && !lastWithdrawIds.has(w.id))
+        .forEach(w => {
+          notifyWithdrawCompleted(w.value, w.description)
+        })
+
+      // Atualizar IDs conhecidos
+      const newPaymentIds = new Set(payments.map(p => p.id))
+      const newWithdrawIds = new Set(withdraws.map(w => w.id))
+      setLastPaymentIds(newPaymentIds)
+      setLastWithdrawIds(newWithdrawIds)
+
+      // Ordenar por data (mais recente primeiro) e pegar as últimas 5
+      allTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      const sortedTransactions = allTransactions.slice(0, 5).map(t => ({
+        ...t,
+        date: format(new Date(t.date), "dd/MM/yyyy HH:mm", { locale: ptBR })
+      }))
+      setTransactions(sortedTransactions)
+    }
+  }, [payments, withdraws, walletLoading])
+
+  const handleClearHistory = () => {
+    setAiMessages([])
+    localStorage.removeItem('vision_ai_messages')
+    setAiPlaceholderResponse('')
+  }
 
   const handleAISubmit = async () => {
     if (!aiInput.trim() || aiLoading) return
@@ -174,10 +153,9 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
     setAiLoading(true)
 
     try {
-      // Construir contexto do sistema completo
-      const balanceRes = await getBalance().catch(() => null)
-      const userBalance = balanceRes ? balanceRes.data.balance.total : undefined
-      const userPlan = balanceRes?.data?.plan?.name || 'FREE'
+      // Construir contexto do sistema completo usando dados do Context
+      const userBalance = walletBalance ? walletBalance.balance.total : undefined
+      const userPlan = walletBalance?.plan?.name || 'FREE'
 
       const systemContext = buildSystemContext({
         name: user?.fullName,
@@ -186,8 +164,12 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
       })
 
       // Enviar mensagem para IA
+      // Incluir histórico recente para contexto (opcional, mas bom para conversas contínuas)
+      const recentMessages = aiMessages.slice(-6).map(m => ({ role: m.role, content: m.content }))
+
       const response = await sendAIMessage([
         { role: 'assistant', content: systemContext },
+        ...recentMessages,
         { role: 'user', content: userMessage },
       ])
 
@@ -212,9 +194,11 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
 
       // Ações informacionais
       if (action && action.type === 'show_balance') {
-        const res = await getBalance().catch(() => null)
-        if (res) {
-          const current = res.data.balance.total / 100
+        // Usar dados do cache se possível, ou forçar refresh
+        await refreshWallet()
+
+        if (walletBalance) {
+          const current = walletBalance.balance.total / 100
           const msg = `💰 Seu saldo atual é de R$ ${current.toFixed(2).replace('.', ',')}`
           setAiMessages(prev => [...prev, { role: 'assistant', content: msg }])
           setAiPlaceholderResponse(msg)
@@ -224,22 +208,15 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
           setAiPlaceholderResponse(msg)
         }
       } else if (action && action.type === 'show_last_transactions') {
-        try {
-          const [paymentsRes, withdrawsRes] = await Promise.all([
-            listPayments({ limit: 5 }),
-            listWithdraws({ limit: 5 })
-          ])
-          const payments = (paymentsRes.data.payments || []).slice(0, 3).map(p => `+ R$ ${((p.netValue || p.value) / 100).toFixed(2)} ${p.description ? `- ${p.description}` : ''}`)
-          const withdraws = (withdrawsRes.data.withdraws || []).slice(0, 3).map(w => `- R$ ${(w.value / 100).toFixed(2)} ${w.description ? `- ${w.description}` : ''}`)
-          const lines = [...payments, ...withdraws]
-          const msg = lines.length ? `🧾 Últimas transações:\n${lines.join('\n')}` : 'Você ainda não possui transações.'
-          setAiMessages(prev => [...prev, { role: 'assistant', content: msg }])
-          setAiPlaceholderResponse(lines.length ? '🧾 Últimas transações exibidas no console.' : 'Você ainda não possui transações.')
-        } catch {
-          const msg = 'Não consegui obter as últimas transações agora.'
-          setAiMessages(prev => [...prev, { role: 'assistant', content: msg }])
-          setAiPlaceholderResponse(msg)
-        }
+        await refreshWallet()
+
+        const recentPayments = payments.slice(0, 3).map(p => `+ R$ ${((p.netValue || p.value) / 100).toFixed(2)} ${p.description ? `- ${p.description}` : ''}`)
+        const recentWithdraws = withdraws.slice(0, 3).map(w => `- R$ ${(w.value / 100).toFixed(2)} ${w.description ? `- ${w.description}` : ''}`)
+        const lines = [...recentPayments, ...recentWithdraws]
+        const msg = lines.length ? `🧾 Últimas transações:\n${lines.join('\n')}` : 'Você ainda não possui transações.'
+        setAiMessages(prev => [...prev, { role: 'assistant', content: msg }])
+        setAiPlaceholderResponse(lines.length ? '🧾 Últimas transações exibidas no console.' : 'Você ainda não possui transações.')
+
       } else if (action && (action.type === 'create_payment' || action.type === 'create_transfer')) {
         // Verificar se há dados suficientes antes de pedir confirmação
         // Validar valor para pagamento: deve existir, não ser vazio, e ser um número válido
@@ -360,8 +337,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
         setAiPlaceholderResponse('✅ Pagamento gerado com sucesso!')
 
         // Recarregar dados
-        const balanceRes = await getBalance()
-        setBalance(balanceRes.data.balance.total / 100)
+        await refreshWallet()
       } else if (action.type === 'create_transfer') {
         const { amount, pixKey, pixKeyType, description } = action.data || {}
 
@@ -415,8 +391,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
         setAiPlaceholderResponse('✅ Transferência enviada com sucesso!')
 
         // Recarregar dados
-        const balanceRes = await getBalance()
-        setBalance(balanceRes.data.balance.total / 100)
+        await refreshWallet()
       }
     } catch (error) {
       const errorMsg = `❌ Erro: ${error instanceof Error ? error.message : 'Erro ao executar ação'}`
@@ -478,12 +453,42 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
   if (authLoading && !user) {
     return (
       <div className="space-y-6">
+        {/* AI Assistant Skeleton */}
+        {aiEnabled && (
+          <div className="relative">
+            <Skeleton className="w-full h-12 rounded-xl" />
+          </div>
+        )}
+
+        {/* Saldo e Botões Skeleton */}
         <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center space-y-4">
-              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-muted-foreground text-sm">Carregando...</p>
-            </div>
+          <div className="flex items-center justify-between mb-6">
+            <Skeleton className="h-16 w-64" />
+            <Skeleton className="w-10 h-10 rounded-lg" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Skeleton className="h-12 w-full rounded-lg" />
+            <Skeleton className="h-12 w-full rounded-lg" />
+          </div>
+        </div>
+
+        {/* Últimas Transações Skeleton */}
+        <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
+          <div className="flex items-center justify-between mb-6">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-6 w-24" />
+          </div>
+          <div className="space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="w-10 h-10 rounded-full" />
+                <div className="flex-1">
+                  <Skeleton className="h-4 w-32 mb-2" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+                <Skeleton className="h-5 w-20" />
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -495,16 +500,27 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
       {/* AI Assistant - Moved outside container */}
       {aiEnabled && (
         <div className="relative">
-          <input
-            type="text"
-            value={aiInput}
-            onChange={(e) => setAiInput(e.target.value)}
-            onKeyPress={handleAIKeyPress}
-            placeholder={aiPlaceholderResponse || "Peça para IA que ela faz por você! (BETA TESTING)"}
-            disabled={aiLoading || !!pendingAction}
-            className={`w-full pl-4 pr-24 py-3 rounded-xl bg-foreground/5 border border-foreground/10 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all text-sm disabled:opacity-70 ${aiPlaceholderResponse ? 'placeholder:text-primary/80' : ''
-              }`}
-          />
+          <TooltipProvider>
+            <Tooltip delayDuration={300}>
+              <TooltipTrigger asChild>
+                <input
+                  type="text"
+                  value={aiInput}
+                  onChange={(e) => setAiInput(e.target.value)}
+                  onKeyPress={handleAIKeyPress}
+                  placeholder={aiPlaceholderResponse || "Peça para IA que ela faz por você! (BETA TESTING)"}
+                  disabled={aiLoading || !!pendingAction}
+                  className={`w-full pl-4 pr-24 py-3 rounded-xl bg-foreground/5 border border-foreground/10 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all text-sm disabled:opacity-70 ${aiPlaceholderResponse ? 'placeholder:text-primary/80' : ''
+                    }`}
+                />
+              </TooltipTrigger>
+              {aiPlaceholderResponse && (
+                <TooltipContent side="bottom" align="start" className="max-w-[400px] bg-background border-foreground/10 text-foreground p-3 shadow-lg rounded-xl">
+                  <p className="text-sm whitespace-pre-wrap">{aiPlaceholderResponse}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
             {pendingAction ? (
               <>
@@ -524,16 +540,27 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
                 </button>
               </>
             ) : (
-              <button
-                onClick={handleAISubmit}
-                disabled={aiLoading || !aiInput.trim()}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FontAwesomeIcon
-                  icon={aiLoading ? faSpinner : faPaperPlane}
-                  className={`w-4 h-4 ${aiLoading ? 'animate-spin' : ''}`}
-                />
-              </button>
+              <>
+                {aiMessages.length > 0 && (
+                  <button
+                    onClick={handleClearHistory}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                    title="Limpar histórico"
+                  >
+                    <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+                  </button>
+                )}
+                <button
+                  onClick={handleAISubmit}
+                  disabled={aiLoading || !aiInput.trim()}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FontAwesomeIcon
+                    icon={aiLoading ? faSpinner : faPaperPlane}
+                    className={`w-4 h-4 ${aiLoading ? 'animate-spin' : ''}`}
+                  />
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -543,12 +570,12 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
       <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
         {/* Saldo */}
         <div className="flex items-center justify-between mb-6">
-          {loading || balance === null ? (
+          {walletLoading ? (
             <Skeleton className="h-16 w-64" />
           ) : (
             <p className="text-5xl font-bold text-foreground">
-              {showBalance
-                ? `R$ ${balance.toFixed(2).replace('.', ',')}`
+              {showBalance && walletBalance
+                ? `R$ ${(walletBalance.balance.total / 100).toFixed(2).replace('.', ',')}`
                 : '••••••'}
             </p>
           )}
@@ -565,7 +592,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
 
         {/* Botões */}
         <div className="grid grid-cols-2 gap-4">
-          {loading ? (
+          {walletLoading ? (
             <>
               <Skeleton className="h-12 w-full rounded-lg" />
               <Skeleton className="h-12 w-full rounded-lg" />
@@ -601,7 +628,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
           </Link>
         </div>
 
-        {loading || transactions.length === 0 && balance === null ? (
+        {walletLoading ? (
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="flex items-center gap-4">

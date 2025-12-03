@@ -53,7 +53,7 @@ export function FAQ() {
         <Accordion
           type="single"
           collapsible
-          className="bg-foreground/2 p-5 rounded-lg border border-foreground/10 border-dashed"
+          className="bg-foreground/2 p-5 rounded-xl border border-foreground/10"
         >
           {faqItems.map((item, index) => (
             <AccordionItem

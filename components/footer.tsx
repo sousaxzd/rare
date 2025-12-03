@@ -16,7 +16,7 @@ export function Footer() {
     <footer className="flex flex-col py-10 border-t border-foreground/10 w-full">
       <section className="flex w-full flex-col md:flex-row gap-5 md:gap-20 max-w-7xl mx-auto px-6 md:justify-between">
         <div className="flex flex-col gap-2 md:justify-center">
-          <div className="flex items-center justify-between md:justify-start gap-3">
+          <div className="flex items-center justify-start gap-3">
             <Link href="/" className="flex flex-row gap-2 items-center select-none w-fit">
               <Logo size={40} width={40} height={40} />
               <div className="flex flex-col leading-[15px]">
@@ -79,7 +79,7 @@ export function Footer() {
             </div>
           </div>
         </div>
-        <hr className="border-foreground/10 md:hidden" />
+        <hr className="border-foreground/10 md:hidden my-0" />
         <div className="grid grid-cols-2 md:grid-cols-2 gap-5 md:gap-10">
           {footer.map((category, categoryIdx) => (
             <div key={categoryIdx} className="flex flex-col gap-3">

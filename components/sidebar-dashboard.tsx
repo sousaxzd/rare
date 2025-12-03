@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faReceipt, faArrowUp, faSignOutAlt, faPlug, faChevronDown, faChevronUp, faKey, faExternalLink, faXmark, faBullseye, faChartLine, faArrowDown, faExchange, faGear } from '@fortawesome/free-solid-svg-icons'
+import { faHome, faReceipt, faArrowUp, faSignOutAlt, faPlug, faKey, faExternalLink, faXmark, faBullseye, faChartLine, faArrowDown, faExchangeAlt, faGear, faLayerGroup, faWrench } from '@fortawesome/free-solid-svg-icons'
+import { faDiscord } from '@fortawesome/free-brands-svg-icons'
 import { RippleButton } from './ripple-button'
 import { Separator } from '@/components/ui/separator'
 import { Logo } from './icons'
@@ -18,29 +19,42 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
   const router = useRouter()
   const pathname = usePathname()
   const { logout } = useAuth()
-  // Abrir categoria Integrações se estiver em /dashboard/credentials
-  const [docsExpanded, setDocsExpanded] = useState(pathname === '/dashboard/credentials')
-  const [transferenciasExpanded, setTransferenciasExpanded] = useState(true)
-  
-  // Atualizar docsExpanded quando pathname mudar
-  useEffect(() => {
-    if (pathname === '/dashboard/credentials') {
-      setDocsExpanded(true)
+
+  const categories = [
+    {
+      title: 'Plataforma',
+      icon: faLayerGroup,
+      items: [
+        { id: 'inicio', label: 'Início', icon: faHome, href: '/dashboard' },
+        { id: 'resumo', label: 'Resumo', icon: faChartLine, href: '/dashboard/summary' },
+        { id: 'extrato', label: 'Extrato', icon: faReceipt, href: '/dashboard/transactions' },
+        { id: 'metas', label: 'Metas', icon: faBullseye, href: '/dashboard/goals' },
+      ]
+    },
+    {
+      title: 'Transações',
+      icon: faExchangeAlt,
+      items: [
+        { id: 'transferir', label: 'Transferir', icon: faArrowUp, href: '/dashboard/transfer' },
+        { id: 'depositar', label: 'Depositar', icon: faArrowDown, href: '/dashboard/deposit' },
+      ]
+    },
+    {
+      title: 'Integrações',
+      icon: faPlug,
+      items: [
+        { id: 'credenciais', label: 'Credenciais', icon: faKey, href: '/dashboard/credentials' },
+        { id: 'docs', label: 'Ver Documentação', icon: faExternalLink, href: 'https://docs.visionwallet.com.br', external: true },
+      ]
+    },
+    {
+      title: 'Ajustes',
+      icon: faWrench,
+      items: [
+        { id: 'config', label: 'Configurações', icon: faGear, href: '/dashboard/settings' },
+      ]
     }
-  }, [pathname])
-
-  const menuItems = [
-    { id: 'inicio', label: 'Início', icon: faHome, href: '/dashboard' },
-    { id: 'resumo', label: 'Resumo', icon: faChartLine, href: '/dashboard/summary' },
-    { id: 'extrato', label: 'Extrato', icon: faReceipt, href: '/dashboard/transactions' },
-    { id: 'metas', label: 'Metas', icon: faBullseye, href: '/dashboard/goals' },
   ]
-
-  const transferenciasItems = [
-    { id: 'transferir', label: 'Transferir', icon: faArrowUp, href: '/dashboard/transfer' },
-    { id: 'depositar', label: 'Depositar', icon: faArrowDown, href: '/dashboard/deposit' },
-  ]
-
 
   const handleLogout = async () => {
     await logout()
@@ -58,9 +72,8 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 w-full lg:w-64 bg-background transition-all duration-300 z-50 flex flex-col ${
-          open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
+        className={`fixed lg:static inset-y-0 left-0 w-full lg:w-64 bg-background transition-all duration-300 z-50 flex flex-col ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          }`}
       >
         {/* Logo & Close Button */}
         <div className="h-14 flex items-center justify-between px-4 lg:px-6 border-b border-foreground/10">
@@ -73,9 +86,9 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
               <span className="text-foreground/60 font-normal font-sans text-[12px]">
                 Wallet
               </span>
+            </div>
           </div>
-        </div>
-        
+
           {/* Close Button - Only visible on mobile */}
           <button
             onClick={() => onOpenChange(false)}
@@ -87,151 +100,72 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
         </div>
 
         {/* Menu Items */}
-        <nav 
-          className="flex-1 overflow-y-auto px-4 pt-2 pb-6 relative border-r border-foreground/10"
+        <nav
+          className="flex-1 overflow-y-auto px-4 pt-4 pb-6 relative border-r border-foreground/10 space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         >
-          <div className="space-y-1">
-            {/* Início */}
-            <RippleButton
-              onClick={() => router.push('/dashboard')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-md transition-colors ${
-                pathname === '/dashboard'
-                  ? 'bg-foreground/5 text-foreground'
-                  : 'text-foreground/70 hover:text-foreground'
-              }`}
-            >
-              <FontAwesomeIcon icon={faHome} className="w-4 h-4" />
-              <span className="text-sm">Início</span>
-            </RippleButton>
-          </div>
-
-          {/* Transferências */}
-          <div className="space-y-2 mt-1">
-            <button
-              onClick={() => setTransferenciasExpanded(!transferenciasExpanded)}
-              className="w-full flex items-center justify-between gap-2 px-4 py-2 rounded-md hover:bg-foreground/5 transition-colors group"
-            >
-              <div className="flex items-center gap-2">
-                <FontAwesomeIcon icon={faExchange} className="w-4 h-4 text-foreground/70" />
-                <span className="text-foreground/70 font-medium text-sm">Transferências</span>
+          {categories.map((category) => (
+            <div key={category.title} className="space-y-1">
+              <div className="px-4 mb-2 flex items-center gap-2 text-xs font-semibold text-foreground/50 uppercase tracking-wider">
+                <FontAwesomeIcon icon={category.icon} className="w-3 h-3" />
+                <span>{category.title}</span>
               </div>
-              <FontAwesomeIcon 
-                icon={transferenciasExpanded ? faChevronUp : faChevronDown} 
-                className="w-3 h-3 text-foreground/40 transition-transform" 
-              />
-            </button>
-            
-            {transferenciasExpanded && (
-              <div className="space-y-1 pl-4">
-                {transferenciasItems.map((item) => {
-                  const isActive = pathname === item.href
 
+              {category.items.map((item) => {
+                const isActive = pathname === item.href
+
+                if (item.external) {
                   return (
-                    <RippleButton
+                    <a
                       key={item.id}
-                      onClick={() => router.push(item.href)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-md transition-colors ${
-                        isActive
-                          ? 'bg-foreground/5 text-foreground'
-                          : 'text-foreground/70 hover:text-foreground'
-                      }`}
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-foreground/5 transition-colors group text-foreground/70 hover:text-foreground rounded-xl"
                     >
                       <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
-                      <span className="text-sm">{item.label}</span>
-                    </RippleButton>
+                      <span>{item.label}</span>
+                    </a>
                   )
-                })}
-              </div>
-            )}
-          </div>
+                }
 
-          {/* Outros itens do menu */}
-          <div className="space-y-1 mt-1">
-            {menuItems.filter(item => item.id !== 'inicio').map((item) => {
-              const isActive = pathname === item.href
-
-              return (
-                <RippleButton
-                  key={item.id}
-                  onClick={() => router.push(item.href)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-md transition-colors ${
-                    isActive
-                      ? 'bg-foreground/5 text-foreground'
-                      : 'text-foreground/70 hover:text-foreground'
-                  }`}
-                >
-                  <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
-                  <span className="text-sm">{item.label}</span>
-                </RippleButton>
-              )
-            })}
-          </div>
-
-          {/* Integrações */}
-          <div className="space-y-2 mt-1">
-            <button
-              onClick={() => setDocsExpanded(!docsExpanded)}
-              className="w-full flex items-center justify-between gap-2 px-4 py-2 rounded-md hover:bg-foreground/5 transition-colors group"
-            >
-              <div className="flex items-center gap-2">
-                <FontAwesomeIcon icon={faPlug} className="w-4 h-4 text-foreground/70" />
-                <span className="text-foreground/70 font-medium text-sm">Integrações</span>
-              </div>
-              <FontAwesomeIcon 
-                icon={docsExpanded ? faChevronUp : faChevronDown} 
-                className="w-3 h-3 text-foreground/40 transition-transform" 
-              />
-            </button>
-            
-            {docsExpanded && (
-              <div className="space-y-1 pl-4">
-                <RippleButton
-                  onClick={() => router.push('/dashboard/credentials')}
-                  className={`w-full flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
-                    pathname === '/dashboard/credentials'
-                      ? 'bg-foreground/5 text-foreground'
-                      : 'text-foreground/70 hover:text-foreground'
-                  }`}
-                >
-                  <FontAwesomeIcon icon={faKey} className="w-4 h-4" />
-                  <span className="text-sm">Credenciais</span>
-                </RippleButton>
-                
-                <a
-                  href="https://docs.visionwallet.com.br"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center gap-2 px-4 py-2 rounded-md hover:bg-foreground/5 transition-colors group"
-                >
-                  <FontAwesomeIcon icon={faExternalLink} className="w-4 h-4 text-foreground/70" />
-                  <span className="text-foreground/70 group-hover:text-foreground text-sm transition-colors">Ver Documentação</span>
-                </a>
+                return (
+                  <RippleButton
+                    key={item.id}
+                    onClick={() => router.push(item.href)}
+                    className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-all relative group rounded-xl ${isActive
+                      ? 'text-primary font-medium'
+                      : 'text-foreground/70 hover:text-foreground hover:bg-foreground/5'
+                      }`}
+                  >
+                    {isActive && (
+                      <div className="absolute left-2 top-1/2 -translate-y-1/2 h-5 w-1 border-2 border-primary border-r-0 rounded-l-full bg-transparent" />
+                    )}
+                    <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </RippleButton>
+                )
+              })}
             </div>
-            )}
-          </div>
-
-          {/* Configurações */}
-          <div className="space-y-1 mt-1">
-            <RippleButton
-              onClick={() => router.push('/dashboard/settings')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-md transition-colors ${
-                pathname === '/dashboard/settings'
-                  ? 'bg-foreground/5 text-foreground'
-                  : 'text-foreground/70 hover:text-foreground'
-              }`}
-            >
-              <FontAwesomeIcon icon={faGear} className="w-4 h-4" />
-              <span className="text-sm">Configurações</span>
-            </RippleButton>
-          </div>
+          ))}
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-r border-foreground/10">
-          <Separator className="bg-foreground/10 mb-4" />
-          <RippleButton 
+        <div className="p-4 border-r border-foreground/10 space-y-2">
+          <Separator className="bg-foreground/10 mb-2" />
+
+          <a
+            href="https://discord.gg/SQCM6GXC27"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-foreground/70 hover:text-[#5865F2] hover:bg-[#5865F2]/10 transition-colors"
+          >
+            <FontAwesomeIcon icon={faDiscord} className="w-4 h-4" />
+            <span className="text-sm font-medium">Entrar no Discord</span>
+          </a>
+
+          <RippleButton
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-2 rounded-md text-red-500 hover:bg-red-500/10 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors"
           >
             <FontAwesomeIcon icon={faSignOutAlt} className="w-4 h-4" />
             <span className="text-sm font-medium">Encerrar Sessão</span>

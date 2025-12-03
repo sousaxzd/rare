@@ -7,8 +7,10 @@ import { getMyPlan, updatePlanSettings, getAvailablePlans, upgradePlan, Availabl
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import { toastSuccess, toastError } from '@/lib/toast'
+import { useWallet } from '@/components/providers/wallet-provider'
 
 export function PlanSettings() {
+  const { balance } = useWallet()
   const [planInfo, setPlanInfo] = useState<any>(null)
   const [availablePlans, setAvailablePlans] = useState<AvailablePlan[]>([])
   const [loading, setLoading] = useState(false)
@@ -142,7 +144,9 @@ export function PlanSettings() {
             )}
             <div className="flex items-center justify-between">
               <span className="text-sm text-foreground/70">Saldo Disponível</span>
-              <span className="text-sm font-semibold text-foreground">{planInfo.balanceInReais}</span>
+              <span className="text-sm font-semibold text-foreground">
+                {balance ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(balance.balance.total / 100) : 'R$ 0,00'}
+              </span>
             </div>
           </div>
         )}
@@ -186,104 +190,105 @@ export function PlanSettings() {
       </div>
 
       {/* Planos Disponíveis */}
-      {upgradeablePlans.length > 0 && (
-        <>
-          <Separator />
-          <div className="border border-foreground/10 rounded-xl bg-foreground/2 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <FontAwesomeIcon icon={faArrowUp} className="text-primary w-5 h-5" />
-              <div>
-                <h3 className="text-sm font-semibold text-foreground">Planos Disponíveis</h3>
-                <p className="text-xs text-foreground/60">Escolha um plano superior para fazer upgrade</p>
+      {
+        upgradeablePlans.length > 0 && (
+          <>
+            <Separator />
+            <div className="border border-foreground/10 rounded-xl bg-foreground/2 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <FontAwesomeIcon icon={faArrowUp} className="text-primary w-5 h-5" />
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Planos Disponíveis</h3>
+                  <p className="text-xs text-foreground/60">Escolha um plano superior para fazer upgrade</p>
+                </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-              {upgradeablePlans.map((plan) => (
-                <div
-                  key={plan.id}
-                  onClick={() => setSelectedPlan(plan.id)}
-                  className={`border rounded-xl p-4 cursor-pointer transition-all ${
-                    selectedPlan === plan.id
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                {upgradeablePlans.map((plan) => (
+                  <div
+                    key={plan.id}
+                    onClick={() => setSelectedPlan(plan.id)}
+                    className={`border rounded-xl p-4 cursor-pointer transition-all ${selectedPlan === plan.id
                       ? 'border-primary bg-primary/10'
                       : 'border-foreground/10 bg-foreground/5 hover:border-foreground/20 hover:bg-foreground/10'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-lg font-bold text-foreground">{plan.name}</h4>
-                    {selectedPlan === plan.id && (
-                      <FontAwesomeIcon icon={faCheck} className="text-primary w-5 h-5" />
+                      }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-lg font-bold text-foreground">{plan.name}</h4>
+                      {selectedPlan === plan.id && (
+                        <FontAwesomeIcon icon={faCheck} className="text-primary w-5 h-5" />
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-foreground/60">Taxa por Transação</span>
+                        <span className="text-sm font-semibold text-foreground">
+                          R$ {plan.transactionFeeInReais}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-foreground/60">Mensalidade</span>
+                        <span className="text-sm font-semibold text-foreground">
+                          R$ {plan.monthlyFeeInReais}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-foreground/60">Limite Mínimo de Transações</span>
+                        <span className="text-sm font-semibold text-foreground">
+                          {plan.minTransactions.toLocaleString('pt-BR')}/mês
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-foreground/60">Limite Máximo Sugerido</span>
+                        <span className="text-sm font-semibold text-foreground">
+                          {plan.maxTransactions !== null
+                            ? `${plan.maxTransactions.toLocaleString('pt-BR')}/mês`
+                            : 'Sem Limite'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {selectedPlan && (
+                <>
+                  <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20 mb-4">
+                    <p className="text-sm text-yellow-600">
+                      <strong>Atenção:</strong> O valor da mensalidade será debitado do seu saldo. Se o saldo
+                      for insuficiente, a operação falhará.
+                    </p>
+                    {planInfo && (
+                      <p className="text-sm text-foreground/70 mt-2">
+                        Saldo atual: {planInfo.balanceInReais}
+                      </p>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-foreground/60">Taxa por Transação</span>
-                      <span className="text-sm font-semibold text-foreground">
-                        R$ {plan.transactionFeeInReais}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-foreground/60">Mensalidade</span>
-                      <span className="text-sm font-semibold text-foreground">
-                        R$ {plan.monthlyFeeInReais}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-foreground/60">Limite Mínimo de Transações</span>
-                      <span className="text-sm font-semibold text-foreground">
-                        {plan.minTransactions.toLocaleString('pt-BR')}/mês
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-foreground/60">Limite Máximo Sugerido</span>
-                      <span className="text-sm font-semibold text-foreground">
-                        {plan.maxTransactions !== null 
-                          ? `${plan.maxTransactions.toLocaleString('pt-BR')}/mês`
-                          : 'Sem Limite'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+
+                  <button
+                    onClick={handleUpgrade}
+                    disabled={upgrading}
+                    className="w-full py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                  >
+                    {upgrading ? (
+                      <>
+                        <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                        Fazendo upgrade...
+                      </>
+                    ) : (
+                      <>
+                        <FontAwesomeIcon icon={faArrowUp} />
+                        Fazer Upgrade para {upgradeablePlans.find(p => p.id === selectedPlan)?.name}
+                      </>
+                    )}
+                  </button>
+                </>
+              )}
             </div>
-
-            {selectedPlan && (
-              <>
-                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20 mb-4">
-                  <p className="text-sm text-yellow-600">
-                    <strong>Atenção:</strong> O valor da mensalidade será debitado do seu saldo. Se o saldo
-                    for insuficiente, a operação falhará.
-                  </p>
-                  {planInfo && (
-                    <p className="text-sm text-foreground/70 mt-2">
-                      Saldo atual: {planInfo.balanceInReais}
-                    </p>
-                  )}
-                </div>
-
-                <button
-                  onClick={handleUpgrade}
-                  disabled={upgrading}
-                  className="w-full py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                >
-                  {upgrading ? (
-                    <>
-                      <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-                      Fazendo upgrade...
-                    </>
-                  ) : (
-                    <>
-                      <FontAwesomeIcon icon={faArrowUp} />
-                      Fazer Upgrade para {upgradeablePlans.find(p => p.id === selectedPlan)?.name}
-                    </>
-                  )}
-                </button>
-              </>
-            )}
-          </div>
-        </>
-      )}
-    </div>
+          </>
+        )
+      }
+    </div >
   )
 }
 

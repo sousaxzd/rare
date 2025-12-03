@@ -42,7 +42,7 @@ export default function Terms() {
           <div className="space-y-2">
             <h2 className="text-2xl font-bold">3. Planos e Taxas</h2>
             <p className="text-foreground/90 text-sm">
-              [3.a] Nossos planos são baseados em volume de transações mensais: FREE (até 300 transações/mês - Taxa de R$ 0,70 por transação), CARBON (300-800 transações/mês - Taxa de R$ 0,65 por transação - Mensalidade de R$ 19,90), DIAMOND (800-2.000 transações/mês - Taxa de R$ 0,60 por transação - Mensalidade de R$ 49,90), RICH (3.000-6.000 transações/mês - Taxa de R$ 0,55 por transação - Mensalidade de R$ 149,90), ENTERPRISE (acima de 6.000 transações/mês - Taxa de R$ 0,50 por transação - Mensalidade de R$ 999,97).
+              [3.a] Nossos planos são baseados em volume de transações mensais: FREE (até 300 transações/mês - Taxa de R$ 0,70 por transação), CARBON (300-800 transações/mês - Taxa de R$ 0,65 por transação - Mensalidade de R$ 19,97), DIAMOND (800-2.000 transações/mês - Taxa de R$ 0,60 por transação - Mensalidade de R$ 49,97), RICH (3.000-6.000 transações/mês - Taxa de R$ 0,55 por transação - Mensalidade de R$ 149,97), ENTERPRISE (acima de 6.000 transações/mês - Taxa de R$ 0,50 por transação - Mensalidade de R$ 999,97).
             </p>
             <p className="text-foreground/90 text-sm">
               [3.b] Os planos são renovados automaticamente a cada 30 dias. Upgrades e downgrades são aplicados automaticamente com base no volume de transações do mês anterior.

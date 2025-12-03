@@ -19,12 +19,14 @@ export const metadata: Metadata = {
       {
         url: '/favicon.svg',
         type: 'image/svg+xml',
+        sizes: 'any',
       },
     ],
     apple: [
       {
         url: '/favicon.svg',
         type: 'image/svg+xml',
+        sizes: 'any',
       },
     ],
   },
@@ -35,6 +37,14 @@ export const metadata: Metadata = {
   },
 }
 
+import { AuthProvider } from '@/components/providers/auth-provider'
+import { WalletProvider } from '@/components/providers/wallet-provider'
+import { TooltipProvider } from '@/components/ui/tooltip'
+
+// ...
+
+import { DevToolsBlocker } from '@/components/devtools-blocker'
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -44,7 +54,14 @@ export default function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={`font-sans antialiased`} suppressHydrationWarning>
         <ErrorBoundary>
-          <LayoutClient>{children}</LayoutClient>
+          <DevToolsBlocker />
+          <AuthProvider>
+            <WalletProvider>
+              <TooltipProvider>
+                <LayoutClient>{children}</LayoutClient>
+              </TooltipProvider>
+            </WalletProvider>
+          </AuthProvider>
           <Analytics />
         </ErrorBoundary>
         <GlobalErrorHandler />

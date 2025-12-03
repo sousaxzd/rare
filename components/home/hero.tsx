@@ -23,15 +23,7 @@ const HERO_LINE_TWO_WORDS: { text: string; highlight: boolean }[] = [
 export function Hero() {
   return (
     <section className="flex flex-col justify-center md:items-center md:text-center pt-20 md:pt-32">
-      <GridLines
-        className="z-0 opacity-20"
-        style={{
-          WebkitMaskImage:
-            "radial-gradient(60% 60% at 50% 40%, #000 60%, transparent 100%)",
-          maskImage:
-            "radial-gradient(60% 60% at 50% 40%, #000 60%, transparent 100%)",
-        }}
-      />
+
       <section className="relative flex flex-col gap-2">
         <motion.div
           initial={{ opacity: 0, y: 8, filter: "blur(8px)" }}
