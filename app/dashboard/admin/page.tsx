@@ -14,9 +14,10 @@ const AuditSection = dynamic(() => import('./sections/AuditSection').then(m => (
 type AdminSection = 'usuarios' | 'stats' | 'audit'
 
 function AdminPageContent() {
-  const { user, loading } = useRequireAdmin()
+  const { user, loading, isAdmin } = useRequireAdmin()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [selected, setSelected] = useState<AdminSection>('stats')
+  const [contentReady, setContentReady] = useState(false)
 
   const sections: { id: AdminSection; label: string; icon: any }[] = [
     { id: 'stats', label: 'Estatísticas', icon: faChartBar },
@@ -26,11 +27,34 @@ function AdminPageContent() {
 
   const title = sections.find((s) => s.id === selected)?.label
 
-  if (loading) {
-    return <Loading />
+  // Múltiplas verificações antes de renderizar conteúdo
+  useEffect(() => {
+    // Só permitir renderizar conteúdo se TODAS as condições forem verdadeiras
+    if (!loading && isAdmin && user?.admin) {
+      // Pequeno delay adicional para garantir que não há race conditions
+      const timer = setTimeout(() => {
+        setContentReady(true)
+      }, 100)
+      return () => clearTimeout(timer)
+    } else {
+      setContentReady(false)
+    }
+  }, [loading, isAdmin, user?.admin])
+
+  // Mostrar loading enquanto verifica ou se não for admin
+  if (loading || !isAdmin || !user?.admin || !contentReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground text-sm">Verificando permissões...</p>
+        </div>
+      </div>
+    )
   }
 
-  if (!user?.admin) {
+  // Verificação final antes de renderizar - nunca confiar apenas no estado
+  if (!user || !user.admin || !isAdmin) {
     return null
   }
 
@@ -109,7 +133,14 @@ function AdminPageContent() {
 
 export default function AdminPage() {
   return (
-    <Suspense fallback={<Loading />}>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground text-sm">Verificando permissões...</p>
+        </div>
+      </div>
+    }>
       <AdminPageContent />
     </Suspense>
   )
