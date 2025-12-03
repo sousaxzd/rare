@@ -60,7 +60,12 @@ export async function requestSignupCode(email: string, password?: string): Promi
  * Cadastrar novo usuário
  */
 export async function signup(data: SignupData): Promise<AuthResponse> {
-  return apiPost('/auth/signup/verify-code', data);
+  const response = await apiPost<AuthResponse>('/auth/signup/verify-code', data);
+  // Salvar token no localStorage se o cadastro foi bem-sucedido
+  if (response.success && response.token && typeof window !== 'undefined') {
+    localStorage.setItem('token', response.token);
+  }
+  return response;
 }
 
 /**
@@ -74,7 +79,12 @@ export async function requestLoginCode(data: LoginData): Promise<{ success: bool
  * Verificar código e fazer login
  */
 export async function verifyCode(data: VerifyCodeData): Promise<AuthResponse> {
-  return apiPost('/auth/login/verify-code', data);
+  const response = await apiPost<AuthResponse>('/auth/login/verify-code', data);
+  // Salvar token no localStorage se o login foi bem-sucedido
+  if (response.success && response.token && typeof window !== 'undefined') {
+    localStorage.setItem('token', response.token);
+  }
+  return response;
 }
 
 /**
@@ -187,7 +197,12 @@ export async function requestForgotPasswordCode(email: string): Promise<{ succes
  * Redefinir senha após esquecimento
  */
 export async function resetPassword(email: string, code: string, newPassword: string): Promise<AuthResponse> {
-  return apiPost('/auth/forgot-password/verify-code', { email, code, newPassword });
+  const response = await apiPost<AuthResponse>('/auth/forgot-password/verify-code', { email, code, newPassword });
+  // Salvar token no localStorage se a redefinição foi bem-sucedida
+  if (response.success && response.token && typeof window !== 'undefined') {
+    localStorage.setItem('token', response.token);
+  }
+  return response;
 }
 
 /**

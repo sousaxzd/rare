@@ -51,7 +51,8 @@ export default function LoginPage() {
     try {
       const response = await verifyCode({ email, code })
       if (response.success && response.token) {
-      router.push('/dashboard')
+        // Usar replace para evitar problemas de histórico e garantir redirecionamento correto
+        router.replace('/dashboard')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Código inválido ou expirado')
@@ -90,7 +91,8 @@ export default function LoginPage() {
     try {
       const response = await resetPassword(email, code, newPassword)
       if (response.success && response.token) {
-        router.push('/dashboard')
+        // Usar replace para evitar problemas de histórico e garantir redirecionamento correto
+        router.replace('/dashboard')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao redefinir senha')
