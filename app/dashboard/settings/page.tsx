@@ -5,10 +5,10 @@ import { SidebarDashboard } from '@/components/sidebar-dashboard'
 import { DashboardTopbar } from '@/components/dashboard-topbar'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPhone, faEnvelope, faUser, faImage, faLock, faSpinner, faCheck, faArrowRight, faArrowLeft, faCalendar, faBell, faDownload, faShieldAlt, faCreditCard } from '@fortawesome/free-solid-svg-icons'
+import { faPhone, faEnvelope, faUser, faImage, faLock, faSpinner, faCheck, faArrowRight, faArrowLeft, faCalendar, faBell, faDownload, faShieldAlt, faCreditCard, faIdCard, faDesktop, faMobile, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { RippleButton } from '@/components/ripple-button'
 import { useAuth } from '@/hooks/useAuth'
-import { changePhone, requestEmailChangeCode, changeEmail, changeName, changeAvatar, requestPasswordChangeCode, changePassword, updateAIEnabled } from '@/lib/auth'
+import { changePhone, requestEmailChangeCode, changeEmail, changeName, changeAvatar, requestPasswordChangeCode, changePassword, updateAIEnabled, getTrustedDevices, removeTrustedDevice, removeAllTrustedDevices, TrustedDevice } from '@/lib/auth'
 import { validatePassword } from '@/lib/passwordValidator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
@@ -59,6 +59,10 @@ export default function SettingsPage() {
   
   // Estado de IA
   const [aiEnabled, setAiEnabled] = useState<boolean>(true)
+  
+  // Estado de dispositivos confiáveis
+  const [trustedDevices, setTrustedDevices] = useState<TrustedDevice[]>([])
+  const [loadingDevices, setLoadingDevices] = useState(false)
 
   // Inicializar valores quando o usuário carregar
   useEffect(() => {
@@ -71,6 +75,55 @@ export default function SettingsPage() {
       }
     }
   }, [user])
+
+  // Carregar dispositivos confiáveis
+  useEffect(() => {
+    loadTrustedDevices()
+  }, [])
+
+  const loadTrustedDevices = async () => {
+    try {
+      setLoadingDevices(true)
+      const response = await getTrustedDevices()
+      if (response.success) {
+        setTrustedDevices(response.data)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dispositivos confiáveis:', error)
+    } finally {
+      setLoadingDevices(false)
+    }
+  }
+
+  const handleRemoveDevice = async (deviceId: string) => {
+    try {
+      setLoading(true)
+      await removeTrustedDevice(deviceId)
+      await loadTrustedDevices()
+      toastSuccess('Dispositivo removido com sucesso')
+    } catch (error) {
+      toastError(error instanceof Error ? error.message : 'Erro ao remover dispositivo')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRemoveAllDevices = async () => {
+    if (!confirm('Tem certeza que deseja remover todos os dispositivos confiáveis? Você precisará inserir código em todos os dispositivos novamente.')) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      await removeAllTrustedDevices()
+      await loadTrustedDevices()
+      toastSuccess('Todos os dispositivos foram removidos')
+    } catch (error) {
+      toastError(error instanceof Error ? error.message : 'Erro ao remover dispositivos')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Carregar status de segurança e IA
   useEffect(() => {
@@ -547,6 +600,36 @@ export default function SettingsPage() {
                         </button>
                       </form>
                     )}
+                  </div>
+
+                  <Separator />
+
+                  {/* CPF */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <FontAwesomeIcon icon={faIdCard} className="text-primary w-5 h-5" />
+                        <div>
+                          <h3 className="text-sm font-semibold text-foreground">CPF</h3>
+                          <p className="text-xs text-foreground/60">
+                            {user?.taxID 
+                              ? (() => {
+                                  const numbers = user.taxID.replace(/\D/g, '')
+                                  if (numbers.length === 11) {
+                                    return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+                                  } else if (numbers.length === 14) {
+                                    return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+                                  }
+                                  return user.taxID
+                                })()
+                              : 'Não informado'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="px-3 py-1 bg-foreground/5 rounded-lg text-xs text-foreground/60">
+                        Somente leitura
+                      </div>
+                    </div>
                   </div>
 
                   <Separator />
@@ -1057,6 +1140,81 @@ export default function SettingsPage() {
                   </div>
                 </div>
                   </div>
+
+                  {/* Dispositivos Confiáveis */}
+              <div className="border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm overflow-hidden">
+                <div className="p-6 border-b border-foreground/10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-lg font-bold text-foreground">Dispositivos Confiáveis</h2>
+                      <p className="text-sm text-foreground/60 mt-1">Gerencie os dispositivos que não precisam de código de verificação</p>
+                    </div>
+                    {trustedDevices.length > 0 && (
+                      <RippleButton
+                        onClick={handleRemoveAllDevices}
+                        className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg text-sm transition-colors"
+                        disabled={loading}
+                      >
+                        Remover Todos
+                      </RippleButton>
+                    )}
+                  </div>
+                </div>
+                <div className="p-6">
+                  {loadingDevices ? (
+                    <div className="flex items-center justify-center py-8">
+                      <FontAwesomeIcon icon={faSpinner} className="w-5 h-5 animate-spin text-foreground/60" />
+                    </div>
+                  ) : trustedDevices.length === 0 ? (
+                    <div className="text-center py-8">
+                      <FontAwesomeIcon icon={faDesktop} className="w-12 h-12 text-foreground/30 mb-3" />
+                      <p className="text-sm text-foreground/60">Nenhum dispositivo confiável</p>
+                      <p className="text-xs text-foreground/40 mt-1">Ao fazer login e marcar "Confiar neste dispositivo", ele aparecerá aqui</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {trustedDevices.map((device) => (
+                        <div
+                          key={device.id}
+                          className="flex items-center justify-between p-4 rounded-lg bg-foreground/5 border border-foreground/10"
+                        >
+                          <div className="flex items-center gap-3 flex-1">
+                            <FontAwesomeIcon 
+                              icon={device.userAgent?.includes('Mobile') ? faMobile : faDesktop} 
+                              className="w-5 h-5 text-primary" 
+                            />
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-sm font-semibold text-foreground truncate">
+                                {device.deviceName || 'Dispositivo desconhecido'}
+                              </h3>
+                              <p className="text-xs text-foreground/60 truncate">
+                                {device.userAgent || 'N/A'}
+                              </p>
+                              <p className="text-xs text-foreground/40 mt-1">
+                                Último uso: {new Date(device.lastUsedAt).toLocaleDateString('pt-BR', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleRemoveDevice(device.id)}
+                            disabled={loading}
+                            className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Remover dispositivo"
+                          >
+                            <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
 
                   {/* Instalar App */}
               <div className="border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm overflow-hidden">

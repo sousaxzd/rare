@@ -20,6 +20,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [newPassword, setNewPassword] = useState('')
   const [passwordValidation, setPasswordValidation] = useState<{ valid: boolean; errors: string[] }>({ valid: true, errors: [] })
+  const [trustDevice, setTrustDevice] = useState(true) // Marcado por padrão
 
   // Redirecionar se já estiver logado (apenas se ainda estiver na página de login)
   useEffect(() => {
@@ -45,7 +46,20 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      await requestLoginCode({ email, password })
+      const response = await requestLoginCode({ email, password })
+      
+      // Se o dispositivo já é confiável, fazer login direto
+      if (response.trustedDevice && response.token && response.user) {
+        // Salvar token no localStorage
+        if (typeof window !== 'undefined' && response.token) {
+          localStorage.setItem('token', response.token)
+        }
+        // Pequeno delay para garantir que o token seja salvo
+        await new Promise(resolve => setTimeout(resolve, 50))
+        router.replace('/dashboard')
+        return
+      }
+      
       setStep('code')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao solicitar código')
@@ -60,7 +74,7 @@ export default function LoginPage() {
     setError(null)
     
     try {
-      const response = await verifyCode({ email, code })
+      const response = await verifyCode({ email, code, trustDevice })
       if (response.success && response.token) {
         // Pequeno delay para garantir que o token seja salvo no localStorage antes do redirecionamento
         await new Promise(resolve => setTimeout(resolve, 50))
@@ -485,6 +499,24 @@ export default function LoginPage() {
                     Digite o código de 6 dígitos enviado por e-mail
                   </p>
                 </div>
+
+                {/* Checkbox para confiar no dispositivo */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="trustDevice"
+                    checked={trustDevice}
+                    onChange={(e) => setTrustDevice(e.target.checked)}
+                    className="w-4 h-4 rounded border-foreground/20 text-primary focus:ring-primary/50 focus:ring-2"
+                    disabled={loading}
+                  />
+                  <label htmlFor="trustDevice" className="text-sm text-foreground/80 cursor-pointer select-none">
+                    Confiar neste dispositivo
+                  </label>
+                </div>
+                <p className="text-xs text-foreground/50 -mt-2">
+                  Não pedir código nas próximas vezes neste dispositivo
+                </p>
 
                 <RippleButton
                   type="submit"

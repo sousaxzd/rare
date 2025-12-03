@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEnvelope, faLock, faUser, faCalendar, faPhone, faEye, faEyeSlash, faKey, faCheckCircle, faArrowRight, faSpinner, faUserPlus, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
+import { faEnvelope, faLock, faUser, faCalendar, faPhone, faEye, faEyeSlash, faKey, faCheckCircle, faArrowRight, faSpinner, faUserPlus, faArrowLeft, faIdCard } from '@fortawesome/free-solid-svg-icons'
 import { RippleButton } from '@/components/ripple-button'
 import { requestSignupCode, signup, isAuthenticated } from '@/lib/auth'
 import { validatePassword } from '@/lib/passwordValidator'
@@ -21,6 +21,7 @@ export default function SignupPage() {
   const [formData, setFormData] = useState({
     fullName: '',
     birthDate: '',
+    cpf: '',
     email: '',
     phone: '',
     password: '',
@@ -34,10 +35,29 @@ export default function SignupPage() {
     }
   }, [router])
 
+  // Função para formatar CPF
+  const formatCPF = (value: string) => {
+    const numbers = value.replace(/\D/g, '')
+    if (numbers.length <= 11) {
+      return numbers
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+    }
+    return value
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value
+    
+    // Formatar CPF automaticamente
+    if (e.target.name === 'cpf') {
+      value = formatCPF(value)
+    }
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: value,
     })
     setError(null)
     
@@ -50,9 +70,21 @@ export default function SignupPage() {
     }
   }
 
+  // Validar CPF básico (11 dígitos)
+  const validateCPF = (cpf: string): boolean => {
+    const numbers = cpf.replace(/\D/g, '')
+    return numbers.length === 11
+  }
+
   const handleRequestCode = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    
+    // Validar CPF
+    if (!formData.cpf || !validateCPF(formData.cpf)) {
+      setError('CPF inválido. Informe um CPF com 11 dígitos')
+      return
+    }
     
     if (formData.password !== formData.confirmPassword) {
       setError('As senhas não coincidem')
@@ -92,6 +124,7 @@ export default function SignupPage() {
         code,
         birthDate: formData.birthDate || undefined,
         phone: formData.phone || undefined,
+        taxID: formData.cpf.replace(/\D/g, ''), // Remover formatação antes de enviar
       })
 
       if (response.success) {
@@ -175,6 +208,35 @@ export default function SignupPage() {
                       disabled={loading}
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    CPF
+                  </label>
+                  <div className="relative">
+                    <FontAwesomeIcon 
+                      icon={faIdCard} 
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" 
+                    />
+                    <input
+                      type="text"
+                      name="cpf"
+                      value={formData.cpf}
+                      onChange={handleChange}
+                      placeholder="000.000.000-00"
+                      autoComplete="off"
+                      maxLength={14}
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${
+                        loading ? 'opacity-60 cursor-not-allowed' : ''
+                      }`}
+                      required
+                      disabled={loading}
+                    />
+                  </div>
+                  <p className="text-xs text-foreground/60 mt-1">
+                    Informe apenas números (será formatado automaticamente)
+                  </p>
                 </div>
 
                 <div>

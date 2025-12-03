@@ -2,7 +2,7 @@
  * Funções de autenticação e gerenciamento de usuário
  */
 
-import { apiGet, apiPost, apiPut } from './api';
+import { apiGet, apiPost, apiPut, apiDelete } from './api';
 
 export interface SignupData {
   fullName: string;
@@ -11,6 +11,7 @@ export interface SignupData {
   code: string;
   birthDate?: string;
   phone?: string;
+  taxID?: string;
 }
 
 export interface LoginData {
@@ -21,6 +22,7 @@ export interface LoginData {
 export interface VerifyCodeData {
   email: string;
   code: string;
+  trustDevice?: boolean;
 }
 
 export interface AuthResponse {
@@ -47,6 +49,7 @@ export interface User {
   updatedAt: string;
   admin?: boolean;
   aiEnabled?: boolean; // Added aiEnabled field
+  taxID?: string; // CPF/CNPJ (somente leitura)
 }
 
 /**
@@ -71,7 +74,14 @@ export async function signup(data: SignupData): Promise<AuthResponse> {
 /**
  * Solicitar código de verificação para login
  */
-export async function requestLoginCode(data: LoginData): Promise<{ success: boolean; message: string }> {
+export async function requestLoginCode(data: LoginData): Promise<{ 
+  success: boolean; 
+  message: string;
+  trustedDevice?: boolean;
+  token?: string;
+  user?: User;
+  requiresCode?: boolean;
+}> {
   return apiPost('/auth/login/request-code', data);
 }
 
@@ -210,4 +220,37 @@ export async function resetPassword(email: string, code: string, newPassword: st
  */
 export async function updateAIEnabled(aiEnabled: boolean): Promise<{ success: boolean; message: string; data: { aiEnabled: boolean } }> {
   return apiPut('/v1/user/update', { aiEnabled });
+}
+
+/**
+ * Interface para dispositivo confiável
+ */
+export interface TrustedDevice {
+  id: string;
+  deviceName: string;
+  userAgent: string;
+  ip: string;
+  lastUsedAt: string;
+  createdAt: string;
+}
+
+/**
+ * Listar dispositivos confiáveis
+ */
+export async function getTrustedDevices(): Promise<{ success: boolean; data: TrustedDevice[] }> {
+  return apiGet('/v1/user/trusted-devices');
+}
+
+/**
+ * Remover dispositivo confiável
+ */
+export async function removeTrustedDevice(deviceId: string): Promise<{ success: boolean; message: string }> {
+  return apiDelete(`/v1/user/trusted-devices/${deviceId}`);
+}
+
+/**
+ * Remover todos os dispositivos confiáveis
+ */
+export async function removeAllTrustedDevices(): Promise<{ success: boolean; message: string }> {
+  return apiDelete('/v1/user/trusted-devices');
 }
