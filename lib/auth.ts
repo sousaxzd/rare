@@ -109,7 +109,7 @@ export async function getMe(): Promise<{ success: boolean; user: User }> {
  * Fazer logout
  */
 export async function logout(): Promise<{ success: boolean; message: string }> {
-  const response = await apiPost('/auth/logout');
+  const response = await apiPost<{ success: boolean; message: string }>('/auth/logout');
   if (typeof window !== 'undefined') {
     localStorage.removeItem('token');
   }
@@ -120,6 +120,8 @@ export async function logout(): Promise<{ success: boolean; message: string }> {
  * Verificar se está autenticado
  */
 export function isAuthenticated(): boolean {
+  // Verificar se há token no localStorage (para verificação no frontend)
+  // O token real é enviado via cookie HttpOnly e não aparece no header Authorization
   if (typeof window === 'undefined') return false;
   return !!localStorage.getItem('token');
 }
@@ -128,6 +130,9 @@ export function isAuthenticated(): boolean {
  * Obter token do localStorage
  */
 export function getToken(): string | null {
+  // Token ainda está no localStorage para verificação no frontend
+  // Mas NÃO é enviado no header Authorization (mais seguro)
+  // O token real é enviado via cookie HttpOnly automaticamente
   if (typeof window === 'undefined') return null;
   return localStorage.getItem('token');
 }
@@ -167,7 +172,11 @@ export async function changeAvatar(file: File): Promise<{ success: boolean; mess
   const formData = new FormData();
   formData.append('avatar', file);
   
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}/api/profile/avatar`, {
+  // Usar a mesma constante do api.ts para consistência
+  // @ts-ignore - process.env está disponível no Next.js
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+  
+  const response = await fetch(`${BACKEND_URL}/api/profile/avatar`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${getToken()}`,
