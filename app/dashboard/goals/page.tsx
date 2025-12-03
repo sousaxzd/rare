@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGift, faTrophy, faRocket, faLock, faCheckCircle, faStar } from '@fortawesome/free-solid-svg-icons'
 import { getBalance } from '@/lib/wallet'
 import { RippleButton } from '@/components/ripple-button'
+import { useAuth } from '@/hooks/useAuth'
 
 const rewards = [
   { value: 10000, label: 'R$ 10.000', title: 'Pulseira Vision', description: 'Exclusividade para quem começa a brilhar.', icon: faStar },
@@ -21,29 +22,33 @@ const rewards = [
 ]
 
 export default function GoalsPage() {
+  const { user } = useAuth() // Usar useAuth para manter estado do usuário sincronizado
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [currentBalance, setCurrentBalance] = useState(0)
+  const [totalReceived, setTotalReceived] = useState(0) // Total recebido (entradas), não saldo atual
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchBalance = async () => {
+    const fetchData = async () => {
       try {
         const res = await getBalance()
         if (res.success) {
-          setCurrentBalance(res.data.balance.total / 100)
+          // Usar totalReceived (entradas) ao invés de balance.total (saldo atual)
+          // Isso garante que as metas reflitam apenas o faturamento/recebimentos
+          const received = res.data.statistics?.totalReceived || 0
+          setTotalReceived(received / 100) // Converter de centavos para reais
         }
       } catch (error) {
-        console.error('Erro ao buscar saldo', error)
+        console.error('Erro ao buscar dados de metas', error)
       } finally {
         setLoading(false)
       }
     }
-    fetchBalance()
+    fetchData()
   }, [])
 
-  // Calculate progress to next goal
-  const nextGoal = rewards.find(r => r.value > currentBalance) || rewards[rewards.length - 1]
-  const progress = Math.min(100, (currentBalance / nextGoal.value) * 100)
+  // Calculate progress to next goal usando total recebido (entradas)
+  const nextGoal = rewards.find(r => r.value > totalReceived) || rewards[rewards.length - 1]
+  const progress = Math.min(100, (totalReceived / nextGoal.value) * 100)
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -83,7 +88,7 @@ export default function GoalsPage() {
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs font-medium">
-                        <span>R$ {currentBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        <span>R$ {totalReceived.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                         <span>{nextGoal.label}</span>
                       </div>
                       <div className="h-3 w-full bg-secondary/30 rounded-full overflow-hidden">
@@ -110,7 +115,7 @@ export default function GoalsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {rewards.map((reward, index) => {
-                  const isUnlocked = currentBalance >= reward.value
+                  const isUnlocked = totalReceived >= reward.value
                   const isNext = !isUnlocked && reward === nextGoal
 
                   return (

@@ -16,8 +16,10 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { TransferVerificationModal } from '@/components/transfer-verification-modal'
 import { getSecurityStatus, type SecurityStatusResponse } from '@/lib/security'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function TransferPage() {
+  const { user } = useAuth() // Usar useAuth para manter estado do usuário sincronizado
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)

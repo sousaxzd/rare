@@ -10,6 +10,7 @@ import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaCh
 import { format, subDays, startOfDay, endOfDay, startOfYear, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { listPayments, listWithdraws, getBalance } from '@/lib/wallet'
+import { useAuth } from '@/hooks/useAuth'
 
 type PeriodFilter = 'today' | '7days' | '30days' | 'year' | 'all'
 
@@ -23,6 +24,7 @@ interface Transaction {
 }
 
 export default function SummaryPage() {
+  const { user } = useAuth() // Usar useAuth para manter estado do usuário sincronizado
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('30days')
   const [loading, setLoading] = useState(true)
