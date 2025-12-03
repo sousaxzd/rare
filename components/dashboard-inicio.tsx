@@ -543,14 +543,12 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
       <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
         {/* Saldo */}
         <div className="flex items-center justify-between mb-6">
-          {loading ? (
+          {loading || balance === null ? (
             <Skeleton className="h-16 w-64" />
           ) : (
             <p className="text-5xl font-bold text-foreground">
               {showBalance
-                ? balance !== null
-                  ? `R$ ${balance.toFixed(2).replace('.', ',')}`
-                  : 'R$ 0,00'
+                ? `R$ ${balance.toFixed(2).replace('.', ',')}`
                 : '••••••'}
             </p>
           )}
@@ -603,7 +601,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
           </Link>
         </div>
 
-        {loading ? (
+        {loading || transactions.length === 0 && balance === null ? (
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="flex items-center gap-4">

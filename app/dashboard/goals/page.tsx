@@ -24,7 +24,7 @@ const rewards = [
 export default function GoalsPage() {
   const { user } = useAuth() // Usar useAuth para manter estado do usuário sincronizado
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [totalReceived, setTotalReceived] = useState(0) // Total recebido (entradas), não saldo atual
+  const [totalReceived, setTotalReceived] = useState<number | null>(null) // Total recebido (entradas), não saldo atual
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -47,8 +47,8 @@ export default function GoalsPage() {
   }, [])
 
   // Calculate progress to next goal usando total recebido (entradas)
-  const nextGoal = rewards.find(r => r.value > totalReceived) || rewards[rewards.length - 1]
-  const progress = Math.min(100, (totalReceived / nextGoal.value) * 100)
+  const nextGoal = rewards.find(r => r.value > (totalReceived || 0)) || rewards[rewards.length - 1]
+  const progress = totalReceived !== null ? Math.min(100, (totalReceived / nextGoal.value) * 100) : 0
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -87,19 +87,29 @@ export default function GoalsPage() {
                       <span className="text-sm font-bold text-primary">{nextGoal.title}</span>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex justify-between text-xs font-medium">
-                        <span>R$ {totalReceived.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                        <span>{nextGoal.label}</span>
-                      </div>
-                      <div className="h-3 w-full bg-secondary/30 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-1000 ease-out"
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                      <p className="text-xs text-right text-muted-foreground mt-1">
-                        {progress.toFixed(1)}% concluído
-                      </p>
+                      {loading || totalReceived === null ? (
+                        <div className="space-y-2">
+                          <div className="h-4 bg-muted animate-pulse rounded" />
+                          <div className="h-3 bg-muted animate-pulse rounded-full" />
+                          <div className="h-3 bg-muted animate-pulse rounded w-20 ml-auto" />
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex justify-between text-xs font-medium">
+                            <span>R$ {totalReceived.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                            <span>{nextGoal.label}</span>
+                          </div>
+                          <div className="h-3 w-full bg-secondary/30 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-1000 ease-out"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                          <p className="text-xs text-right text-muted-foreground mt-1">
+                            {progress.toFixed(1)}% concluído
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -115,7 +125,7 @@ export default function GoalsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {rewards.map((reward, index) => {
-                  const isUnlocked = totalReceived >= reward.value
+                  const isUnlocked = (totalReceived || 0) >= reward.value
                   const isNext = !isUnlocked && reward === nextGoal
 
                   return (

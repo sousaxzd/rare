@@ -221,9 +221,13 @@ export default function TransferPage() {
                   <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Saldo disponível:</span>
-                      <span className="text-lg font-bold text-foreground">
-                        R$ {balance.toFixed(2).replace('.', ',')}
-                      </span>
+                      {balance === null ? (
+                        <div className="h-6 w-24 bg-muted animate-pulse rounded" />
+                      ) : (
+                        <span className="text-lg font-bold text-foreground">
+                          R$ {balance.toFixed(2).replace('.', ',')}
+                        </span>
+                      )}
                     </div>
                   </div>
                 )}
