@@ -20,6 +20,21 @@ export function useAuth() {
           return
         }
 
+        // Verificar se há usuário temporário salvo (login com dispositivo confiável)
+        try {
+          const tempUserStr = sessionStorage.getItem('temp_user')
+          if (tempUserStr) {
+            const tempUser = JSON.parse(tempUserStr)
+            if (mounted) {
+              setUser(tempUser)
+              // Limpar usuário temporário após usar
+              sessionStorage.removeItem('temp_user')
+            }
+          }
+        } catch (e) {
+          // Ignorar erros ao ler usuário temporário
+        }
+
         if (!isAuthenticated()) {
           if (mounted) {
             setLoading(false)
@@ -135,8 +150,27 @@ export function useAuth() {
 
     loadUser()
 
+    // Ouvir eventos de mudança de autenticação
+    const handleAuthChange = (event: any) => {
+      if (event.detail?.user && mounted) {
+        setUser(event.detail.user)
+      }
+    }
+
+    const handleStorageChange = () => {
+      // Recarregar usuário quando o token mudar
+      if (isAuthenticated() && mounted) {
+        loadUser()
+      }
+    }
+
+    window.addEventListener('auth-change', handleAuthChange as EventListener)
+    window.addEventListener('storage', handleStorageChange)
+
     return () => {
       mounted = false
+      window.removeEventListener('auth-change', handleAuthChange as EventListener)
+      window.removeEventListener('storage', handleStorageChange)
     }
   }, [])
 

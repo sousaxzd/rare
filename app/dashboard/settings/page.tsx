@@ -82,9 +82,19 @@ export default function SettingsPage() {
 
   // Carregar dispositivos confiáveis e sessões
   useEffect(() => {
-    loadTrustedDevices()
-    loadSessions()
-  }, [])
+    // Aguardar um pouco e só carregar se o usuário estiver disponível
+    const loadData = async () => {
+      // Pequeno delay para garantir que o token foi processado após login
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
+      if (user) {
+        loadTrustedDevices()
+        loadSessions()
+      }
+    }
+    
+    loadData()
+  }, [user])
 
   const loadTrustedDevices = async () => {
     try {
@@ -93,7 +103,11 @@ export default function SettingsPage() {
       if (response.success) {
         setTrustedDevices(response.data)
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Ignorar erros 401 silenciosamente (token ainda sendo processado)
+      if (error?.status === 401) {
+        return
+      }
       console.error('Erro ao carregar dispositivos confiáveis:', error)
     } finally {
       setLoadingDevices(false)
@@ -137,7 +151,11 @@ export default function SettingsPage() {
       if (response.success) {
         setSessions(response.data)
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Ignorar erros 401 silenciosamente (token ainda sendo processado)
+      if (error?.status === 401) {
+        return
+      }
       console.error('Erro ao carregar sessões:', error)
     } finally {
       setLoadingSessions(false)
@@ -180,11 +198,29 @@ export default function SettingsPage() {
 
   // Carregar status de segurança e IA
   useEffect(() => {
+    // Aguardar um pouco para garantir que o token foi processado após login
     const loadSettings = async () => {
+      // Pequeno delay para garantir que o token foi salvo após login com dispositivo confiável
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
       try {
         const [securityRes, userDataRes] = await Promise.all([
-          getSecurityStatus().catch(() => null),
-          getUserData().catch(() => null)
+          getSecurityStatus().catch((err: any) => {
+            // Ignorar erros 401 silenciosamente (token ainda sendo processado)
+            if (err?.status === 401) {
+              return null
+            }
+            console.warn('Erro ao carregar status de segurança:', err)
+            return null
+          }),
+          getUserData().catch((err: any) => {
+            // Ignorar erros 401 silenciosamente (token ainda sendo processado)
+            if (err?.status === 401) {
+              return null
+            }
+            console.warn('Erro ao carregar dados do usuário:', err)
+            return null
+          })
         ])
         
         if (securityRes) {
@@ -195,11 +231,16 @@ export default function SettingsPage() {
           setAiEnabled(userDataRes.data.aiEnabled)
         }
       } catch (error) {
+        // Erros já foram tratados individualmente acima
         console.error('Erro ao carregar configurações:', error)
       }
     }
-    loadSettings()
-  }, [])
+    
+    // Só carregar se o usuário estiver disponível (autenticado)
+    if (user) {
+      loadSettings()
+    }
+  }, [user])
 
   // Construir URL do avatar
   const getAvatarUrl = () => {

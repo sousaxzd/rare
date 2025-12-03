@@ -53,11 +53,20 @@ export default function LoginPage() {
         // Salvar token no localStorage
         if (typeof window !== 'undefined' && response.token) {
           localStorage.setItem('token', response.token)
-          // Forçar atualização do estado de autenticação
+          
+          // Salvar usuário temporariamente para uso imediato
+          // Isso garante que o usuário esteja disponível mesmo antes do useAuth carregar
+          sessionStorage.setItem('temp_user', JSON.stringify(response.user))
+          
+          // Disparar evento storage para forçar atualização do useAuth
           window.dispatchEvent(new Event('storage'))
+          // Disparar evento customizado também
+          window.dispatchEvent(new CustomEvent('auth-change', { detail: { user: response.user, token: response.token } }))
         }
+        
         // Delay maior para garantir que o token seja salvo e processado
-        await new Promise(resolve => setTimeout(resolve, 200))
+        await new Promise(resolve => setTimeout(resolve, 300))
+        
         // Usar replace para evitar problemas de histórico
         router.replace('/dashboard')
         return
