@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { isAuthenticated } from '@/lib/auth'
+import { useAuth } from '@/hooks/useAuth'
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter()
+  const { user, loading: authLoading } = useAuth()
   // Usar estado para rastrear se já foi hidratado no cliente
   const [isMounted, setIsMounted] = useState(false)
   const [isChecking, setIsChecking] = useState(false)
@@ -22,8 +24,6 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     if (!isMounted) return
 
     let mounted = true
-    let retryCount = 0
-    const maxRetries = 5
 
     const checkAuth = async () => {
       try {
@@ -32,54 +32,46 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
           setIsChecking(true)
         }
 
-        // Pequeno delay para garantir que a hidratação completa antes de verificar
-        await new Promise(resolve => setTimeout(resolve, 100))
+        // Aguardar useAuth terminar de carregar
+        let waitCount = 0
+        const maxWait = 15 // Máximo 15 tentativas (7.5 segundos)
+        
+        while (authLoading && waitCount < maxWait && mounted) {
+          await new Promise(resolve => setTimeout(resolve, 500))
+          waitCount++
+        }
+
+        // Pequeno delay adicional para garantir que tudo está sincronizado
+        await new Promise(resolve => setTimeout(resolve, 200))
 
         if (!mounted) return
 
-        try {
-          let authenticated = isAuthenticated()
+        // Verificar tanto token quanto usuário do useAuth
+        const hasToken = isAuthenticated()
+        const hasUser = !!user
+        const authenticated = hasToken || hasUser
+        
+        if (mounted) {
+          setIsAuthenticatedState(authenticated)
+          setIsChecking(false)
           
-          // Se não estiver autenticado e ainda tiver tentativas, tentar novamente após delays progressivos
-          // Isso resolve problemas de timing quando o token é salvo logo antes do redirecionamento
-          // Aumentar delay inicial e número de tentativas para dispositivos confiáveis
-          while (!authenticated && retryCount < maxRetries && mounted) {
-            const delay = retryCount === 0 ? 200 : 150 * (retryCount + 1) // Delay maior na primeira tentativa
-            await new Promise(resolve => setTimeout(resolve, delay))
-            authenticated = isAuthenticated()
-            retryCount++
-            
-            // Se encontrou token, sair do loop imediatamente
-            if (authenticated) break
-          }
-          
-          if (mounted) {
-            setIsAuthenticatedState(authenticated)
-            setIsChecking(false)
-            
-            if (!authenticated) {
-              // Redirecionar se não estiver autenticado após todas as tentativas
-              router.replace('/login')
-            }
-          }
-        } catch (error) {
-          console.error('Erro ao verificar autenticação:', error)
-          if (mounted) {
-            // Em caso de erro, verificar novamente se tem token antes de assumir autenticado
-            const hasToken = isAuthenticated()
-            setIsAuthenticatedState(hasToken)
-            setIsChecking(false)
-            
-            if (!hasToken) {
-              router.replace('/login')
-            }
+          if (!authenticated) {
+            // Redirecionar se não estiver autenticado
+            router.replace('/login')
           }
         }
       } catch (error) {
         console.error('Erro no ProtectedRoute:', error)
         if (mounted) {
-          setHasError(true)
+          // Em caso de erro, verificar novamente se tem token ou usuário
+          const hasToken = isAuthenticated()
+          const hasUser = !!user
+          setIsAuthenticatedState(hasToken || hasUser)
           setIsChecking(false)
+          
+          if (!hasToken && !hasUser) {
+            router.replace('/login')
+          }
         }
       }
     }
@@ -89,7 +81,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return () => {
       mounted = false
     }
-  }, [router, isMounted])
+  }, [router, isMounted, user, authLoading])
 
   // Se houver erro, mostrar mensagem ao invés de tela branca
   if (hasError) {
@@ -121,6 +113,18 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <>{children}</>
   }
 
+  // Se useAuth ainda está carregando, aguardar
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground text-sm">Carregando...</p>
+        </div>
+      </div>
+    )
+  }
+
   // Durante verificação inicial no cliente, mostrar loading
   // Mas apenas após a hidratação (isChecking === true e isAuthenticatedState === null)
   if (isChecking && isAuthenticatedState === null) {
@@ -128,7 +132,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center space-y-4">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-muted-foreground text-sm">Carregando...</p>
+          <p className="text-muted-foreground text-sm">Verificando autenticação...</p>
         </div>
       </div>
     )

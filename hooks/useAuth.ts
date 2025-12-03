@@ -37,7 +37,9 @@ export function useAuth() {
           // Ignorar erros ao ler usuário temporário
         }
 
-        if (!isAuthenticated()) {
+        // Se tem usuário temporário, não precisa verificar token ainda
+        // Continuar para tentar carregar do backend
+        if (!tempUser && !isAuthenticated()) {
           if (mounted) {
             setLoading(false)
           }
@@ -183,25 +185,37 @@ export function useAuth() {
     loadUser()
 
     // Ouvir eventos de mudança de autenticação
-    const handleAuthChange = (event: any) => {
+    const handleAuthChangeEvent = (event: any) => {
       if (event.detail?.user && mounted) {
         setUser(event.detail.user)
+        setLoading(false)
+        // Limpar usuário temporário se foi definido via evento
+        try {
+          sessionStorage.removeItem('temp_user')
+        } catch (e) {
+          // Ignorar erros
+        }
       }
     }
 
     const handleStorageChange = () => {
       // Recarregar usuário quando o token mudar
-      if (isAuthenticated() && mounted) {
-        loadUser()
+      if (mounted) {
+        // Pequeno delay para garantir que o token foi salvo
+        setTimeout(() => {
+          if (isAuthenticated() && mounted) {
+            loadUser()
+          }
+        }, 100)
       }
     }
 
-    window.addEventListener('auth-change', handleAuthChange as EventListener)
+    window.addEventListener('auth-change', handleAuthChangeEvent as EventListener)
     window.addEventListener('storage', handleStorageChange)
 
     return () => {
       mounted = false
-      window.removeEventListener('auth-change', handleAuthChange as EventListener)
+      window.removeEventListener('auth-change', handleAuthChangeEvent as EventListener)
       window.removeEventListener('storage', handleStorageChange)
     }
   }, [])
