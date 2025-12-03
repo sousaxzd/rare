@@ -201,7 +201,7 @@ export interface CreateWithdrawResponse {
  * Obter saldo e estatísticas do usuário
  */
 export async function getBalance(): Promise<{ success: boolean; data: BalanceData }> {
-  return apiGet('/v1/user/balance');
+  return apiGet('/auth/balance');
 }
 
 /**

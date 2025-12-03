@@ -48,14 +48,14 @@ export interface AvailablePlan {
  * Obter informações do plano atual do usuário
  */
 export async function getMyPlan(): Promise<{ success: boolean; data: UserPlanInfo }> {
-  return apiGet('/v1/user/my-plan');
+  return apiGet('/auth/plan');
 }
 
 /**
  * Listar planos disponíveis
  */
 export async function getAvailablePlans(): Promise<{ success: boolean; data: { plans: AvailablePlan[] } }> {
-  return apiGet('/v1/user/my-plan/available');
+  return apiGet('/auth/plan/available');
 }
 
 /**
@@ -72,7 +72,7 @@ export async function upgradePlan(plan: string): Promise<{
     amountPaid: number;
   };
 }> {
-  return apiPut('/v1/user/my-plan/upgrade', { plan });
+  return apiPut('/auth/plan/upgrade', { plan });
 }
 
 /**
@@ -91,6 +91,6 @@ export async function updatePlanSettings(data: {
     };
   };
 }> {
-  return apiPut('/v1/user/my-plan/settings', data);
+  return apiPut('/auth/plan/settings', data);
 }
 

@@ -29,22 +29,17 @@ export function useAuth() {
           if (tempUserStr) {
             tempUser = JSON.parse(tempUserStr)
             if (mounted && tempUser) {
-              console.log('[useAuth] Usuário temporário encontrado:', tempUser.email)
               setUser(tempUser)
               setLoading(false) // Definir loading como false imediatamente se tiver usuário temporário
             }
           }
         } catch (e) {
-          console.error('[useAuth] Erro ao carregar usuário temporário:', e)
+          // Ignorar erros ao ler usuário temporário
         }
 
         // Se tem usuário temporário, não precisa verificar token ainda
         // Continuar para tentar carregar do backend
-        const hasToken = isAuthenticated()
-        console.log('[useAuth] Token presente:', hasToken, 'Usuário temporário:', !!tempUser)
-        
-        if (!tempUser && !hasToken) {
-          console.log('[useAuth] Sem token e sem usuário temporário, não autenticado')
+        if (!tempUser && !isAuthenticated()) {
           if (mounted) {
             setLoading(false)
           }
