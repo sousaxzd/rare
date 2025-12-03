@@ -216,7 +216,7 @@ export async function listPayments(params?: {
   if (params?.status) queryParams.append('status', params.status);
   if (params?.limit) queryParams.append('limit', params.limit.toString());
   if (params?.offset) queryParams.append('offset', params.offset.toString());
-  
+
   const query = queryParams.toString();
   return apiGet(`/auth/payments${query ? `?${query}` : ''}`);
 }
@@ -233,9 +233,57 @@ export async function listWithdraws(params?: {
   if (params?.status) queryParams.append('status', params.status);
   if (params?.limit) queryParams.append('limit', params.limit.toString());
   if (params?.offset) queryParams.append('offset', params.offset.toString());
-  
+
   const query = queryParams.toString();
   return apiGet(`/auth/withdraws${query ? `?${query}` : ''}`);
+}
+
+export interface Transaction {
+  id: string;
+  type: 'income' | 'expense';
+  transactionType: 'payment' | 'withdraw';
+  date: string;
+  amount: number;
+  status: string;
+  description: string;
+  originalData?: any;
+}
+
+export interface TransactionListResponse {
+  success: boolean;
+  data: {
+    transactions: Transaction[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+      hasMore: boolean;
+    };
+  };
+}
+
+/**
+ * Listar todas as transações (pagamentos e saques)
+ */
+export async function listTransactions(params?: {
+  page?: number;
+  limit?: number;
+  startDate?: string;
+  endDate?: string;
+  type?: string;
+  status?: string;
+}): Promise<TransactionListResponse> {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.append('page', params.page.toString());
+  if (params?.limit) queryParams.append('limit', params.limit.toString());
+  if (params?.startDate) queryParams.append('startDate', params.startDate);
+  if (params?.endDate) queryParams.append('endDate', params.endDate);
+  if (params?.type) queryParams.append('type', params.type);
+  if (params?.status) queryParams.append('status', params.status);
+
+  const query = queryParams.toString();
+  return apiGet(`/auth/transactions${query ? `?${query}` : ''}`);
 }
 
 /**

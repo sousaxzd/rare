@@ -9,7 +9,7 @@ import { faCalendar, faFilePdf, faFileExcel, faDownload, faArrowUp, faArrowDown,
 import { RippleButton } from '@/components/ripple-button'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { listPayments, listWithdraws, Payment, Withdraw } from '@/lib/wallet'
+import { listTransactions } from '@/lib/wallet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TransactionDetailsModal } from '@/components/transaction-details-modal'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -69,93 +69,53 @@ export default function TransactionsPage() {
   const [selectedTransactionId, setSelectedTransactionId] = useState<string>('')
   const [selectedTransactionType, setSelectedTransactionType] = useState<'payment' | 'withdraw'>('payment')
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [itemsPerPage] = useState(25)
+
+  const loadTransactions = async () => {
+    try {
+      setLoading(true)
+
+      const response = await listTransactions({
+        page: currentPage,
+        limit: itemsPerPage,
+        startDate: format(startDate, 'yyyy-MM-dd'),
+        endDate: format(endDate, 'yyyy-MM-dd'),
+        type: typeFilter,
+        status: statusFilter
+      })
+
+      if (response.success) {
+        const mappedTransactions: Transaction[] = response.data.transactions.map(t => ({
+          id: t.id,
+          date: new Date(t.date),
+          description: t.description,
+          type: t.type,
+          transactionType: t.transactionType,
+          amount: t.amount,
+          status: t.status
+        }))
+
+        setTransactions(mappedTransactions)
+        setTotalPages(response.data.pagination.totalPages)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar transações:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    const loadTransactions = async () => {
-      try {
-        setLoading(true)
-        const [paymentsRes, withdrawsRes] = await Promise.all([
-          listPayments({ limit: 100 }),
-          listWithdraws({ limit: 100 })
-        ])
-
-        const allTransactions: Transaction[] = []
-
-        // Adicionar pagamentos
-        paymentsRes.data.payments.forEach(p => {
-          allTransactions.push({
-            id: p.id,
-            date: new Date(p.createdAt),
-            description: p.description || 'Pagamento recebido',
-            type: 'income',
-            transactionType: 'payment',
-            amount: (p.netValue || p.value) / 100,
-            status: p.status
-          })
-        })
-
-        // Adicionar saques
-        withdrawsRes.data.withdraws.forEach(w => {
-          allTransactions.push({
-            id: w.id,
-            date: new Date(w.createdAt),
-            description: w.description || 'Saque realizado',
-            type: 'expense',
-            transactionType: 'withdraw',
-            amount: w.value / 100,
-            status: w.status
-          })
-        })
-
-        // Ordenar por data (mais recente primeiro)
-        allTransactions.sort((a, b) => b.date.getTime() - a.date.getTime())
-        setTransactions(allTransactions)
-      } catch (error) {
-        console.error('Erro ao carregar transações:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     loadTransactions()
-  }, [])
+  }, [currentPage, startDate, endDate, statusFilter, typeFilter])
 
-  const filteredTransactions = transactions.filter(t => {
-    // Filtro de data
-    const dateMatch = t.date >= startDate && t.date <= endDate
-    
-    // Filtro de status
-    let statusMatch = true
-    if (statusFilter !== 'all') {
-      const statusUpper = t.status.toUpperCase()
-      if (statusFilter === 'completed') {
-        statusMatch = statusUpper === 'COMPLETED' || statusUpper === 'PAID'
-      } else if (statusFilter === 'pending') {
-        statusMatch = statusUpper === 'PENDING' || statusUpper === 'PROCESSING' || statusUpper === 'WAITING' || statusUpper === 'ACTIVE'
-      } else if (statusFilter === 'failed') {
-        statusMatch = statusUpper === 'FAILED'
-      } else if (statusFilter === 'cancelled') {
-        statusMatch = statusUpper === 'CANCELLED'
-      } else if (statusFilter === 'expired') {
-        statusMatch = statusUpper === 'EXPIRED'
-      }
-    }
-    
-    // Filtro de tipo
-    const typeMatch = typeFilter === 'all' || t.type === typeFilter
-    
-    // Filtro de valor
-    let valueMatch = true
-    if (minValue) {
-      const min = parseFloat(minValue.replace(',', '.'))
-      valueMatch = valueMatch && Math.abs(t.amount) >= min
-    }
-    if (maxValue) {
-      const max = parseFloat(maxValue.replace(',', '.'))
-      valueMatch = valueMatch && Math.abs(t.amount) <= max
-    }
-    
-    return dateMatch && statusMatch && typeMatch && valueMatch
-  }).sort((a, b) => b.date.getTime() - a.date.getTime())
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [startDate, endDate, statusFilter, typeFilter])
 
   const handleExportPDF = () => {
     alert('Exportação PDF em desenvolvimento')
@@ -163,6 +123,12 @@ export default function TransactionsPage() {
 
   const handleExportExcel = () => {
     alert('Exportação Excel em desenvolvimento')
+  }
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage)
+    }
   }
 
   return (
@@ -193,11 +159,11 @@ export default function TransactionsPage() {
                         {format(startDate, "dd/MM/yyyy", { locale: ptBR })} até {format(endDate, "dd/MM/yyyy", { locale: ptBR })}
                       </span>
                     </RippleButton>
-                    
+
                     {showDatePicker && (
                       <>
-                        <div 
-                          className="fixed inset-0 z-40" 
+                        <div
+                          className="fixed inset-0 z-40"
                           onClick={() => setShowDatePicker(false)}
                         />
                         <div className="absolute top-full left-0 right-0 sm:right-auto mt-2 p-4 bg-background border border-foreground/10 rounded-lg shadow-lg z-50 sm:w-auto w-full">
@@ -284,34 +250,6 @@ export default function TransactionsPage() {
                     </Select>
                   </div>
                 </div>
-
-                {/* Linha 3: Filtro de Valor */}
-                <div className="flex flex-col gap-3">
-                  <label className="text-sm text-foreground/60">Filtrar por Valor:</label>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <input
-                      type="text"
-                      value={minValue}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/[^\d,.]/g, '').replace(',', '.')
-                        setMinValue(value)
-                      }}
-                      placeholder="Valor mínimo"
-                      className="flex-1 px-3 py-2 rounded-lg bg-input border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm min-w-0"
-                    />
-                    <span className="text-foreground/60 text-center sm:text-left">até</span>
-                    <input
-                      type="text"
-                      value={maxValue}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/[^\d,.]/g, '').replace(',', '.')
-                        setMaxValue(value)
-                      }}
-                      placeholder="Valor máximo"
-                      className="flex-1 px-3 py-2 rounded-lg bg-input border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm min-w-0"
-                    />
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -332,69 +270,99 @@ export default function TransactionsPage() {
                     ))}
                   </div>
                 ) : (
-                  <table className="w-full min-w-[600px]">
-                    <thead>
-                      <tr className="border-b border-foreground/10 bg-foreground/5">
-                        <th className="px-3 sm:px-6 py-4 text-left text-xs font-semibold text-foreground/60 uppercase tracking-wider">Data</th>
-                        <th className="px-3 sm:px-6 py-4 text-left text-xs font-semibold text-foreground/60 uppercase tracking-wider">Tipo</th>
-                        <th className="px-3 sm:px-6 py-4 text-left text-xs font-semibold text-foreground/60 uppercase tracking-wider">Status</th>
-                        <th className="px-3 sm:px-6 py-4 text-right text-xs font-semibold text-foreground/60 uppercase tracking-wider">Valor</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-foreground/10">
-                      {filteredTransactions.length === 0 ? (
-                        <tr>
-                          <td colSpan={4} className="px-3 sm:px-6 py-12 text-center text-sm text-foreground/60">
-                            Nenhuma transação encontrada no período selecionado
-                          </td>
+                  <>
+                    <table className="w-full min-w-[600px]">
+                      <thead>
+                        <tr className="border-b border-foreground/10 bg-foreground/5">
+                          <th className="px-3 sm:px-6 py-4 text-left text-xs font-semibold text-foreground/60 uppercase tracking-wider">Data</th>
+                          <th className="px-3 sm:px-6 py-4 text-left text-xs font-semibold text-foreground/60 uppercase tracking-wider">Tipo</th>
+                          <th className="px-3 sm:px-6 py-4 text-left text-xs font-semibold text-foreground/60 uppercase tracking-wider">Status</th>
+                          <th className="px-3 sm:px-6 py-4 text-right text-xs font-semibold text-foreground/60 uppercase tracking-wider">Valor</th>
                         </tr>
-                      ) : (
-                        filteredTransactions.map((transaction) => {
-                          return (
-                            <tr 
-                              key={transaction.id} 
-                              className="hover:bg-foreground/5 transition-colors cursor-pointer"
-                              onClick={() => {
-                                setSelectedTransactionId(transaction.id)
-                                setSelectedTransactionType(transaction.transactionType)
-                                setDetailsModalOpen(true)
-                              }}
-                            >
-                              <td className="px-3 sm:px-6 py-4 text-sm text-foreground/80 font-medium whitespace-nowrap">
-                                <span className="hidden sm:inline">{format(transaction.date, "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
-                                <span className="sm:hidden">{format(transaction.date, "dd/MM/yyyy", { locale: ptBR })}</span>
-                              </td>
-                              <td className="px-3 sm:px-6 py-4">
-                                <div className="flex items-center gap-2 sm:gap-3">
-                                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                    transaction.type === 'income' ? 'bg-green-500/10' : 'bg-red-500/10'
-                                  }`}>
-                                    <FontAwesomeIcon 
-                                      icon={transaction.type === 'income' ? faArrowDown : faArrowUp} 
-                                      className={`w-3 h-3 sm:w-4 sm:h-4 ${
-                                        transaction.type === 'income' ? 'text-green-500' : 'text-red-500'
-                                      }`}
-                                    />
+                      </thead>
+                      <tbody className="divide-y divide-foreground/10">
+                        {transactions.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="px-3 sm:px-6 py-12 text-center text-sm text-foreground/60">
+                              Nenhuma transação encontrada no período selecionado
+                            </td>
+                          </tr>
+                        ) : (
+                          transactions.map((transaction) => {
+                            return (
+                              <tr
+                                key={transaction.id}
+                                className="hover:bg-foreground/5 transition-colors cursor-pointer"
+                                onClick={() => {
+                                  setSelectedTransactionId(transaction.id)
+                                  setSelectedTransactionType(transaction.transactionType)
+                                  setDetailsModalOpen(true)
+                                }}
+                              >
+                                <td className="px-3 sm:px-6 py-4 text-sm text-foreground/80 font-medium whitespace-nowrap">
+                                  <span className="hidden sm:inline">{format(transaction.date, "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
+                                  <span className="sm:hidden">{format(transaction.date, "dd/MM/yyyy", { locale: ptBR })}</span>
+                                </td>
+                                <td className="px-3 sm:px-6 py-4">
+                                  <div className="flex items-center gap-2 sm:gap-3">
+                                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${transaction.type === 'income' ? 'bg-green-500/10' : 'bg-red-500/10'
+                                      }`}>
+                                      <FontAwesomeIcon
+                                        icon={transaction.type === 'income' ? faArrowDown : faArrowUp}
+                                        className={`w-3 h-3 sm:w-4 sm:h-4 ${transaction.type === 'income' ? 'text-green-500' : 'text-red-500'
+                                          }`}
+                                      />
+                                    </div>
+                                    <span className="text-sm font-medium text-foreground">
+                                      {transaction.type === 'income' ? 'Entrada' : 'Saída'}
+                                    </span>
                                   </div>
-                                  <span className="text-sm font-medium text-foreground">
-                                    {transaction.type === 'income' ? 'Entrada' : 'Saída'}
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="px-3 sm:px-6 py-4">
-                                {getStatusBadge(transaction.status)}
-                              </td>
-                              <td className={`px-3 sm:px-6 py-4 text-right text-sm font-bold whitespace-nowrap ${
-                                transaction.type === 'income' ? 'text-green-500' : 'text-foreground'
-                              }`}>
-                                {transaction.type === 'income' ? '+' : '-'}R$ {Math.abs(transaction.amount).toFixed(2).replace('.', ',')}
-                              </td>
-                            </tr>
-                          )
-                        })
-                      )}
-                    </tbody>
-                  </table>
+                                </td>
+                                <td className="px-3 sm:px-6 py-4">
+                                  {getStatusBadge(transaction.status)}
+                                </td>
+                                <td className={`px-3 sm:px-6 py-4 text-right text-sm font-bold whitespace-nowrap ${transaction.type === 'income' ? 'text-green-500' : 'text-foreground'
+                                  }`}>
+                                  {transaction.type === 'income' ? '+' : '-'}R$ {Math.abs(transaction.amount).toFixed(2).replace('.', ',')}
+                                </td>
+                              </tr>
+                            )
+                          })
+                        )}
+                      </tbody>
+                    </table>
+
+                    {/* Paginação */}
+                    {totalPages > 1 && (
+                      <div className="px-6 py-4 border-t border-foreground/10 flex items-center justify-between">
+                        <div className="text-sm text-foreground/60">
+                          Página {currentPage} de {totalPages}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RippleButton
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`px-3 py-1 text-sm rounded-lg border transition-colors ${currentPage === 1
+                              ? 'border-foreground/10 text-foreground/40 cursor-not-allowed'
+                              : 'border-foreground/20 text-foreground hover:bg-foreground/10'
+                              }`}
+                          >
+                            Anterior
+                          </RippleButton>
+                          <RippleButton
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className={`px-3 py-1 text-sm rounded-lg border transition-colors ${currentPage === totalPages
+                              ? 'border-foreground/10 text-foreground/40 cursor-not-allowed'
+                              : 'border-foreground/20 text-foreground hover:bg-foreground/10'
+                              }`}
+                          >
+                            Próxima
+                          </RippleButton>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>

@@ -20,14 +20,10 @@ export async function apiRequest<T>(
     'Content-Type': 'application/json',
   };
 
-  // Adicionar token do localStorage se existir (fallback para quando cookie falhar)
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // @ts-ignore
-      defaultHeaders['Authorization'] = `Bearer ${token}`;
-    }
-  }
+  // NÃO enviar token no header Authorization para maior segurança
+  // O token será enviado automaticamente via cookie HttpOnly
+  // Isso previne que o token apareça em texto claro em ferramentas como Burp/Charles
+  // O cookie HttpOnly é enviado automaticamente pelo navegador e não é acessível via JavaScript
 
   const config: RequestInit = {
     ...options,
