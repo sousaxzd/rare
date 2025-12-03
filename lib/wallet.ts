@@ -218,7 +218,7 @@ export async function listPayments(params?: {
   if (params?.offset) queryParams.append('offset', params.offset.toString());
   
   const query = queryParams.toString();
-  return apiGet(`/v1/payment/list${query ? `?${query}` : ''}`);
+  return apiGet(`/auth/payments${query ? `?${query}` : ''}`);
 }
 
 /**
@@ -235,7 +235,7 @@ export async function listWithdraws(params?: {
   if (params?.offset) queryParams.append('offset', params.offset.toString());
   
   const query = queryParams.toString();
-  return apiGet(`/v1/withdraw/list${query ? `?${query}` : ''}`);
+  return apiGet(`/auth/withdraws${query ? `?${query}` : ''}`);
 }
 
 /**
@@ -270,6 +270,6 @@ export async function getWithdrawById(id: string): Promise<{ success: boolean; d
  * Obter dados do usuário (incluindo aiEnabled)
  */
 export async function getUserData(): Promise<{ success: boolean; data: UserData }> {
-  return apiGet('/v1/user/get');
+  return apiGet('/auth/user');
 }
 

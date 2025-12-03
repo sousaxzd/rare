@@ -13,7 +13,9 @@ export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  // Se o endpoint começar com /auth/, usar BACKEND_URL diretamente (não /api)
+  const baseUrl = endpoint.startsWith('/auth/') ? BACKEND_URL : API_BASE_URL;
+  const url = `${baseUrl}${endpoint}`;
   
   const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',
