@@ -15,15 +15,19 @@ export async function apiRequest<T>(
 ): Promise<T> {
   // Todas as rotas usam /api como base
   const url = `${API_BASE_URL}${endpoint}`;
-  
+
   const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',
   };
 
-  // NÃO enviar token no header Authorization para maior segurança
-  // O token será enviado automaticamente via cookie HttpOnly
-  // Isso previne que o token apareça em texto claro em ferramentas como Burp/Charles
-  // O cookie HttpOnly é enviado automaticamente pelo navegador e não é acessível via JavaScript
+  // Adicionar token do localStorage se existir (fallback para quando cookie falhar)
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // @ts-ignore
+      defaultHeaders['Authorization'] = `Bearer ${token}`;
+    }
+  }
 
   const config: RequestInit = {
     ...options,
@@ -45,7 +49,7 @@ export async function apiRequest<T>(
     });
 
     clearTimeout(timeoutId);
-    
+
     // Se não houver conteúdo, retornar sucesso
     if (response.status === 204) {
       return {} as T;
@@ -85,7 +89,7 @@ export async function apiRequest<T>(
         timeoutError.status = 0; // Status 0 indica erro de rede
         throw timeoutError;
       }
-      
+
       // Erros de rede (backend não disponível)
       if (
         error.message.includes('Failed to fetch') ||
@@ -99,7 +103,7 @@ export async function apiRequest<T>(
         networkError.status = 0; // Status 0 indica erro de rede
         throw networkError;
       }
-      
+
       // Se já tem status, manter
       throw error;
     }
@@ -149,7 +153,7 @@ export function apiDelete<T>(endpoint: string, body?: unknown): Promise<T> {
  */
 export async function apiUpload<T>(endpoint: string, file: File, fieldName: string = 'file'): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  
+
   const formData = new FormData();
   formData.append(fieldName, file);
 
@@ -181,7 +185,7 @@ export async function apiUpload<T>(endpoint: string, file: File, fieldName: stri
     });
 
     clearTimeout(timeoutId);
-    
+
     const data = await response.json();
 
     if (!response.ok) {
@@ -196,7 +200,7 @@ export async function apiUpload<T>(endpoint: string, file: File, fieldName: stri
       if (error.name === 'AbortError') {
         throw new Error('Tempo de espera esgotado. O servidor pode estar indisponível.');
       }
-      
+
       // Erros de rede (backend não disponível)
       if (
         error.message.includes('Failed to fetch') ||
@@ -208,7 +212,7 @@ export async function apiUpload<T>(endpoint: string, file: File, fieldName: stri
       ) {
         throw new Error('Servidor indisponível. Verifique se o backend está rodando.');
       }
-      
+
       throw error;
     }
     throw new Error('Erro desconhecido na requisição');
