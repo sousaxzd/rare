@@ -14,6 +14,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [passwordErrors, setPasswordErrors] = useState<string[]>([])
+  const [cpfError, setCpfError] = useState<string | null>(null)
   const [step, setStep] = useState<'form' | 'code'>('form')
   const [code, setCode] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -53,6 +54,20 @@ export default function SignupPage() {
     // Formatar CPF automaticamente
     if (e.target.name === 'cpf') {
       value = formatCPF(value)
+      // Validar CPF em tempo real
+      const cleaned = value.replace(/[.\-/]/g, '')
+      if (cleaned.length === 11) {
+        const cpfValidation = validateCPF(value)
+        if (cpfValidation.valid) {
+          setCpfError(null)
+        } else {
+          setCpfError(cpfValidation.error || null)
+        }
+      } else if (cleaned.length > 0) {
+        setCpfError('CPF deve conter 11 dígitos')
+      } else {
+        setCpfError(null)
+      }
     }
     
     setFormData({
@@ -70,19 +85,60 @@ export default function SignupPage() {
     }
   }
 
-  // Validar CPF básico (11 dígitos)
-  const validateCPF = (cpf: string): boolean => {
-    const numbers = cpf.replace(/\D/g, '')
-    return numbers.length === 11
+  // Validar CPF usando algoritmo oficial brasileiro de dígitos verificadores
+  const validateCPF = (cpf: string): { valid: boolean; error?: string } => {
+    const cleaned = cpf.replace(/[.\-/]/g, '')
+    
+    // Verificar se tem 11 dígitos
+    if (cleaned.length !== 11) {
+      return { valid: false, error: 'CPF deve conter 11 dígitos' }
+    }
+    
+    // Verificar se todos os dígitos são iguais (CPF inválido)
+    if (/^(\d)\1{10}$/.test(cleaned)) {
+      return { valid: false, error: 'CPF inválido. Todos os dígitos são iguais' }
+    }
+    
+    // Calcular primeiro dígito verificador
+    let sum = 0
+    for (let i = 0; i < 9; i++) {
+      sum += parseInt(cleaned.charAt(i)) * (10 - i)
+    }
+    let remainder = sum % 11
+    let firstDigit = remainder < 2 ? 0 : 11 - remainder
+    
+    if (firstDigit !== parseInt(cleaned.charAt(9))) {
+      return { valid: false, error: 'CPF inválido. Verifique os dígitos verificadores' }
+    }
+    
+    // Calcular segundo dígito verificador
+    sum = 0
+    for (let i = 0; i < 10; i++) {
+      sum += parseInt(cleaned.charAt(i)) * (11 - i)
+    }
+    remainder = sum % 11
+    let secondDigit = remainder < 2 ? 0 : 11 - remainder
+    
+    if (secondDigit !== parseInt(cleaned.charAt(10))) {
+      return { valid: false, error: 'CPF inválido. Verifique os dígitos verificadores' }
+    }
+    
+    return { valid: true }
   }
 
   const handleRequestCode = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     
-    // Validar CPF
-    if (!formData.cpf || !validateCPF(formData.cpf)) {
-      setError('CPF inválido. Informe um CPF com 11 dígitos')
+    // Validar CPF com algoritmo completo de dígitos verificadores
+    if (!formData.cpf) {
+      setError('CPF é obrigatório')
+      return
+    }
+    
+    const cpfValidation = validateCPF(formData.cpf)
+    if (!cpfValidation.valid) {
+      setError(cpfValidation.error || 'CPF inválido')
       return
     }
     
@@ -248,16 +304,34 @@ export default function SignupPage() {
                       placeholder="000.000.000-00"
                       autoComplete="off"
                       maxLength={14}
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border ${
+                        cpfError && formData.cpf
+                          ? 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/50'
+                          : formData.cpf && !cpfError && formData.cpf.replace(/[.\-/]/g, '').length === 11
+                          ? 'border-green-500/50 focus:border-green-500/50 focus:ring-green-500/50'
+                          : 'border-foreground/10 focus:border-primary/30 focus:ring-primary/50'
+                      } text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 transition-all ${
                         loading ? 'opacity-60 cursor-not-allowed' : ''
                       }`}
                       required
                       disabled={loading}
                     />
                   </div>
-                  <p className="text-xs text-foreground/60 mt-1">
-                    Informe apenas números (será formatado automaticamente)
-                  </p>
+                  {cpfError && formData.cpf && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {cpfError}
+                    </p>
+                  )}
+                  {!cpfError && formData.cpf && formData.cpf.replace(/[.\-/]/g, '').length === 11 && (
+                    <p className="text-xs text-green-500 mt-1">
+                      ✓ CPF válido
+                    </p>
+                  )}
+                  {!cpfError && (!formData.cpf || formData.cpf.replace(/[.\-/]/g, '').length < 11) && (
+                    <p className="text-xs text-foreground/60 mt-1">
+                      Informe apenas números (será formatado automaticamente)
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -398,7 +472,7 @@ export default function SignupPage() {
                 <RippleButton
                   type="submit"
                   className="w-full py-3.5 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 mt-2 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  disabled={loading}
+                  disabled={loading || !!cpfError || !formData.cpf || formData.cpf.replace(/[.\-/]/g, '').length !== 11}
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
