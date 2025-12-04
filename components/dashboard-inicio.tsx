@@ -28,6 +28,7 @@ interface TransactionDisplay {
   description: string
   amount: number
   date: string
+  status: string
 }
 
 export function DashboardInicio({ loading: externalLoading }: DashboardInicioProps) {
@@ -91,7 +92,8 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
             transactionType: 'payment',
             description: p.description || 'Pagamento recebido',
             amount: (p.netValue || p.value) / 100,
-            date: p.createdAt
+            date: p.createdAt,
+            status: p.status
           })
         })
 
@@ -105,7 +107,8 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
             transactionType: 'withdraw',
             description: w.description || 'Saque realizado',
             amount: w.value / 100,
-            date: w.createdAt
+            date: w.createdAt,
+            status: w.status
           })
         })
 
@@ -664,7 +667,10 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-foreground">
-                      {transaction.type === 'received' ? 'Depósito' : 'Transferência'}
+                      {transaction.status === 'PENDING' 
+                        ? (transaction.type === 'received' ? 'Depósito pendente' : 'Transferência pendente')
+                        : (transaction.type === 'received' ? 'Depósito' : 'Transferência')
+                      }
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {transaction.date}
