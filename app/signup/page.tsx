@@ -127,8 +127,29 @@ export default function SignupPage() {
         taxID: formData.cpf.replace(/\D/g, ''), // Remover formatação antes de enviar
       })
 
-      if (response.success) {
-        // Redirecionar para login após cadastro bem-sucedido
+      if (response.success && response.token) {
+        // Se o cadastro retornou token, fazer login automático e ir para dashboard
+        if (typeof window !== 'undefined' && response.token) {
+          localStorage.setItem('token', response.token)
+          
+          // Salvar usuário temporariamente se disponível
+          if (response.user) {
+            sessionStorage.setItem('temp_user', JSON.stringify(response.user))
+            window.dispatchEvent(new Event('storage'))
+            window.dispatchEvent(new CustomEvent('auth-change', { detail: { user: response.user, token: response.token } }))
+          }
+          
+          // Delay para garantir que o token seja salvo
+          await new Promise(resolve => setTimeout(resolve, 300))
+          
+          // Forçar atualização completa da página ao redirecionar para dashboard
+          window.location.href = '/dashboard'
+        } else {
+          // Se não houver token, redirecionar para login
+          router.push('/login?registered=true')
+        }
+      } else if (response.success) {
+        // Redirecionar para login após cadastro bem-sucedido (sem token)
         router.push('/login?registered=true')
       }
     } catch (err) {
