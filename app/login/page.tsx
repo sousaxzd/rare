@@ -29,7 +29,7 @@ export default function LoginPage() {
         // Verificar se ainda estamos na página de login antes de redirecionar
         // Isso evita redirecionamentos indesejados durante o processo de login
         if (window.location.pathname === '/login') {
-          router.replace('/')
+          router.replace('/dashboard')
         }
       }
     }
@@ -65,10 +65,10 @@ export default function LoginPage() {
         }
         
         // Delay maior para garantir que o token seja salvo e processado
-        await new Promise(resolve => setTimeout(resolve, 500))
+        await new Promise(resolve => setTimeout(resolve, 300))
         
-        // Usar window.location.href para garantir redirecionamento absoluto
-        window.location.href = '/'
+        // Usar replace para evitar problemas de histórico
+        router.replace('/dashboard')
         return
       }
       
@@ -100,10 +100,10 @@ export default function LoginPage() {
         }
         
         // Delay para garantir que tudo foi processado
-        await new Promise(resolve => setTimeout(resolve, 500))
+        await new Promise(resolve => setTimeout(resolve, 300))
         
-        // Usar window.location.href para garantir redirecionamento absoluto
-        window.location.href = '/'
+        // Redirecionar para dashboard
+        router.replace('/dashboard')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Código inválido ou expirado')
@@ -141,18 +141,11 @@ export default function LoginPage() {
 
     try {
       const response = await resetPassword(email, code, newPassword)
-      if (response.success && response.token && response.user) {
-        // Salvar usuário temporariamente
-        if (typeof window !== 'undefined' && response.user) {
-          sessionStorage.setItem('temp_user', JSON.stringify(response.user))
-          window.dispatchEvent(new Event('storage'))
-          window.dispatchEvent(new CustomEvent('auth-change', { detail: { user: response.user, token: response.token } }))
-        }
-        
-        // Delay para garantir que o token seja salvo no localStorage antes do redirecionamento
-        await new Promise(resolve => setTimeout(resolve, 500))
-        // Usar window.location.href para garantir redirecionamento absoluto
-        window.location.href = '/'
+      if (response.success && response.token) {
+        // Pequeno delay para garantir que o token seja salvo no localStorage antes do redirecionamento
+        await new Promise(resolve => setTimeout(resolve, 50))
+        // Usar replace para evitar problemas de histórico e garantir redirecionamento correto
+        router.replace('/dashboard')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao redefinir senha')
