@@ -128,8 +128,8 @@ export default function SignupPage() {
       })
 
       if (response.success) {
-        // Redirecionar para login após cadastro bem-sucedido
-        router.push('/login?registered=true')
+        // Redirecionar para página inicial após cadastro bem-sucedido
+        window.location.href = '/'
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Código inválido ou expirado')

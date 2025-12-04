@@ -38,18 +38,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setUser(response.user)
             } else {
                 // Se falhar ao carregar usuário, limpar token
-                try {
-                    // Apenas limpar se for 401
-                    if (response.error === 'Token inválido ou expirado') {
-                        localStorage.removeItem('token')
-                        setUser(null)
-                    }
-                } catch (e) {
-                    // ignore
-                }
+                localStorage.removeItem('token')
+                setUser(null)
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Erro ao carregar usuário:', error)
+            // Se for erro 401 ou token inválido, limpar token
+            if (error?.status === 401 || error?.message?.includes('Token inválido') || error?.message?.includes('Token expirado')) {
+                localStorage.removeItem('token')
+                setUser(null)
+            }
         } finally {
             setLoading(false)
         }
@@ -63,12 +61,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (e.key === 'token' && !e.newValue) {
                 setUser(null)
                 router.push('/')
+            } else if (e.key === 'token' && e.newValue) {
+                // Token foi adicionado, recarregar usuário
+                loadUser()
+            }
+        }
+
+        // Ouvir evento customizado de mudança de autenticação (disparado após login)
+        const handleAuthChange = (e: CustomEvent) => {
+            if (e.detail?.user && e.detail?.token) {
+                setUser(e.detail.user)
+                setLoading(false)
             }
         }
 
         window.addEventListener('storage', handleStorageChange)
-        return () => window.removeEventListener('storage', handleStorageChange)
-    }, [])
+        window.addEventListener('auth-change', handleAuthChange as EventListener)
+        
+        return () => {
+            window.removeEventListener('storage', handleStorageChange)
+            window.removeEventListener('auth-change', handleAuthChange as EventListener)
+        }
+    }, [router])
 
     const logout = async () => {
         try {
