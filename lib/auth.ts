@@ -44,7 +44,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   admin?: boolean;
-  aiEnabled?: boolean; // Added aiEnabled field
+
   transferSecurityEnabled?: boolean; // Added transferSecurityEnabled field
   taxID?: string; // CPF/CNPJ (somente leitura)
 }
@@ -226,12 +226,7 @@ export async function resetPassword(email: string, code: string, newPassword: st
   return response;
 }
 
-/**
- * Atualizar preferência de IA
- */
-export async function updateAIEnabled(aiEnabled: boolean): Promise<{ success: boolean; message: string; data: { aiEnabled: boolean } }> {
-  return apiPut('/v1/user/update', { aiEnabled });
-}
+
 
 /**
  * Interface para dispositivo confiável

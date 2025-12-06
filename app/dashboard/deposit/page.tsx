@@ -5,7 +5,7 @@ import { SidebarDashboard } from '@/components/sidebar-dashboard'
 import { DashboardTopbar } from '@/components/dashboard-topbar'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faQrcode, faCopy, faSpinner, faCheck, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
+import { faQrcode, faCopy, faSpinner, faCheck, faArrowLeft, faArrowDown } from '@fortawesome/free-solid-svg-icons'
 import { RippleButton } from '@/components/ripple-button'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -17,7 +17,7 @@ import { TransactionModal } from '@/components/transaction-modal'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function DepositPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
   const [amount, setAmount] = useState('')
@@ -62,14 +62,14 @@ export default function DepositPage() {
     setPaymentData(null)
     setModalOpen(true)
     setModalStatus('loading')
-    
+
     try {
       const response = await createPayment({
         value: amount,
         description: description || undefined,
         coverFee: coverFee || undefined
       })
-      
+
       setPaymentData(response.data)
       setModalStatus('success')
     } catch (error) {
@@ -118,14 +118,14 @@ export default function DepositPage() {
       try {
         const response = await listPayments({ limit: 10 })
         const payment = response.data.payments.find(p => p.id === paymentData.id)
-        
+
         if (payment && (payment.status === 'COMPLETED' || payment.status === 'PAID')) {
           // Atualizar dados do pagamento
           setPaymentData(prev => prev ? {
             ...prev,
             status: 'COMPLETED'
           } : null)
-          
+
           // Parar polling
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current)
@@ -181,8 +181,8 @@ export default function DepositPage() {
                 <div className="border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm p-6">
                   <div className="text-center space-y-4">
                     <h2 className="text-xl font-bold text-foreground">
-                      {paymentData.status === 'COMPLETED' || paymentData.status === 'PAID' 
-                        ? 'Pagamento Confirmado!' 
+                      {paymentData.status === 'COMPLETED' || paymentData.status === 'PAID'
+                        ? 'Pagamento Confirmado!'
                         : 'Pagamento PIX Criado'}
                     </h2>
                     <p className="text-sm text-muted-foreground">
@@ -190,7 +190,7 @@ export default function DepositPage() {
                         ? 'Seu pagamento foi confirmado com sucesso!'
                         : 'Escaneie o QR Code ou copie o código PIX para pagar'}
                     </p>
-                    
+
                     {paymentData.qrcodeUrl && (paymentData.status !== 'COMPLETED' && paymentData.status !== 'PAID') && (
                       <div className="flex justify-center my-6">
                         <div className="p-4 bg-white rounded-lg">
@@ -204,7 +204,7 @@ export default function DepositPage() {
                         </div>
                       </div>
                     )}
-                    
+
                     {(paymentData.status === 'COMPLETED' || paymentData.status === 'PAID') && (
                       <div className="flex justify-center my-6">
                         <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center">
@@ -295,13 +295,15 @@ export default function DepositPage() {
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleDeposit} className="space-y-5">
+              <div className="bg-foreground/5 p-6 rounded-xl border border-foreground/10">
+                <form onSubmit={handleDeposit} className="space-y-5">
                   {/* Valor e descrição */}
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium text-foreground">
-                        Valor a receber
-                      </label>
+                      <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                        <FontAwesomeIcon icon={faArrowDown} className="w-3 h-3" />
+                        <label className="text-sm font-medium">Valor a receber</label>
+                      </div>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
                           R$
@@ -403,7 +405,7 @@ export default function DepositPage() {
                   <button
                     type="submit"
                     disabled={loading || !amount}
-                    className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full py-3 bg-foreground/10 text-foreground border border-foreground/10 rounded-lg font-medium hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {loading ? (
                       <>
@@ -418,6 +420,7 @@ export default function DepositPage() {
                     )}
                   </button>
                 </form>
+              </div>
             )}
           </div>
         </main>

@@ -33,10 +33,10 @@ export default function LoginPage() {
         }
       }
     }
-    
+
     // Pequeno delay para evitar verificação muito cedo
     const timeoutId = setTimeout(checkAuth, 100)
-    
+
     return () => clearTimeout(timeoutId)
   }, [router])
 
@@ -47,31 +47,31 @@ export default function LoginPage() {
 
     try {
       const response = await requestLoginCode({ email, password })
-      
+
       // Se o dispositivo já é confiável, fazer login direto
       if (response.trustedDevice && response.token && response.user) {
         // Salvar token no localStorage
         if (typeof window !== 'undefined' && response.token) {
           localStorage.setItem('token', response.token)
-          
+
           // Salvar usuário temporariamente para uso imediato
           // Isso garante que o usuário esteja disponível mesmo antes do useAuth carregar
           sessionStorage.setItem('temp_user', JSON.stringify(response.user))
-          
+
           // Disparar evento storage para forçar atualização do useAuth
           window.dispatchEvent(new Event('storage'))
           // Disparar evento customizado também
           window.dispatchEvent(new CustomEvent('auth-change', { detail: { user: response.user, token: response.token } }))
         }
-        
+
         // Delay maior para garantir que o token seja salvo e processado
         await new Promise(resolve => setTimeout(resolve, 300))
-        
+
         // Forçar atualização completa da página ao redirecionar para dashboard
         window.location.href = '/dashboard'
         return
       }
-      
+
       setStep('code')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao solicitar código')
@@ -84,24 +84,24 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    
+
     try {
       const response = await verifyCode({ email, code, trustDevice })
-      
+
       if (response.success && response.token && response.user) {
         // O token JÁ foi salvo pela função verifyCode
         // Agora salvar usuário temporariamente para uso imediato
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('temp_user', JSON.stringify(response.user))
-          
+
           // Disparar eventos para atualizar o useAuth
           window.dispatchEvent(new Event('storage'))
           window.dispatchEvent(new CustomEvent('auth-change', { detail: { user: response.user, token: response.token } }))
         }
-        
+
         // Delay para garantir que tudo foi processado
         await new Promise(resolve => setTimeout(resolve, 300))
-        
+
         // Forçar atualização completa da página ao redirecionar para dashboard
         window.location.href = '/dashboard'
       }
@@ -160,10 +160,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-6 -mt-8">
+    <div className="min-h-[calc(100vh-120px)] sm:min-h-[calc(100vh-200px)] flex items-center justify-center p-4 sm:p-6 -mt-4 sm:-mt-8">
       <div className="w-full max-w-md">
         {/* Card */}
-        <div className="p-8 rounded-2xl border border-foreground/10 bg-foreground/2 backdrop-blur-sm shadow-xl">
+        <div className="p-5 sm:p-8 rounded-2xl border border-foreground/10 bg-foreground/2 backdrop-blur-sm shadow-xl">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold text-foreground">Bem-vindo de volta</h1>
             <p className="text-foreground/60 text-sm mt-1">Entre na sua conta para continuar</p>
@@ -187,9 +187,9 @@ export default function LoginPage() {
                     E-mail
                   </label>
                   <div className="relative">
-                    <FontAwesomeIcon 
-                      icon={faEnvelope} 
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" 
+                    <FontAwesomeIcon
+                      icon={faEnvelope}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50"
                     />
                     <input
                       type="email"
@@ -197,9 +197,8 @@ export default function LoginPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="seu@email.com"
                       autoComplete="email"
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${
-                        loading ? 'opacity-60 cursor-not-allowed' : ''
-                      }`}
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${loading ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
                       required
                       disabled={loading}
                     />
@@ -211,9 +210,9 @@ export default function LoginPage() {
                     Senha
                   </label>
                   <div className="relative">
-                    <FontAwesomeIcon 
-                      icon={faLock} 
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" 
+                    <FontAwesomeIcon
+                      icon={faLock}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50"
                     />
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -221,9 +220,8 @@ export default function LoginPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
                       autoComplete="new-password"
-                      className={`w-full pl-10 pr-12 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${
-                        loading ? 'opacity-60 cursor-not-allowed' : ''
-                      }`}
+                      className={`w-full pl-10 pr-12 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${loading ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
                       required
                       disabled={loading}
                     />
@@ -297,9 +295,9 @@ export default function LoginPage() {
                     E-mail
                   </label>
                   <div className="relative">
-                    <FontAwesomeIcon 
-                      icon={faEnvelope} 
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" 
+                    <FontAwesomeIcon
+                      icon={faEnvelope}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50"
                     />
                     <input
                       type="email"
@@ -307,9 +305,8 @@ export default function LoginPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="seu@email.com"
                       autoComplete="email"
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${
-                        loading ? 'opacity-60 cursor-not-allowed' : ''
-                      }`}
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${loading ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
                       required
                       disabled={loading}
                     />
@@ -375,9 +372,9 @@ export default function LoginPage() {
                   </label>
                   <div className="relative">
                     {!code && (
-                      <FontAwesomeIcon 
-                        icon={faKey} 
-                        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50 pointer-events-none z-10" 
+                      <FontAwesomeIcon
+                        icon={faKey}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50 pointer-events-none z-10"
                       />
                     )}
                     <input
@@ -387,10 +384,9 @@ export default function LoginPage() {
                       placeholder="000000"
                       autoComplete="off"
                       maxLength={6}
-                      className={`w-full py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-center text-2xl tracking-widest font-mono focus:scale-[1.02] ${
-                        loading ? 'opacity-60 cursor-not-allowed' : ''
-                      }`}
-                      style={{ 
+                      className={`w-full py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-center text-2xl tracking-widest font-mono focus:scale-[1.02] ${loading ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
+                      style={{
                         paddingLeft: code ? '1rem' : '1rem',
                         paddingRight: '1rem',
                         textAlign: 'center'
@@ -407,9 +403,9 @@ export default function LoginPage() {
                     Nova Senha
                   </label>
                   <div className="relative">
-                    <FontAwesomeIcon 
-                      icon={faLock} 
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" 
+                    <FontAwesomeIcon
+                      icon={faLock}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50"
                     />
                     <input
                       type="password"
@@ -417,9 +413,8 @@ export default function LoginPage() {
                       onChange={(e) => handlePasswordChange(e.target.value)}
                       placeholder="••••••••"
                       autoComplete="new-password"
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${
-                        loading ? 'opacity-60 cursor-not-allowed' : ''
-                      }`}
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${loading ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
                       required
                       disabled={loading}
                     />
@@ -494,9 +489,9 @@ export default function LoginPage() {
                   </label>
                   <div className="relative">
                     {!code && (
-                      <FontAwesomeIcon 
-                        icon={faKey} 
-                        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50 pointer-events-none z-10" 
+                      <FontAwesomeIcon
+                        icon={faKey}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50 pointer-events-none z-10"
                       />
                     )}
                     <input
@@ -506,10 +501,9 @@ export default function LoginPage() {
                       placeholder="000000"
                       autoComplete="off"
                       maxLength={6}
-                      className={`w-full py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-center text-2xl tracking-widest font-mono focus:scale-[1.02] ${
-                        loading ? 'opacity-60 cursor-not-allowed' : ''
-                      }`}
-                      style={{ 
+                      className={`w-full py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-center text-2xl tracking-widest font-mono focus:scale-[1.02] ${loading ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
+                      style={{
                         paddingLeft: code ? '1rem' : '1rem',
                         paddingRight: '1rem',
                         textAlign: 'center'
@@ -576,12 +570,12 @@ export default function LoginPage() {
             </>
           )}
 
-              <p className="text-center text-sm text-foreground/60 mt-6">
-                Não tem uma conta?{' '}
-                <Link href="/signup" className="text-primary hover:text-primary/80 font-medium transition-colors">
-                  Criar conta
-                </Link>
-              </p>
+          <p className="text-center text-sm text-foreground/60 mt-6">
+            Não tem uma conta?{' '}
+            <Link href="/signup" className="text-primary hover:text-primary/80 font-medium transition-colors">
+              Criar conta
+            </Link>
+          </p>
         </div>
 
         {/* Back to Home */}

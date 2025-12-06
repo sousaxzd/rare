@@ -51,20 +51,45 @@ self.addEventListener('message', (event) => {
 
 // Notificações push
 self.addEventListener('push', (event) => {
-  const data = event.data ? event.data.json() : {}
-  const title = data.title || 'Vision Wallet'
-  const options = {
-    body: data.body || 'Nova notificação',
+  console.log('[SW] Push recebido:', event)
+
+  let data = {
+    title: 'Vision Wallet',
+    body: 'Nova notificação',
     icon: '/logo_fundo.png',
     badge: '/logo_fundo.png',
-    tag: data.tag || 'notification',
-    requireInteraction: data.requireInteraction || false,
+    tag: 'vision-notification',
+    data: {}
+  }
+
+  if (event.data) {
+    try {
+      const payload = event.data.json()
+      data = { ...data, ...payload }
+    } catch (e) {
+      data.body = event.data.text()
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/logo_fundo.png',
+    badge: data.badge || '/logo_fundo.png',
+    tag: data.tag || 'vision-notification',
+    requireInteraction: data.requireInteraction || true,
+    vibrate: [200, 100, 200, 100, 200], // Vibrar no mobile
     data: data.data || {},
-    actions: data.actions || [],
+    actions: [
+      { action: 'open', title: '📱 Abrir' },
+      { action: 'close', title: '❌ Fechar' }
+    ],
+    // Mostrar mesmo se app estiver em foco
+    silent: false,
+    renotify: true
   }
 
   event.waitUntil(
-    self.registration.showNotification(title, options)
+    self.registration.showNotification(data.title, options)
   )
 })
 

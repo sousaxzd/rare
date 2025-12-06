@@ -120,6 +120,7 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
                       href={item.href}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => onOpenChange(false)}
                       className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-foreground/5 transition-colors group text-foreground/70 hover:text-foreground rounded-xl"
                     >
                       <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
@@ -154,9 +155,10 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
           <Separator className="bg-foreground/10 mb-2" />
 
           <a
-            href="https://discord.gg/SQCM6GXC27"
+            href="https://discord.gg/9vBqJj45gV"
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => onOpenChange(false)}
             className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-foreground/70 hover:text-[#5865F2] hover:bg-[#5865F2]/10 transition-colors"
           >
             <FontAwesomeIcon icon={faDiscord} className="w-4 h-4" />
@@ -164,7 +166,10 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
           </a>
 
           <RippleButton
-            onClick={handleLogout}
+            onClick={() => {
+              onOpenChange(false)
+              handleLogout()
+            }}
             className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors"
           >
             <FontAwesomeIcon icon={faSignOutAlt} className="w-4 h-4" />

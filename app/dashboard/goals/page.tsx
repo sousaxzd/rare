@@ -23,7 +23,7 @@ const rewards = [
 
 export default function GoalsPage() {
   const { user } = useAuth() // Usar useAuth para manter estado do usuário sincronizado
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [totalReceived, setTotalReceived] = useState<number | null>(null) // Total recebido (entradas), não saldo atual
   const [loading, setLoading] = useState(true)
 
@@ -132,10 +132,10 @@ export default function GoalsPage() {
                     <div
                       key={reward.value}
                       className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 ${isUnlocked
-                          ? 'bg-primary/5 border-primary/30 hover:border-primary/50'
-                          : isNext
-                            ? 'bg-card border-primary/20 shadow-[0_0_30px_-10px_rgba(var(--primary),0.3)] scale-[1.02]'
-                            : 'bg-card/50 border-border/50 opacity-70 hover:opacity-100'
+                        ? 'bg-primary/5 border-primary/30 hover:border-primary/50'
+                        : isNext
+                          ? 'bg-card border-primary/20 shadow-[0_0_30px_-10px_rgba(var(--primary),0.3)] scale-[1.02]'
+                          : 'bg-card/50 border-border/50 opacity-70 hover:opacity-100'
                         }`}
                     >
                       {/* Status Badge */}
@@ -168,14 +168,6 @@ export default function GoalsPage() {
                             {reward.description}
                           </p>
                         </div>
-
-                        {isNext && (
-                          <div className="pt-2">
-                            <div className="text-xs text-center text-primary font-medium bg-primary/10 py-2 rounded-lg">
-                              Próximo Objetivo
-                            </div>
-                          </div>
-                        )}
                       </div>
 
                       {/* Background Glow */}

@@ -50,7 +50,7 @@ export default function SignupPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value
-    
+
     // Formatar CPF automaticamente
     if (e.target.name === 'cpf') {
       value = formatCPF(value)
@@ -69,13 +69,13 @@ export default function SignupPage() {
         setCpfError(null)
       }
     }
-    
+
     setFormData({
       ...formData,
       [e.target.name]: value,
     })
     setError(null)
-    
+
     // Validar senha em tempo real
     if (e.target.name === 'password') {
       const validation = validatePassword(e.target.value)
@@ -88,17 +88,17 @@ export default function SignupPage() {
   // Validar CPF usando algoritmo oficial brasileiro de dígitos verificadores
   const validateCPF = (cpf: string): { valid: boolean; error?: string } => {
     const cleaned = cpf.replace(/[.\-/]/g, '')
-    
+
     // Verificar se tem 11 dígitos
     if (cleaned.length !== 11) {
       return { valid: false, error: 'CPF deve conter 11 dígitos' }
     }
-    
+
     // Verificar se todos os dígitos são iguais (CPF inválido)
     if (/^(\d)\1{10}$/.test(cleaned)) {
       return { valid: false, error: 'CPF inválido. Todos os dígitos são iguais' }
     }
-    
+
     // Calcular primeiro dígito verificador
     let sum = 0
     for (let i = 0; i < 9; i++) {
@@ -106,11 +106,11 @@ export default function SignupPage() {
     }
     let remainder = sum % 11
     let firstDigit = remainder < 2 ? 0 : 11 - remainder
-    
+
     if (firstDigit !== parseInt(cleaned.charAt(9))) {
       return { valid: false, error: 'CPF inválido. Verifique os dígitos verificadores' }
     }
-    
+
     // Calcular segundo dígito verificador
     sum = 0
     for (let i = 0; i < 10; i++) {
@@ -118,30 +118,30 @@ export default function SignupPage() {
     }
     remainder = sum % 11
     let secondDigit = remainder < 2 ? 0 : 11 - remainder
-    
+
     if (secondDigit !== parseInt(cleaned.charAt(10))) {
       return { valid: false, error: 'CPF inválido. Verifique os dígitos verificadores' }
     }
-    
+
     return { valid: true }
   }
 
   const handleRequestCode = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    
+
     // Validar CPF com algoritmo completo de dígitos verificadores
     if (!formData.cpf) {
       setError('CPF é obrigatório')
       return
     }
-    
+
     const cpfValidation = validateCPF(formData.cpf)
     if (!cpfValidation.valid) {
       setError(cpfValidation.error || 'CPF inválido')
       return
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
       setError('As senhas não coincidem')
       return
@@ -154,9 +154,9 @@ export default function SignupPage() {
       setPasswordErrors(passwordValidation.errors)
       return
     }
-    
+
     setLoading(true)
-    
+
     try {
       await requestSignupCode(formData.email, formData.password)
       setStep('code')
@@ -171,7 +171,7 @@ export default function SignupPage() {
     e.preventDefault()
     setError(null)
     setLoading(true)
-    
+
     try {
       const response = await signup({
         fullName: formData.fullName,
@@ -187,17 +187,17 @@ export default function SignupPage() {
         // Se o cadastro retornou token, fazer login automático e ir para dashboard
         if (typeof window !== 'undefined' && response.token) {
           localStorage.setItem('token', response.token)
-          
+
           // Salvar usuário temporariamente se disponível
           if (response.user) {
             sessionStorage.setItem('temp_user', JSON.stringify(response.user))
             window.dispatchEvent(new Event('storage'))
             window.dispatchEvent(new CustomEvent('auth-change', { detail: { user: response.user, token: response.token } }))
           }
-          
+
           // Delay para garantir que o token seja salvo
           await new Promise(resolve => setTimeout(resolve, 300))
-          
+
           // Forçar atualização completa da página ao redirecionar para dashboard
           window.location.href = '/dashboard'
         } else {
@@ -216,10 +216,10 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-6 -mt-8">
+    <div className="min-h-[calc(100vh-120px)] sm:min-h-[calc(100vh-200px)] flex items-center justify-center p-4 sm:p-6 -mt-4 sm:-mt-8">
       <div className="w-full max-w-md">
         {/* Card */}
-        <div className="p-8 rounded-2xl border border-foreground/10 bg-foreground/2 backdrop-blur-sm shadow-xl">
+        <div className="p-5 sm:p-8 rounded-2xl border border-foreground/10 bg-foreground/2 backdrop-blur-sm shadow-xl">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold text-foreground">Criar conta</h1>
             <p className="text-foreground/60 text-sm mt-1">Preencha seus dados para começar</p>
@@ -243,9 +243,9 @@ export default function SignupPage() {
                     Nome Completo
                   </label>
                   <div className="relative">
-                    <FontAwesomeIcon 
-                      icon={faUser} 
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" 
+                    <FontAwesomeIcon
+                      icon={faUser}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50"
                     />
                     <input
                       type="text"
@@ -254,9 +254,8 @@ export default function SignupPage() {
                       onChange={handleChange}
                       placeholder="Seu nome completo"
                       autoComplete="off"
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${
-                        loading ? 'opacity-60 cursor-not-allowed' : ''
-                      }`}
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${loading ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
                       required
                       disabled={loading}
                     />
@@ -268,9 +267,9 @@ export default function SignupPage() {
                     Data de Nascimento
                   </label>
                   <div className="relative">
-                    <FontAwesomeIcon 
-                      icon={faCalendar} 
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" 
+                    <FontAwesomeIcon
+                      icon={faCalendar}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50"
                     />
                     <input
                       type="date"
@@ -278,9 +277,8 @@ export default function SignupPage() {
                       value={formData.birthDate}
                       onChange={handleChange}
                       autoComplete="off"
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${
-                        loading ? 'opacity-60 cursor-not-allowed' : ''
-                      }`}
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${loading ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
                       required
                       disabled={loading}
                     />
@@ -292,9 +290,9 @@ export default function SignupPage() {
                     CPF
                   </label>
                   <div className="relative">
-                    <FontAwesomeIcon 
-                      icon={faIdCard} 
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" 
+                    <FontAwesomeIcon
+                      icon={faIdCard}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50"
                     />
                     <input
                       type="text"
@@ -304,15 +302,13 @@ export default function SignupPage() {
                       placeholder="000.000.000-00"
                       autoComplete="off"
                       maxLength={14}
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border ${
-                        cpfError && formData.cpf
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border ${cpfError && formData.cpf
                           ? 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/50'
                           : formData.cpf && !cpfError && formData.cpf.replace(/[.\-/]/g, '').length === 11
-                          ? 'border-green-500/50 focus:border-green-500/50 focus:ring-green-500/50'
-                          : 'border-foreground/10 focus:border-primary/30 focus:ring-primary/50'
-                      } text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 transition-all ${
-                        loading ? 'opacity-60 cursor-not-allowed' : ''
-                      }`}
+                            ? 'border-green-500/50 focus:border-green-500/50 focus:ring-green-500/50'
+                            : 'border-foreground/10 focus:border-primary/30 focus:ring-primary/50'
+                        } text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 transition-all ${loading ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
                       required
                       disabled={loading}
                     />
@@ -339,9 +335,9 @@ export default function SignupPage() {
                     E-mail
                   </label>
                   <div className="relative">
-                    <FontAwesomeIcon 
-                      icon={faEnvelope} 
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" 
+                    <FontAwesomeIcon
+                      icon={faEnvelope}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50"
                     />
                     <input
                       type="email"
@@ -350,9 +346,8 @@ export default function SignupPage() {
                       onChange={handleChange}
                       placeholder="seu@email.com"
                       autoComplete="off"
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${
-                        loading ? 'opacity-60 cursor-not-allowed' : ''
-                      }`}
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${loading ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
                       required
                       disabled={loading}
                     />
@@ -364,9 +359,9 @@ export default function SignupPage() {
                     Telefone
                   </label>
                   <div className="relative">
-                    <FontAwesomeIcon 
-                      icon={faPhone} 
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" 
+                    <FontAwesomeIcon
+                      icon={faPhone}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50"
                     />
                     <input
                       type="tel"
@@ -375,9 +370,8 @@ export default function SignupPage() {
                       onChange={handleChange}
                       placeholder="(00) 00000-0000"
                       autoComplete="off"
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${
-                        loading ? 'opacity-60 cursor-not-allowed' : ''
-                      }`}
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${loading ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
                       required
                       disabled={loading}
                     />
@@ -389,9 +383,9 @@ export default function SignupPage() {
                     Senha
                   </label>
                   <div className="relative">
-                    <FontAwesomeIcon 
-                      icon={faLock} 
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" 
+                    <FontAwesomeIcon
+                      icon={faLock}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50"
                     />
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -400,11 +394,10 @@ export default function SignupPage() {
                       onChange={handleChange}
                       placeholder="••••••••"
                       autoComplete="new-password"
-                      className={`w-full pl-10 pr-12 py-3 rounded-lg bg-foreground/5 border ${
-                        passwordErrors.length > 0 && formData.password
+                      className={`w-full pl-10 pr-12 py-3 rounded-lg bg-foreground/5 border ${passwordErrors.length > 0 && formData.password
                           ? 'border-red-500/50'
                           : 'border-foreground/10'
-                      } text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all`}
+                        } text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all`}
                       required
                       disabled={loading}
                     />
@@ -441,9 +434,9 @@ export default function SignupPage() {
                     Confirmar Senha
                   </label>
                   <div className="relative">
-                    <FontAwesomeIcon 
-                      icon={faLock} 
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" 
+                    <FontAwesomeIcon
+                      icon={faLock}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50"
                     />
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
@@ -452,9 +445,8 @@ export default function SignupPage() {
                       onChange={handleChange}
                       placeholder="••••••••"
                       autoComplete="new-password"
-                      className={`w-full pl-10 pr-12 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${
-                        loading ? 'opacity-60 cursor-not-allowed' : ''
-                      }`}
+                      className={`w-full pl-10 pr-12 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${loading ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
                       required
                       disabled={loading}
                     />
@@ -516,9 +508,9 @@ export default function SignupPage() {
                   </label>
                   <div className="relative">
                     {!code && (
-                      <FontAwesomeIcon 
-                        icon={faKey} 
-                        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50 pointer-events-none z-10" 
+                      <FontAwesomeIcon
+                        icon={faKey}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50 pointer-events-none z-10"
                       />
                     )}
                     <input
@@ -528,10 +520,9 @@ export default function SignupPage() {
                       placeholder="000000"
                       autoComplete="off"
                       maxLength={6}
-                      className={`w-full py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-center text-2xl tracking-widest font-mono focus:scale-[1.02] ${
-                        loading ? 'opacity-60 cursor-not-allowed' : ''
-                      }`}
-                      style={{ 
+                      className={`w-full py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-center text-2xl tracking-widest font-mono focus:scale-[1.02] ${loading ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
+                      style={{
                         paddingLeft: code ? '1rem' : '1rem',
                         paddingRight: '1rem',
                         textAlign: 'center'
@@ -580,12 +571,12 @@ export default function SignupPage() {
             </>
           )}
 
-              <p className="text-center text-sm text-foreground/60 mt-6">
-                Já tem uma conta?{' '}
-                <Link href="/login" className="text-primary hover:text-primary/80 font-medium transition-colors">
-                  Fazer login
-                </Link>
-              </p>
+          <p className="text-center text-sm text-foreground/60 mt-6">
+            Já tem uma conta?{' '}
+            <Link href="/login" className="text-primary hover:text-primary/80 font-medium transition-colors">
+              Fazer login
+            </Link>
+          </p>
         </div>
 
         {/* Back to Home */}

@@ -55,7 +55,7 @@ const getStatusBadge = (status: string) => {
 }
 
 export default function TransactionsPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().getFullYear(), 0, 1))
   const [endDate, setEndDate] = useState<Date>(new Date())
   const [showDatePicker, setShowDatePicker] = useState(false)

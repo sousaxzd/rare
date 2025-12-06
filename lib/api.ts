@@ -70,10 +70,22 @@ export async function apiRequest<T>(
     }
 
     if (!response.ok) {
-      // Criar erro com status para facilitar tratamento
-      const error = new Error(data.error || data.message || `Erro na requisição: ${response.statusText}`) as Error & { status?: number; response?: Response };
+      // Criar erro com status e dados extras para facilitar tratamento
+      const error = new Error(data.error || data.message || `Erro na requisição: ${response.statusText}`) as Error & {
+        status?: number;
+        response?: Response;
+        [key: string]: any;
+      };
       error.status = response.status;
       error.response = response;
+
+      // Copiar todos os campos extras do JSON de erro (ex: pendingWithdrawId, pendingWithdrawStatus, etc)
+      Object.keys(data).forEach(key => {
+        if (key !== 'error' && key !== 'message') {
+          (error as any)[key] = data[key];
+        }
+      });
+
       throw error;
     }
 

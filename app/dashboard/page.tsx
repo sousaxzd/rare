@@ -8,7 +8,7 @@ import { DashboardInicio } from '@/components/dashboard-inicio'
 import { ErrorBoundary } from '@/components/error-boundary'
 
 export default function DashboardPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <ErrorBoundary>

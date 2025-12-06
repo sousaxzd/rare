@@ -49,7 +49,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 
 export default function CredentialsPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [permissions, setPermissions] = useState<Record<string, string>>({})
   const [authorizedIPs, setAuthorizedIPs] = useState<AuthorizedIP[]>([])

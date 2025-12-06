@@ -5,7 +5,7 @@ import { SidebarDashboard } from '@/components/sidebar-dashboard'
 import { DashboardTopbar } from '@/components/dashboard-topbar'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faQrcode, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faQrcode, faSpinner, faWallet, faArrowUp } from '@fortawesome/free-solid-svg-icons'
 import { RippleButton } from '@/components/ripple-button'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -20,7 +20,7 @@ import { useAuth } from '@/hooks/useAuth'
 
 export default function TransferPage() {
   const { user } = useAuth() // Usar useAuth para manter estado do usuário sincronizado
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
   const [pixKey, setPixKey] = useState('')
@@ -37,6 +37,12 @@ export default function TransferPage() {
   const [verificationModalOpen, setVerificationModalOpen] = useState(false)
   const [transferSecurityEnabled, setTransferSecurityEnabled] = useState(false)
   const [verificationCode, setVerificationCode] = useState<string | null>(null)
+  const [pendingWithdraw, setPendingWithdraw] = useState<{
+    id: string
+    status: string
+    value: number
+    createdAt: string
+  } | null>(null)
   const router = useRouter()
 
   const parseAmount = (value: string) => {
@@ -54,7 +60,7 @@ export default function TransferPage() {
         if (typeof window !== 'undefined') {
           const savedPixKey = localStorage.getItem('vision_pix_key_to_transfer')
           const savedPixKeyType = localStorage.getItem('vision_pix_key_type_to_transfer')
-          
+
           if (savedPixKey) {
             setPixKey(savedPixKey)
             if (savedPixKeyType) {
@@ -75,12 +81,12 @@ export default function TransferPage() {
           getBalance(),
           getSecurityStatus().catch(() => ({ data: { transferSecurityEnabled: false } }))
         ])
-        
+
         setBalance(balanceRes.data.balance.total / 100)
         if (balanceRes.data.plan) {
           setTransactionFee(balanceRes.data.plan.transactionFee / 100)
         }
-        
+
         setTransferSecurityEnabled(securityRes.data.transferSecurityEnabled)
       } catch (error) {
         console.error('Erro ao carregar dados:', error)
@@ -94,9 +100,10 @@ export default function TransferPage() {
     loadData()
   }, [])
 
+
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Se segurança estiver ativada e não tiver código, pedir código primeiro
     if (transferSecurityEnabled && !verificationCode) {
       setVerificationModalOpen(true)
@@ -111,7 +118,7 @@ export default function TransferPage() {
     setLoading(true)
     setModalOpen(true)
     setModalStatus('loading')
-    
+
     try {
       // Sanitizar chave PIX conforme tipo
       let keyToSend = pixKey
@@ -130,7 +137,7 @@ export default function TransferPage() {
         coverFee: coverFee,
         verificationCode: verificationCode || undefined
       })
-      
+
       setWithdrawData(response.data)
       setModalStatus('success')
       setPixKey('')
@@ -138,14 +145,28 @@ export default function TransferPage() {
       setDescription('')
       setCoverFee(false)
       setVerificationCode(null)
-      
+      setPendingWithdraw(null) // Limpar saque pendente após sucesso
+
       // Recarregar saldo
       const res = await getBalance()
       setBalance(res.data.balance.total / 100)
-    } catch (error) {
+    } catch (error: any) {
+      // Verificar se é erro de saque pendente
+      if (error?.pendingWithdrawId || error?.message?.includes('saque em processamento')) {
+        setPendingWithdraw({
+          id: error.pendingWithdrawId || 'N/A',
+          status: error.pendingWithdrawStatus || 'PROCESSING',
+          value: error.pendingWithdrawValue || 0,
+          createdAt: error.pendingWithdrawCreatedAt || new Date().toISOString()
+        })
+        setModalOpen(false) // Fechar modal de loading
+        setLoading(false)
+        return // Não mostrar modal de erro, mostrar banner
+      }
+
       setModalStatus('error')
-      setErrorMessage(error instanceof Error ? error.message : 'Erro ao realizar transferência')
-      
+      setErrorMessage(error instanceof Error ? error.message : (error?.message || 'Erro ao realizar transferência'))
+
       // Se erro for de código inválido, reabrir modal
       if (error instanceof Error && error.message.includes('código')) {
         setVerificationCode(null)
@@ -218,197 +239,240 @@ export default function TransferPage() {
             ) : (
               <>
                 {balance !== null && (
-                  <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Saldo disponível:</span>
-                      {balance === null ? (
-                        <div className="h-6 w-24 bg-muted animate-pulse rounded" />
-                      ) : (
-                        <span className="text-lg font-bold text-foreground">
-                          R$ {balance.toFixed(2).replace('.', ',')}
+                  <div className="bg-foreground/5 p-6 rounded-xl border border-foreground/10 mb-6">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <FontAwesomeIcon icon={faWallet} className="w-4 h-4" />
+                        <span className="text-sm font-medium">Saldo Disponível</span>
+                      </div>
+                      <div className="flex items-start">
+                        <span className="text-4xl font-bold text-foreground">
+                          R$ {Math.floor(balance).toLocaleString('pt-BR')}
                         </span>
-                      )}
+                        <span className="text-lg font-bold text-foreground/70 ml-0.5">
+                          ,{String(Math.round((balance % 1) * 100)).padStart(2, '0')}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )}
 
-                <form onSubmit={handleTransfer} className="space-y-5">
-              {/* Informações de destino */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-foreground">
-                    Tipo de chave PIX
-                  </label>
-                  <Select value={pixKeyType} onValueChange={(v) => setPixKeyType(v as any)}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Tipo de chave</SelectLabel>
-                        <SelectItem value="CPF" textValue="CPF">CPF</SelectItem>
-                        <SelectItem value="CNPJ" textValue="CNPJ">CNPJ</SelectItem>
-                        <SelectItem value="EMAIL" textValue="E-mail">E-mail</SelectItem>
-                        <SelectItem value="PHONE" textValue="Telefone">Telefone</SelectItem>
-                        <SelectItem value="RANDOM" textValue="Chave aleatória">Chave aleatória</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-foreground">
-                    Chave PIX
-                  </label>
-                  <div className="relative">
-                    <FontAwesomeIcon 
-                      icon={faQrcode} 
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" 
-                    />
-                    <input
-                      type="text"
-                      value={pixKey}
-                      onChange={(e) => setPixKey(e.target.value)}
-                      placeholder={
-                        pixKeyType === 'CPF' ? '000.000.000-00' :
-                        pixKeyType === 'CNPJ' ? '00.000.000/0000-00' :
-                        pixKeyType === 'EMAIL' ? 'exemplo@email.com' :
-                        pixKeyType === 'PHONE' ? '(00) 00000-0000' :
-                        'Chave aleatória'
-                      }
-                      className="w-full pl-10 pr-3 py-3 rounded-lg bg-input border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm"
-                      required
-                    />
+                {/* Aviso de saque pendente */}
+                {pendingWithdraw && (
+                  <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                        <span className="text-yellow-500 text-sm">⏳</span>
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <p className="text-sm font-medium text-yellow-500">
+                          Saque em processamento
+                        </p>
+                        <p className="text-xs text-yellow-500/80">
+                          Você já possui um saque de <strong>R$ {(pendingWithdraw.value / 100).toFixed(2).replace('.', ',')}</strong> em processamento.
+                          Aguarde a conclusão antes de solicitar um novo saque.
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-yellow-500/60">
+                          <span>ID: {pendingWithdraw.id.substring(0, 8)}...</span>
+                          <span>•</span>
+                          <span>Status: {pendingWithdraw.status}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => router.push('/dashboard/transactions')}
+                          className="text-xs text-yellow-500 hover:text-yellow-400 underline"
+                        >
+                          Ver extrato completo
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                )}
 
-              <Separator />
+                <div className="bg-foreground/5 p-6 rounded-xl border border-foreground/10">
+                  <form onSubmit={handleTransfer} className="space-y-5">
+                    {/* Informações de destino */}
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-foreground">
+                          Tipo de chave PIX
+                        </label>
+                        <Select value={pixKeyType} onValueChange={(v) => setPixKeyType(v as any)}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel>Tipo de chave</SelectLabel>
+                              <SelectItem value="CPF" textValue="CPF">CPF</SelectItem>
+                              <SelectItem value="CNPJ" textValue="CNPJ">CNPJ</SelectItem>
+                              <SelectItem value="EMAIL" textValue="E-mail">E-mail</SelectItem>
+                              <SelectItem value="PHONE" textValue="Telefone">Telefone</SelectItem>
+                              <SelectItem value="RANDOM" textValue="Chave aleatória">Chave aleatória</SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-              {/* Valor e descrição */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-foreground">
-                    Valor
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                      R$
-                    </span>
-                    <input
-                      type="text"
-                      value={amount}
-                      onChange={(e) => {
-                        const formatted = formatCurrency(e.target.value)
-                        setAmount(formatted)
-                      }}
-                      placeholder="0,00"
-                      className="w-full pl-10 pr-3 py-3 rounded-lg bg-input border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm"
-                      required
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Valor mínimo: R$ 5,00
-                  </p>
-                  {amount && transactionFee !== null && (
-                    <div className="p-3 rounded-lg bg-foreground/5 border border-foreground/10 space-y-1">
-                      {(() => {
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-foreground">
+                          Chave PIX
+                        </label>
+                        <div className="relative">
+                          <FontAwesomeIcon
+                            icon={faQrcode}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
+                          />
+                          <input
+                            type="text"
+                            value={pixKey}
+                            onChange={(e) => setPixKey(e.target.value)}
+                            placeholder={
+                              pixKeyType === 'CPF' ? '000.000.000-00' :
+                                pixKeyType === 'CNPJ' ? '00.000.000/0000-00' :
+                                  pixKeyType === 'EMAIL' ? 'exemplo@email.com' :
+                                    pixKeyType === 'PHONE' ? '(00) 00000-0000' :
+                                      'Chave aleatória'
+                            }
+                            className="w-full pl-10 pr-3 py-3 rounded-lg bg-input border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Valor e descrição */}
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-foreground">
+                          Valor
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                            R$
+                          </span>
+                          <input
+                            type="text"
+                            value={amount}
+                            onChange={(e) => {
+                              const formatted = formatCurrency(e.target.value)
+                              setAmount(formatted)
+                            }}
+                            placeholder="0,00"
+                            className="w-full pl-10 pr-3 py-3 rounded-lg bg-input border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm"
+                            required
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Valor mínimo: R$ 5,00
+                        </p>
+                        {amount && transactionFee !== null && (
+                          <div className="p-3 rounded-lg bg-foreground/5 border border-foreground/10 space-y-1">
+                            {(() => {
+                              const fee = Number.isFinite(transactionFee) ? (transactionFee as number) : 0
+                              const amountNum = parseAmount(amount)
+                              const feeDisplay = `R$ ${fee.toFixed(2).replace('.', ',')}`
+                              const sentDisplay = `R$ ${Math.max(0, amountNum - fee).toFixed(2).replace('.', ',')}`
+                              const amountDisplay = `R$ ${amountNum.toFixed(2).replace('.', ',')}`
+                              const totalDebitedDisplay = `R$ ${(amountNum + fee).toFixed(2).replace('.', ',')}`
+                              return (
+                                <>
+                                  {coverFee ? (
+                                    <>
+                                      <div className="flex justify-between items-center text-sm">
+                                        <span className="text-muted-foreground">Valor enviado:</span>
+                                        <span className="text-foreground font-medium">
+                                          {amountDisplay}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between items-center text-sm">
+                                        <span className="text-muted-foreground">Taxa:</span>
+                                        <span className="text-foreground font-medium">
+                                          {feeDisplay}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between items-center pt-2 border-t border-foreground/10">
+                                        <span className="text-sm font-medium text-foreground">Total debitado:</span>
+                                        <span className="text-sm font-bold text-foreground">
+                                          {totalDebitedDisplay}
+                                        </span>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="flex justify-between items-center text-sm">
+                                        <span className="text-muted-foreground">Taxa:</span>
+                                        <span className="text-foreground font-medium">
+                                          {feeDisplay}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between items-center pt-2 border-t border-foreground/10">
+                                        <span className="text-sm font-medium text-foreground">Valor enviado:</span>
+                                        <span className="text-sm font-bold text-green-500">
+                                          {sentDisplay}
+                                        </span>
+                                      </div>
+                                    </>
+                                  )}
+                                </>
+                              )
+                            })()}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
+                        <Checkbox
+                          id="coverFee"
+                          checked={coverFee}
+                          onCheckedChange={(checked) => setCoverFee(checked === true)}
+                          label="Cobrir taxa"
+                          description="O valor digitado será o valor enviado. A taxa será adicionada ao total debitado."
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-foreground">
+                          Descrição <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={description}
+                          onChange={(e) => setDescription(e.target.value)}
+                          placeholder="Ex: Pagamento almoço"
+                          className="w-full px-3 py-3 rounded-lg bg-input border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading || !amount || !pixKey || !!pendingWithdraw || (balance !== null && transactionFee !== null && (() => {
                         const fee = Number.isFinite(transactionFee) ? (transactionFee as number) : 0
                         const amountNum = parseAmount(amount)
-                        const feeDisplay = `R$ ${fee.toFixed(2).replace('.', ',')}`
-                        const sentDisplay = `R$ ${Math.max(0, amountNum - fee).toFixed(2).replace('.', ',')}`
-                        const amountDisplay = `R$ ${amountNum.toFixed(2).replace('.', ',')}`
-                        const totalDebitedDisplay = `R$ ${(amountNum + fee).toFixed(2).replace('.', ',')}`
-                        return (
-                          <>
-                            {coverFee ? (
-                              <>
-                                <div className="flex justify-between items-center text-sm">
-                                  <span className="text-muted-foreground">Valor enviado:</span>
-                                  <span className="text-foreground font-medium">
-                                    {amountDisplay}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between items-center text-sm">
-                                  <span className="text-muted-foreground">Taxa:</span>
-                                  <span className="text-foreground font-medium">
-                                    {feeDisplay}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between items-center pt-2 border-t border-foreground/10">
-                                  <span className="text-sm font-medium text-foreground">Total debitado:</span>
-                                  <span className="text-sm font-bold text-foreground">
-                                    {totalDebitedDisplay}
-                                  </span>
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <div className="flex justify-between items-center text-sm">
-                                  <span className="text-muted-foreground">Taxa:</span>
-                                  <span className="text-foreground font-medium">
-                                    {feeDisplay}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between items-center pt-2 border-t border-foreground/10">
-                                  <span className="text-sm font-medium text-foreground">Valor enviado:</span>
-                                  <span className="text-sm font-bold text-green-500">
-                                    {sentDisplay}
-                                  </span>
-                                </div>
-                              </>
-                            )}
-                          </>
-                        )
-                      })()}
-                    </div>
-                  )}
+                        return coverFee ? amountNum + fee > balance : amountNum > balance
+                      })())}
+                      className="w-full py-3 bg-foreground/10 text-foreground border border-foreground/10 rounded-lg font-medium hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {loading ? (
+                        <>
+                          <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                          <span>Processando...</span>
+                        </>
+                      ) : pendingWithdraw ? (
+                        <span>Aguarde o saque pendente</span>
+                      ) : (
+                        <>
+                          <FontAwesomeIcon icon={faArrowUp} className="w-4 h-4" />
+                          <span>Transferir</span>
+                        </>
+                      )}
+                    </button>
+                  </form>
                 </div>
 
-                <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
-                  <Checkbox
-                    id="coverFee"
-                    checked={coverFee}
-                    onCheckedChange={(checked) => setCoverFee(checked === true)}
-                    label="Cobrir taxa"
-                    description="O valor digitado será o valor enviado. A taxa será adicionada ao total debitado."
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-foreground">
-                    Descrição <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Ex: Pagamento almoço"
-                    className="w-full px-3 py-3 rounded-lg bg-input border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading || !amount || !pixKey || (balance !== null && transactionFee !== null && (() => {
-                  const fee = Number.isFinite(transactionFee) ? (transactionFee as number) : 0
-                  const amountNum = parseAmount(amount)
-                  return coverFee ? amountNum + fee > balance : amountNum > balance
-                })())}
-                className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-                    <span>Processando...</span>
-                  </>
-                ) : (
-                  <span>Transferir</span>
-                )}
-              </button>
-            </form>
-            
                 {/* Espaço após o botão */}
                 <div className="h-8" />
               </>

@@ -25,7 +25,7 @@ interface Transaction {
 
 export default function SummaryPage() {
   const { user } = useAuth() // Usar useAuth para manter estado do usuário sincronizado
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('30days')
   const [loading, setLoading] = useState(true)
   const [payments, setPayments] = useState<any[]>([])
@@ -174,10 +174,10 @@ export default function SummaryPage() {
       })
       .reduce((sum, w) => {
         // Taxa do saque está no metadata ou pode ser calculada: value - sent
-        const fee = w.metadata?.fee 
-          ? w.metadata.fee / 100 
-          : w.value && w.metadata?.sent 
-            ? (w.value - w.metadata.sent) / 100 
+        const fee = w.metadata?.fee
+          ? w.metadata.fee / 100
+          : w.value && w.metadata?.sent
+            ? (w.value - w.metadata.sent) / 100
             : 0
         return sum + fee
       }, 0)
@@ -199,31 +199,51 @@ export default function SummaryPage() {
 
   // Preparar dados para o gráfico
   const chartData = useMemo(() => {
-    const groupedByDate = new Map<string, { date: string; income: number; expense: number; volume: number }>()
+    const groupedByDate = new Map<string, {
+      date: string
+      fullDate: Date
+      income: number
+      expense: number
+      volume: number
+      runningBalance: number
+    }>()
 
-    filteredTransactions.forEach(transaction => {
+    // Ordenar transações por data
+    const sortedTransactions = [...filteredTransactions].sort((a, b) => a.date.getTime() - b.date.getTime())
+
+    // Calcular saldo inicial do período
+    let runningBalance = stats.initialBalance
+
+    sortedTransactions.forEach(transaction => {
       const dateKey = format(transaction.date, 'dd/MM', { locale: ptBR })
-      
+
       if (!groupedByDate.has(dateKey)) {
-        groupedByDate.set(dateKey, { date: dateKey, income: 0, expense: 0, volume: 0 })
+        groupedByDate.set(dateKey, {
+          date: dateKey,
+          fullDate: transaction.date,
+          income: 0,
+          expense: 0,
+          volume: 0,
+          runningBalance: runningBalance
+        })
       }
 
       const dayData = groupedByDate.get(dateKey)!
       if (transaction.type === 'income') {
         dayData.income += transaction.amount
+        runningBalance += transaction.amount
       } else {
         dayData.expense += Math.abs(transaction.amount)
+        runningBalance -= Math.abs(transaction.amount)
       }
       dayData.volume = dayData.income + dayData.expense
+      dayData.runningBalance = runningBalance
     })
 
     return Array.from(groupedByDate.values()).sort((a, b) => {
-      const [dayA, monthA] = a.date.split('/').map(Number)
-      const [dayB, monthB] = b.date.split('/').map(Number)
-      if (monthA !== monthB) return monthA - monthB
-      return dayA - dayB
+      return a.fullDate.getTime() - b.fullDate.getTime()
     })
-  }, [filteredTransactions])
+  }, [filteredTransactions, stats.initialBalance])
 
   const formatCurrency = (value: number) => {
     return `R$ ${value.toFixed(2).replace('.', ',')}`
@@ -254,11 +274,10 @@ export default function SummaryPage() {
                 <RippleButton
                   key={period}
                   onClick={() => setPeriodFilter(period)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    periodFilter === period
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-foreground/5 text-foreground/70 hover:bg-foreground/10 hover:text-foreground'
-                  }`}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${periodFilter === period
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-foreground/5 text-foreground/70 hover:bg-foreground/10 hover:text-foreground'
+                    }`}
                 >
                   {periodLabels[period]}
                 </RippleButton>
@@ -349,88 +368,99 @@ export default function SummaryPage() {
             )}
 
             {/* Gráfico */}
-            <div className="mt-6 border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm p-6">
-              <h2 className="text-lg font-semibold text-foreground mb-6">Volume de Transações</h2>
-              
+            <div className="mt-6 border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm p-4 sm:p-6">
+              <h2 className="text-base sm:text-lg font-semibold text-foreground mb-4 sm:mb-6">Evolução Financeira</h2>
+
               {loading ? (
-                <Skeleton className="h-[400px] w-full rounded-lg" />
+                <Skeleton className="h-[280px] sm:h-[400px] w-full rounded-lg" />
               ) : chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={400}>
-                  <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 20 }}>
+                <ResponsiveContainer width="100%" height={typeof window !== 'undefined' && window.innerWidth < 640 ? 280 : 400}>
+                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
                     <defs>
-                      <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8884d8" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
+                      <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.5} />
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                    <XAxis 
-                      dataKey="date" 
-                      stroke="rgba(255,255,255,0.5)"
-                      style={{ fontSize: '12px' }}
-                      tick={{ fill: 'rgba(255,255,255,0.6)' }}
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" vertical={false} />
+                    <XAxis
+                      dataKey="date"
+                      stroke="rgba(255,255,255,0.3)"
+                      style={{ fontSize: '10px' }}
+                      tick={{ fill: 'rgba(255,255,255,0.5)' }}
+                      tickLine={false}
+                      axisLine={false}
+                      interval="preserveStartEnd"
                     />
-                    <YAxis 
-                      stroke="rgba(255,255,255,0.5)"
-                      style={{ fontSize: '12px' }}
-                      tick={{ fill: 'rgba(255,255,255,0.6)' }}
+                    <YAxis
+                      stroke="rgba(255,255,255,0.3)"
+                      style={{ fontSize: '10px' }}
+                      tick={{ fill: 'rgba(255,255,255,0.5)' }}
+                      tickLine={false}
+                      axisLine={false}
+                      width={50}
                       tickFormatter={(value) => {
-                        if (value >= 1000) return `R$ ${(value / 1000).toFixed(1)}k`
-                        return `R$ ${value.toFixed(0)}`
+                        if (value >= 1000) return `${(value / 1000).toFixed(0)}k`
+                        return value.toFixed(0)
                       }}
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: 'rgba(15, 15, 15, 0.95)',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        borderRadius: '8px',
+                        backgroundColor: 'rgba(10, 10, 10, 0.95)',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        borderRadius: '12px',
                         color: '#fff',
-                        padding: '12px',
+                        padding: '12px 16px',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
                       }}
                       formatter={(value: number, name: string) => {
                         const labels: Record<string, string> = {
-                          volume: 'Volume Total',
+                          runningBalance: 'Saldo',
                           income: 'Entradas',
                           expense: 'Saídas'
                         }
                         return [formatCurrency(value), labels[name] || name]
                       }}
-                      labelFormatter={(label) => `Data: ${label}`}
-                      labelStyle={{ color: 'rgba(255,255,255,0.8)', marginBottom: '4px' }}
+                      labelFormatter={(label) => `📅 ${label}`}
+                      labelStyle={{ color: 'rgba(255,255,255,0.7)', marginBottom: '8px', fontWeight: 500 }}
+                      itemStyle={{ padding: '2px 0' }}
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey="volume" 
-                      stroke="#8884d8" 
-                      fillOpacity={1} 
-                      fill="url(#colorVolume)"
-                      strokeWidth={2.5}
+                    {/* Linha de Saldo - Principal */}
+                    <Area
+                      type="monotone"
+                      dataKey="runningBalance"
+                      stroke="#3b82f6"
+                      fillOpacity={1}
+                      fill="url(#colorBalance)"
+                      strokeWidth={3}
                       dot={false}
-                      activeDot={{ r: 6, fill: '#8884d8' }}
+                      activeDot={{ r: 6, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }}
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey="income" 
-                      stroke="#22c55e" 
-                      fillOpacity={1} 
+                    {/* Entradas */}
+                    <Area
+                      type="monotone"
+                      dataKey="income"
+                      stroke="#22c55e"
+                      fillOpacity={0.8}
                       fill="url(#colorIncome)"
                       strokeWidth={2}
                       dot={false}
                       activeDot={{ r: 5, fill: '#22c55e' }}
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey="expense" 
-                      stroke="#ef4444" 
-                      fillOpacity={1} 
+                    {/* Saídas */}
+                    <Area
+                      type="monotone"
+                      dataKey="expense"
+                      stroke="#ef4444"
+                      fillOpacity={0.8}
                       fill="url(#colorExpense)"
                       strokeWidth={2}
                       dot={false}
@@ -439,25 +469,43 @@ export default function SummaryPage() {
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-[400px] flex items-center justify-center text-foreground/60">
-                  <p>Nenhum dado disponível para o período selecionado</p>
+                <div className="h-[280px] sm:h-[400px] flex items-center justify-center text-foreground/60">
+                  <div className="text-center">
+                    <p className="text-lg mb-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-12 h-12 mx-auto text-foreground/40"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M10.5 6a1.5 1.5 0 113 0v6a1.5 1.5 0 11-3 0V6zM3.75 15.75a1.5 1.5 0 113 0v2.25a1.5 1.5 0 11-3 0v-2.25zM16.5 6a1.5 1.5 0 113 0v6a1.5 1.5 0 11-3 0V6zM3.75 6a1.5 1.5 0 113 0v2.25a1.5 1.5 0 11-3 0V6zM10.5 15.75a1.5 1.5 0 113 0v2.25a1.5 1.5 0 11-3 0v-2.25zM16.5 15.75a1.5 1.5 0 113 0v2.25a1.5 1.5 0 11-3 0v-2.25z"
+                        />
+                      </svg>
+                    </p>
+                    <p className="text-sm">Nenhum dado disponível para o período selecionado</p>
+                  </div>
                 </div>
               )}
 
               {/* Legenda */}
               {chartData.length > 0 && (
-                <div className="flex items-center justify-center gap-6 mt-6 flex-wrap">
+                <div className="flex items-center justify-center gap-4 sm:gap-6 mt-4 sm:mt-6 flex-wrap">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-[#8884d8]" />
-                    <span className="text-sm text-foreground/70">Volume Total</span>
+                    <div className="w-3 h-3 rounded-full bg-blue-500" />
+                    <span className="text-xs sm:text-sm text-foreground/70">Saldo</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-green-500" />
-                    <span className="text-sm text-foreground/70">Entradas</span>
+                    <span className="text-xs sm:text-sm text-foreground/70">Entradas</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-red-500" />
-                    <span className="text-sm text-foreground/70">Saídas</span>
+                    <span className="text-xs sm:text-sm text-foreground/70">Saídas</span>
                   </div>
                 </div>
               )}

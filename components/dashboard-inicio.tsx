@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faWallet, faArrowUp, faArrowDown, faEye, faEyeSlash, faArrowRight, faPaperPlane, faInbox, faSpinner, faCopy, faCheck, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faWallet, faArrowUp, faArrowDown, faEye, faEyeSlash, faReceipt, faArrowRight, faPaperPlane, faInbox, faSpinner, faCopy, faCheck, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
 import { RippleButton } from './ripple-button'
@@ -84,7 +84,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
 
       // Adicionar pagamentos completados como recebidos
       payments
-        .filter(p => p.status === 'COMPLETED' || p.status === 'PAID' || p.status === 'PENDING')
+        .filter(p => p.status === 'COMPLETED' || p.status === 'PAID' || p.status === 'PENDING' || p.status === 'CANCELLED' || p.status === 'FAILED')
         .forEach(p => {
           allTransactions.push({
             id: p.id,
@@ -97,9 +97,9 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
           })
         })
 
-      // Adicionar saques como enviados (incluir todos os status exceto FAILED)
+      // Adicionar saques como enviados (incluir todos os status exceto FAILED e EXPIRED)
       withdraws
-        .filter(w => w.status !== 'FAILED')
+        .filter(w => w.status !== 'FAILED' && w.status !== 'EXPIRED')
         .forEach(w => {
           allTransactions.push({
             id: w.id,
@@ -511,7 +511,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
                   value={aiInput}
                   onChange={(e) => setAiInput(e.target.value)}
                   onKeyPress={handleAIKeyPress}
-                  placeholder={aiPlaceholderResponse || "Peça para IA que ela faz por você! (BETA TESTING)"}
+                  placeholder={aiPlaceholderResponse || "Peça para IA que ela faz por você!"}
                   disabled={aiLoading || !!pendingAction}
                   className={`w-full pl-4 pr-24 py-3 rounded-xl bg-foreground/5 border border-foreground/10 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all text-sm disabled:opacity-70 ${aiPlaceholderResponse ? 'placeholder:text-primary/80' : ''
                     }`}
@@ -576,11 +576,26 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
           {walletLoading ? (
             <Skeleton className="h-16 w-64" />
           ) : (
-            <p className="text-5xl font-bold text-foreground">
-              {showBalance && walletBalance
-                ? `R$ ${(walletBalance.balance.total / 100).toFixed(2).replace('.', ',')}`
-                : '••••••'}
-            </p>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <FontAwesomeIcon icon={faWallet} className="w-4 h-4" />
+                <span className="text-sm font-medium">Saldo Disponível</span>
+              </div>
+              <div className="flex items-start">
+                {showBalance && walletBalance ? (
+                  <>
+                    <span className="text-4xl lg:text-5xl font-bold text-foreground">
+                      R$ {Math.floor(walletBalance.balance.total / 100).toLocaleString('pt-BR')}
+                    </span>
+                    <span className="text-lg lg:text-xl font-bold text-foreground/70 ml-0.5">
+                      ,{String(walletBalance.balance.total % 100).padStart(2, '0')}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-4xl lg:text-5xl font-bold text-foreground">••••••</span>
+                )}
+              </div>
+            </div>
           )}
           <RippleButton
             onClick={() => setShowBalance(!showBalance)}
@@ -603,13 +618,13 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
           ) : (
             <>
               <Link href="/dashboard/transfer">
-                <RippleButton className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                <RippleButton className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-foreground/10 text-foreground hover:bg-primary hover:text-white border border-foreground/10 hover:border-primary transition-colors">
                   <FontAwesomeIcon icon={faArrowUp} className="w-4 h-4" />
                   <span className="font-medium">Transferir</span>
                 </RippleButton>
               </Link>
               <Link href="/dashboard/deposit">
-                <RippleButton className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                <RippleButton className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-foreground/10 text-foreground hover:bg-primary hover:text-white border border-foreground/10 hover:border-primary transition-colors">
                   <FontAwesomeIcon icon={faArrowDown} className="w-4 h-4" />
                   <span className="font-medium">Depositar</span>
                 </RippleButton>
@@ -622,7 +637,10 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
       {/* Últimas Transações */}
       <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-bold text-foreground">Últimas Transações</h2>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <FontAwesomeIcon icon={faReceipt} className="w-4 h-4" />
+            <span className="text-sm font-medium">Últimas Transações</span>
+          </div>
           <Link href="/dashboard/transactions">
             <RippleButton className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 px-3 py-1 rounded">
               Ver todas
@@ -657,26 +675,28 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
                     setDetailsModalOpen(true)
                   }}
                 >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${transaction.type === 'received' ? 'bg-green-500/10' : 'bg-red-500/10'
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${transaction.status === 'PENDING' ? 'bg-yellow-500/10' : (transaction.status === 'CANCELLED' || transaction.status === 'FAILED') ? 'bg-white/10' : (transaction.type === 'received' ? 'bg-green-500/10' : 'bg-red-500/10')
                     }`}>
                     <FontAwesomeIcon
-                      icon={transaction.type === 'received' ? faArrowDown : faArrowUp}
-                      className={`w-4 h-4 ${transaction.type === 'received' ? 'text-green-500' : 'text-red-500'
+                      icon={(transaction.status === 'CANCELLED' || transaction.status === 'FAILED') ? faTimes : (transaction.type === 'received' ? faArrowDown : faArrowUp)}
+                      className={`w-4 h-4 ${transaction.status === 'PENDING' ? 'text-yellow-500' : (transaction.status === 'CANCELLED' || transaction.status === 'FAILED') ? 'text-white' : (transaction.type === 'received' ? 'text-green-500' : 'text-red-500')
                         }`}
                     />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-foreground">
-                      {transaction.status === 'PENDING' 
-                        ? (transaction.type === 'received' ? 'Depósito pendente' : 'Transferência pendente')
-                        : (transaction.type === 'received' ? 'Depósito' : 'Transferência')
+                      {(transaction.status === 'CANCELLED' || transaction.status === 'FAILED') && transaction.type === 'received'
+                        ? 'Depósito cancelado'
+                        : transaction.status === 'PENDING'
+                          ? (transaction.type === 'received' ? 'Depósito pendente' : 'Transferência pendente')
+                          : (transaction.type === 'received' ? 'Depósito' : 'Transferência')
                       }
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {transaction.date}
                     </p>
                   </div>
-                  <p className={`text-sm font-bold ${transaction.type === 'received' ? 'text-green-500' : 'text-red-500'
+                  <p className={`text-sm font-bold ${transaction.status === 'PENDING' ? 'text-yellow-500' : (transaction.status === 'CANCELLED' || transaction.status === 'FAILED') ? 'text-white' : (transaction.type === 'received' ? 'text-green-500' : 'text-red-500')
                     }`}>
                     {showBalance
                       ? `${transaction.type === 'received' ? '+' : '-'}R$ ${Math.abs(transaction.amount).toFixed(2).replace('.', ',')}`
