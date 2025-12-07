@@ -5,7 +5,7 @@ import { SidebarDashboard } from '@/components/sidebar-dashboard'
 import { DashboardTopbar } from '@/components/dashboard-topbar'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faQrcode, faCopy, faSpinner, faCheck, faArrowLeft, faArrowDown } from '@fortawesome/free-solid-svg-icons'
+import { faQrcode, faCopy, faSpinner, faCheck, faArrowLeft, faArrowDown, faAlignLeft, faWallet, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 import { RippleButton } from '@/components/ripple-button'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -29,31 +29,30 @@ export default function DepositPage() {
   const [modalStatus, setModalStatus] = useState<'success' | 'error' | 'loading'>('loading')
   const [errorMessage, setErrorMessage] = useState<string>('')
   const [transactionFee, setTransactionFee] = useState<number | null>(null)
+  const [balance, setBalance] = useState<number | null>(null)
+  const [showBalance, setShowBalance] = useState(true)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const { user } = useAuth()
 
-  // Carregar taxa de transação do plano do usuário
   useEffect(() => {
-    const loadTransactionFee = async () => {
+    const loadData = async () => {
       try {
         const balanceRes = await getBalance()
         if (balanceRes.data.plan?.transactionFee) {
           setTransactionFee(balanceRes.data.plan.transactionFee / 100)
         }
+        setBalance(balanceRes.data.balance.total / 100)
       } catch (error) {
-        console.error('Erro ao carregar taxa de transação:', error)
+        console.error('Erro ao carregar dados:', error)
+      } finally {
+        // Sincronizar com tempo de loading da página
+        setTimeout(() => {
+          setPageLoading(false)
+        }, 800)
       }
     }
-    loadTransactionFee()
-  }, [])
-
-  useEffect(() => {
-    // Simular carregamento inicial da página
-    const timer = setTimeout(() => {
-      setPageLoading(false)
-    }, 800)
-    return () => clearTimeout(timer)
+    loadData()
   }, [])
 
   const handleDeposit = async (e: React.FormEvent) => {
@@ -165,12 +164,13 @@ export default function DepositPage() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <DashboardTopbar onOpenSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
-        <main data-dashboard className="flex-1 overflow-auto flex justify-center">
-          <div className="p-6 lg:p-8 space-y-5 max-w-2xl w-full">
+        <main data-dashboard className="flex-1 overflow-auto">
+          <div className="p-6 lg:p-8 space-y-5">
             <DashboardHeader loading={pageLoading} />
 
             {pageLoading ? (
               <div className="space-y-5">
+                <Skeleton className="h-16 w-full rounded-lg" />
                 <Skeleton className="h-12 w-full rounded-lg" />
                 <Skeleton className="h-12 w-full rounded-lg" />
                 <Skeleton className="h-12 w-full rounded-lg" />
@@ -295,132 +295,172 @@ export default function DepositPage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-foreground/5 p-6 rounded-xl border border-foreground/10">
-                <form onSubmit={handleDeposit} className="space-y-5">
-                  {/* Valor e descrição */}
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                        <FontAwesomeIcon icon={faArrowDown} className="w-3 h-3" />
-                        <label className="text-sm font-medium">Valor a receber</label>
-                      </div>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                          R$
-                        </span>
-                        <input
-                          type="text"
-                          value={amount}
-                          onChange={(e) => {
-                            const formatted = formatCurrency(e.target.value)
-                            setAmount(formatted)
-                          }}
-                          placeholder="0,00"
-                          className="w-full pl-10 pr-3 py-3 rounded-lg bg-input border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm"
-                          required
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Valor mínimo: R$ 1,00 | Valor máximo: R$ 1.000,00
-                      </p>
-                      {amount && transactionFee !== null && (
-                        <div className="p-3 rounded-lg bg-foreground/5 border border-foreground/10 space-y-1 mt-2">
-                          {(() => {
-                            const fee = Number.isFinite(transactionFee) ? (transactionFee as number) : 0
-                            const amountNum = parseAmount(amount)
-                            const feeDisplay = `R$ ${fee.toFixed(2).replace('.', ',')}`
-                            const receivedDisplay = `R$ ${Math.max(0, amountNum - fee).toFixed(2).replace('.', ',')}`
-                            const amountDisplay = `R$ ${amountNum.toFixed(2).replace('.', ',')}`
-                            const totalDisplay = `R$ ${(amountNum + fee).toFixed(2).replace('.', ',')}`
-                            return (
-                              <>
-                                {coverFee ? (
-                                  <>
-                                    <div className="flex justify-between items-center text-sm">
-                                      <span className="text-muted-foreground">Valor a receber:</span>
-                                      <span className="text-foreground font-medium">
-                                        {amountDisplay}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                      <span className="text-muted-foreground">Taxa:</span>
-                                      <span className="text-foreground font-medium">
-                                        {feeDisplay}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between items-center pt-2 border-t border-foreground/10">
-                                      <span className="text-sm font-medium text-foreground">Total do QR Code:</span>
-                                      <span className="text-sm font-bold text-foreground">
-                                        {totalDisplay}
-                                      </span>
-                                    </div>
-                                  </>
-                                ) : (
-                                  <>
-                                    <div className="flex justify-between items-center text-sm">
-                                      <span className="text-muted-foreground">Taxa:</span>
-                                      <span className="text-foreground font-medium">
-                                        {feeDisplay}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between items-center pt-2 border-t border-foreground/10">
-                                      <span className="text-sm font-medium text-foreground">Valor líquido a receber:</span>
-                                      <span className="text-sm font-bold text-green-500">
-                                        {receivedDisplay}
-                                      </span>
-                                    </div>
-                                  </>
-                                )}
-                              </>
-                            )
-                          })()}
+              <>
+                {balance !== null && (
+                  <div className="bg-foreground/5 p-6 rounded-xl border border-foreground/10 mb-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <FontAwesomeIcon icon={faWallet} className="w-4 h-4" />
+                          <span className="text-sm font-medium">Saldo Disponível</span>
                         </div>
-                      )}
-                    </div>
-
-                    <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
-                      <Checkbox
-                        id="coverFee"
-                        checked={coverFee}
-                        onCheckedChange={(checked) => setCoverFee(checked === true)}
-                        label="Cobrir taxa"
-                        description="O valor digitado será o valor líquido recebido. A taxa será adicionada ao total do QR Code."
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-foreground">
-                        Descrição <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Ex: Pagamento de serviço"
-                        className="w-full px-3 py-3 rounded-lg bg-input border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm"
-                      />
+                        <div className="flex items-start">
+                          {showBalance ? (
+                            <>
+                              <span className="text-4xl font-bold text-foreground">
+                                R$ {Math.floor(balance).toLocaleString('pt-BR')}
+                              </span>
+                              <span className="text-lg font-bold text-foreground/70 ml-0.5">
+                                ,{String(Math.round((balance % 1) * 100)).padStart(2, '0')}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-4xl font-bold text-foreground">••••••</span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowBalance(!showBalance)}
+                        className="p-2 hover:bg-muted rounded-lg transition-colors"
+                      >
+                        <FontAwesomeIcon
+                          icon={showBalance ? faEye : faEyeSlash}
+                          className="w-4 h-4 text-muted-foreground"
+                        />
+                      </button>
                     </div>
                   </div>
+                )}
 
-                  <button
-                    type="submit"
-                    disabled={loading || !amount}
-                    className="w-full py-3 bg-foreground/10 text-foreground border border-foreground/10 rounded-lg font-medium hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {loading ? (
-                      <>
-                        <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-                        <span>Criando pagamento...</span>
-                      </>
-                    ) : (
-                      <>
-                        <FontAwesomeIcon icon={faQrcode} />
-                        <span>Gerar QR Code PIX</span>
-                      </>
-                    )}
-                  </button>
-                </form>
-              </div>
+                <div className="bg-foreground/5 p-6 rounded-xl border border-foreground/10">
+                  <form onSubmit={handleDeposit} className="space-y-5">
+                    {/* Valor e descrição */}
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                          <FontAwesomeIcon icon={faArrowDown} className="w-3.5 h-3.5 text-muted-foreground" />
+                          Valor a receber
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                            R$
+                          </span>
+                          <input
+                            type="text"
+                            value={amount}
+                            onChange={(e) => {
+                              const formatted = formatCurrency(e.target.value)
+                              setAmount(formatted)
+                            }}
+                            placeholder="0,00"
+                            className="w-full pl-10 pr-3 py-3 rounded-lg bg-input border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm"
+                            required
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Valor mínimo: R$ 1,00 | Valor máximo: R$ 1.000,00
+                        </p>
+                        {amount && transactionFee !== null && (
+                          <div className="p-3 rounded-lg bg-foreground/5 border border-foreground/10 space-y-1 mt-2">
+                            {(() => {
+                              const fee = Number.isFinite(transactionFee) ? (transactionFee as number) : 0
+                              const amountNum = parseAmount(amount)
+                              const feeDisplay = `R$ ${fee.toFixed(2).replace('.', ',')}`
+                              const receivedDisplay = `R$ ${Math.max(0, amountNum - fee).toFixed(2).replace('.', ',')}`
+                              const amountDisplay = `R$ ${amountNum.toFixed(2).replace('.', ',')}`
+                              const totalDisplay = `R$ ${(amountNum + fee).toFixed(2).replace('.', ',')}`
+                              return (
+                                <>
+                                  {coverFee ? (
+                                    <>
+                                      <div className="flex justify-between items-center text-sm">
+                                        <span className="text-muted-foreground">Valor a receber:</span>
+                                        <span className="text-foreground font-medium">
+                                          {amountDisplay}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between items-center text-sm">
+                                        <span className="text-muted-foreground">Taxa:</span>
+                                        <span className="text-foreground font-medium">
+                                          {feeDisplay}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between items-center pt-2 border-t border-foreground/10">
+                                        <span className="text-sm font-medium text-foreground">Total do QR Code:</span>
+                                        <span className="text-sm font-bold text-foreground">
+                                          {totalDisplay}
+                                        </span>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="flex justify-between items-center text-sm">
+                                        <span className="text-muted-foreground">Taxa:</span>
+                                        <span className="text-foreground font-medium">
+                                          {feeDisplay}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between items-center pt-2 border-t border-foreground/10">
+                                        <span className="text-sm font-medium text-foreground">Valor líquido a receber:</span>
+                                        <span className="text-sm font-bold text-green-500">
+                                          {receivedDisplay}
+                                        </span>
+                                      </div>
+                                    </>
+                                  )}
+                                </>
+                              )
+                            })()}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
+                        <Checkbox
+                          id="coverFee"
+                          checked={coverFee}
+                          onCheckedChange={(checked) => setCoverFee(checked === true)}
+                          label="Cobrir taxa"
+                          description="O valor digitado será o valor líquido recebido. A taxa será adicionada ao total do pagamento."
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                          <FontAwesomeIcon icon={faAlignLeft} className="w-3.5 h-3.5 text-muted-foreground" />
+                          Descrição <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={description}
+                          onChange={(e) => setDescription(e.target.value)}
+                          placeholder="Ex: Pagamento de serviço"
+                          className="w-full px-3 py-3 rounded-lg bg-input border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading || !amount}
+                      className="w-full py-3 bg-foreground/10 text-foreground border border-foreground/10 rounded-lg font-medium hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {loading ? (
+                        <>
+                          <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                          <span>Criando pagamento...</span>
+                        </>
+                      ) : (
+                        <>
+                          <FontAwesomeIcon icon={faQrcode} />
+                          <span>Gerar pagamento</span>
+                        </>
+                      )}
+                    </button>
+                  </form>
+                </div>
+              </>
             )}
           </div>
         </main>

@@ -45,7 +45,7 @@ export function TransactionDetailsModal({
     try {
       setLoading(true)
       setError(null)
-      
+
       if (transactionType === 'payment') {
         const response = await getPaymentById(transactionId)
         if (response.success) {
@@ -110,7 +110,7 @@ export function TransactionDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto w-[calc(100%-2rem)] mx-auto">
         {loading ? (
           <>
             <DialogHeader>
@@ -138,8 +138,8 @@ export function TransactionDetailsModal({
               <div className="flex items-center justify-center mb-4">
                 {statusInfo && (
                   <div className={`w-16 h-16 rounded-full ${statusInfo.bg} flex items-center justify-center`}>
-                    <FontAwesomeIcon 
-                      icon={statusInfo.icon} 
+                    <FontAwesomeIcon
+                      icon={statusInfo.icon}
                       className={`w-10 h-10 ${statusInfo.color}`}
                     />
                   </div>
@@ -155,8 +155,8 @@ export function TransactionDetailsModal({
 
             <div className="mt-6 space-y-4">
               {/* Informações principais */}
-              <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10 space-y-4">
-                <div className="flex justify-between items-center pb-3 border-b border-foreground/10">
+              <div className="p-4 sm:p-6 rounded-xl bg-foreground/5 border border-foreground/10 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 border-b border-foreground/10 gap-1">
                   <span className="text-sm font-medium text-muted-foreground">Valor</span>
                   <span className="text-2xl font-bold text-foreground">
                     {formatCurrency(details.value || details.netValue || 0)}
@@ -184,12 +184,12 @@ export function TransactionDetailsModal({
                   <div className="space-y-2">
                     {(() => {
                       // Calcular taxa: se não tiver fee direto, calcular pela diferença entre value e sent
-                      const fee = details.fee !== undefined && details.fee !== null 
-                        ? details.fee 
-                        : (details.value && details.sent !== undefined) 
-                          ? details.value - details.sent 
+                      const fee = details.fee !== undefined && details.fee !== null
+                        ? details.fee
+                        : (details.value && details.sent !== undefined)
+                          ? details.value - details.sent
                           : 0
-                      
+
                       const sent = details.sent !== undefined && details.sent !== null
                         ? details.sent
                         : (details.value && fee > 0)
@@ -221,22 +221,22 @@ export function TransactionDetailsModal({
               </div>
 
               {/* Detalhes da transação */}
-              <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10 space-y-3">
+              <div className="p-4 sm:p-6 rounded-xl bg-foreground/5 border border-foreground/10 space-y-3">
                 <h3 className="text-sm font-semibold text-foreground mb-3">Detalhes da Transação</h3>
-                
-                <div className="flex justify-between items-start">
+
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                   <span className="text-sm text-muted-foreground">ID da Transação</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-mono text-foreground max-w-[200px] truncate">
+                    <span className="text-sm font-mono text-foreground break-all sm:max-w-[180px] sm:truncate">
                       {details.id || details.transactionId || details.correlationID}
                     </span>
                     <button
                       onClick={() => copyToClipboard(details.id || details.transactionId || details.correlationID || '')}
-                      className="p-1 hover:bg-foreground/10 rounded transition-colors"
+                      className="p-1 hover:bg-foreground/10 rounded transition-colors flex-shrink-0"
                       title="Copiar ID"
                     >
-                      <FontAwesomeIcon 
-                        icon={copied ? faCheckCircle : faCopy} 
+                      <FontAwesomeIcon
+                        icon={copied ? faCheckCircle : faCopy}
                         className={`w-4 h-4 ${copied ? 'text-green-500' : 'text-muted-foreground'}`}
                       />
                     </button>
@@ -244,28 +244,28 @@ export function TransactionDetailsModal({
                 </div>
 
                 {details.description && (
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                     <span className="text-sm text-muted-foreground">Descrição</span>
-                    <span className="text-sm text-foreground text-right max-w-[60%]">
+                    <span className="text-sm text-foreground sm:text-right sm:max-w-[60%] break-words">
                       {details.description}
                     </span>
                   </div>
                 )}
 
                 {transactionType === 'withdraw' && details.pixKey && (
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                     <span className="text-sm text-muted-foreground">Chave PIX</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-foreground max-w-[200px] truncate">
+                      <span className="text-sm text-foreground break-all sm:max-w-[180px] sm:truncate">
                         {details.pixKey}
                       </span>
                       <button
                         onClick={() => copyToClipboard(details.pixKey)}
-                        className="p-1 hover:bg-foreground/10 rounded transition-colors"
+                        className="p-1 hover:bg-foreground/10 rounded transition-colors flex-shrink-0"
                         title="Copiar chave PIX"
                       >
-                        <FontAwesomeIcon 
-                          icon={copied ? faCheckCircle : faCopy} 
+                        <FontAwesomeIcon
+                          icon={copied ? faCheckCircle : faCopy}
                           className={`w-4 h-4 ${copied ? 'text-green-500' : 'text-muted-foreground'}`}
                         />
                       </button>
@@ -274,7 +274,7 @@ export function TransactionDetailsModal({
                 )}
 
                 {transactionType === 'withdraw' && details.pixKeyType && (
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                     <span className="text-sm text-muted-foreground">Tipo de Chave PIX</span>
                     <span className="text-sm text-foreground">
                       {details.pixKeyType}
@@ -282,7 +282,7 @@ export function TransactionDetailsModal({
                   </div>
                 )}
 
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                   <span className="text-sm text-muted-foreground">Data de criação</span>
                   <span className="text-sm text-foreground">
                     {formatDate(details.createdAt)}
@@ -290,7 +290,7 @@ export function TransactionDetailsModal({
                 </div>
 
                 {details.updatedAt && details.updatedAt !== details.createdAt && (
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                     <span className="text-sm text-muted-foreground">Última atualização</span>
                     <span className="text-sm text-foreground">
                       {formatDate(details.updatedAt)}
@@ -299,7 +299,7 @@ export function TransactionDetailsModal({
                 )}
 
                 {details.completedAt && (
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                     <span className="text-sm text-muted-foreground">Data de conclusão</span>
                     <span className="text-sm text-foreground">
                       {formatDate(details.completedAt)}
@@ -308,7 +308,7 @@ export function TransactionDetailsModal({
                 )}
 
                 {details.failedAt && (
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                     <span className="text-sm text-muted-foreground">Data de falha</span>
                     <span className="text-sm text-foreground">
                       {formatDate(details.failedAt)}
@@ -317,9 +317,9 @@ export function TransactionDetailsModal({
                 )}
 
                 {details.failureReason && (
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                     <span className="text-sm text-muted-foreground">Motivo da falha</span>
-                    <span className="text-sm text-red-500 text-right max-w-[60%]">
+                    <span className="text-sm text-red-500 sm:text-right sm:max-w-[60%] break-words">
                       {details.failureReason}
                     </span>
                   </div>
@@ -328,15 +328,38 @@ export function TransactionDetailsModal({
 
               {/* QR Code se disponível */}
               {transactionType === 'payment' && details.qrCode && (
-                <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
+                <div className="p-4 sm:p-6 rounded-xl bg-foreground/5 border border-foreground/10">
                   <h3 className="text-sm font-semibold text-foreground mb-3">QR Code</h3>
-                  <div className="flex justify-center">
-                    <img 
-                      src={details.qrCode} 
-                      alt="QR Code PIX" 
-                      className="max-w-[200px] w-full"
+                  <div className="flex justify-center mb-4">
+                    <img
+                      src={details.qrCode}
+                      alt="QR Code PIX"
+                      className="max-w-[180px] w-full"
                     />
                   </div>
+                  {details.copyPaste && (
+                    <div className="space-y-2">
+                      <label className="text-sm text-muted-foreground">Código PIX (Copia e Cola)</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={details.copyPaste}
+                          readOnly
+                          className="flex-1 px-3 py-2 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground text-xs font-mono truncate"
+                        />
+                        <button
+                          onClick={() => copyToClipboard(details.copyPaste)}
+                          className="px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex-shrink-0"
+                          title="Copiar código PIX"
+                        >
+                          <FontAwesomeIcon
+                            icon={copied ? faCheckCircle : faCopy}
+                            className="w-4 h-4"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

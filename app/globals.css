@@ -121,42 +121,53 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
-  
+
   /* Custom scrollbar to match dark theme */
   * {
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
   }
-  
+
   *::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
-  
+
   *::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   *::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.2);
     border-radius: 4px;
   }
-  
+
   *::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
   }
-  
+
   /* Dashboard preview 3D effect - only on desktop */
   .dashboard-preview-3d {
     transform-style: preserve-3d;
   }
-  
+
   @media (min-width: 768px) {
     .dashboard-preview-3d {
       transform: perspective(1000px) rotateX(5deg);
     }
+  }
+
+  /* Hide scrollbar on dashboard pages */
+  [data-dashboard] {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  [data-dashboard]::-webkit-scrollbar {
+    display: none;
   }
 }

@@ -162,7 +162,7 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
             className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-foreground/70 hover:text-[#5865F2] hover:bg-[#5865F2]/10 transition-colors"
           >
             <FontAwesomeIcon icon={faDiscord} className="w-4 h-4" />
-            <span className="text-sm font-medium">Entrar no Discord</span>
+            <span className="text-sm font-medium">Comunidade no Discord</span>
           </a>
 
           <RippleButton

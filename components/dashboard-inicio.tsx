@@ -478,7 +478,10 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
         {/* Últimas Transações Skeleton */}
         <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
           <div className="flex items-center justify-between mb-6">
-            <Skeleton className="h-6 w-48" />
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <FontAwesomeIcon icon={faReceipt} className="w-4 h-4" />
+              <span className="text-sm font-medium">Últimas Transações</span>
+            </div>
             <Skeleton className="h-6 w-24" />
           </div>
           <div className="space-y-4">

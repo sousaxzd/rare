@@ -14,8 +14,8 @@ interface WalletContextType {
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined)
 
-// Intervalo de polling em ms (30 segundos)
-const POLL_INTERVAL = 30000
+// Intervalo de polling em ms (10 segundos para atualização mais rápida)
+const POLL_INTERVAL = 10000
 
 export function WalletProvider({ children }: { children: ReactNode }) {
     const { user, isAuthenticated } = useAuth()

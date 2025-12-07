@@ -301,6 +301,42 @@ export async function createWithdraw(data: CreateWithdrawData): Promise<CreateWi
 }
 
 /**
+ * Dados para transferência interna
+ */
+export interface InternalTransferData {
+  email: string;
+  amount: number | string;
+  description?: string;
+}
+
+/**
+ * Resposta da transferência interna
+ */
+export interface InternalTransferResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+    amount: number;
+    amountInReais: number;
+    recipient: {
+      email: string;
+      name: string;
+    };
+    description: string;
+    fee: number;
+    createdAt: string;
+  };
+}
+
+/**
+ * Criar transferência interna (sem taxa, sem limite)
+ */
+export async function createInternalTransfer(data: InternalTransferData): Promise<InternalTransferResponse> {
+  return apiPost('/v1/transfer/internal', data);
+}
+
+/**
  * Buscar detalhes de um pagamento específico
  */
 export async function getPaymentById(id: string): Promise<{ success: boolean; data: Payment & { netValue?: number; qrCode?: string } }> {

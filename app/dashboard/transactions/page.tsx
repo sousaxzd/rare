@@ -1,22 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { SidebarDashboard } from '@/components/sidebar-dashboard'
 import { DashboardTopbar } from '@/components/dashboard-topbar'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCalendar, faFilePdf, faFileExcel, faDownload, faArrowUp, faArrowDown, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { RippleButton } from '@/components/ripple-button'
-import { format } from 'date-fns'
+import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { listTransactions } from '@/lib/wallet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TransactionDetailsModal } from '@/components/transaction-details-modal'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useWallet } from '@/components/providers/wallet-provider'
 
 interface Transaction {
   id: string
-  date: Date
+  date: string
   description: string
   type: 'income' | 'expense'
   transactionType: 'payment' | 'withdraw'
@@ -55,67 +55,123 @@ const getStatusBadge = (status: string) => {
 }
 
 export default function TransactionsPage() {
+  const { payments, withdraws, loading: walletLoading, refreshWallet } = useWallet()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().getFullYear(), 0, 1))
   const [endDate, setEndDate] = useState<Date>(new Date())
   const [showDatePicker, setShowDatePicker] = useState(false)
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
-  const [minValue, setMinValue] = useState<string>('')
-  const [maxValue, setMaxValue] = useState<string>('')
   const [detailsModalOpen, setDetailsModalOpen] = useState(false)
   const [selectedTransactionId, setSelectedTransactionId] = useState<string>('')
   const [selectedTransactionType, setSelectedTransactionType] = useState<'payment' | 'withdraw'>('payment')
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
   const [itemsPerPage] = useState(25)
 
-  const loadTransactions = async () => {
-    try {
-      setLoading(true)
+  // Combinar e filtrar transações do WalletContext
+  const filteredTransactions = useMemo(() => {
+    const allTransactions: Transaction[] = []
 
-      const response = await listTransactions({
-        page: currentPage,
-        limit: itemsPerPage,
-        startDate: format(startDate, 'yyyy-MM-dd'),
-        endDate: format(endDate, 'yyyy-MM-dd'),
-        type: typeFilter,
-        status: statusFilter
+    // Adicionar pagamentos como receitas
+    payments
+      .filter(p => p.status === 'COMPLETED' || p.status === 'PAID' || p.status === 'PENDING' || p.status === 'CANCELLED' || p.status === 'FAILED' || p.status === 'ACTIVE')
+      .forEach(p => {
+        allTransactions.push({
+          id: p.id,
+          type: 'income',
+          transactionType: 'payment',
+          description: p.description || 'Depósito',
+          amount: p.netValue || p.value,
+          date: p.createdAt,
+          status: p.status
+        })
       })
 
-      if (response.success) {
-        const mappedTransactions: Transaction[] = response.data.transactions.map(t => ({
-          id: t.id,
-          date: new Date(t.date),
-          description: t.description,
-          type: t.type,
-          transactionType: t.transactionType,
-          amount: t.amount,
-          status: t.status
-        }))
+    // Adicionar saques como despesas
+    withdraws
+      .forEach(w => {
+        allTransactions.push({
+          id: w.id,
+          type: 'expense',
+          transactionType: 'withdraw',
+          description: w.description || 'Transferência',
+          amount: w.value,
+          date: w.createdAt,
+          status: w.status
+        })
+      })
 
-        setTransactions(mappedTransactions)
-        setTotalPages(response.data.pagination.totalPages)
+    // Filtrar por data
+    let filtered = allTransactions.filter(t => {
+      try {
+        const transactionDate = new Date(t.date)
+        if (isNaN(transactionDate.getTime())) return true // Se data inválida, incluir
+        return isWithinInterval(transactionDate, {
+          start: startOfDay(startDate),
+          end: endOfDay(endDate)
+        })
+      } catch {
+        return true
       }
-    } catch (error) {
-      console.error('Erro ao carregar transações:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+    })
 
-  useEffect(() => {
-    loadTransactions()
-  }, [currentPage, startDate, endDate, statusFilter, typeFilter])
+    // Filtrar por status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(t => {
+        const statusUpper = t.status.toUpperCase()
+        if (statusFilter === 'completed') return statusUpper === 'COMPLETED' || statusUpper === 'PAID'
+        if (statusFilter === 'pending') return statusUpper === 'PENDING' || statusUpper === 'ACTIVE' || statusUpper === 'PROCESSING'
+        if (statusFilter === 'failed') return statusUpper === 'FAILED'
+        if (statusFilter === 'cancelled') return statusUpper === 'CANCELLED'
+        if (statusFilter === 'expired') return statusUpper === 'EXPIRED'
+        return true
+      })
+    }
+
+    // Filtrar por tipo
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(t => t.type === typeFilter)
+    }
+
+    // Ordenar por data (mais recente primeiro)
+    filtered.sort((a, b) => {
+      try {
+        return new Date(b.date).getTime() - new Date(a.date).getTime()
+      } catch {
+        return 0
+      }
+    })
+
+    return filtered
+  }, [payments, withdraws, startDate, endDate, statusFilter, typeFilter])
+
+  // Paginação
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage)
+  const paginatedTransactions = filteredTransactions.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
 
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1)
   }, [startDate, endDate, statusFilter, typeFilter])
+
+  // Refresh quando a aba volta a ficar visível
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshWallet()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [refreshWallet])
 
   const handleExportPDF = () => {
     alert('Exportação PDF em desenvolvimento')
@@ -256,7 +312,7 @@ export default function TransactionsPage() {
             {/* Tabela de Transações */}
             <div className="mt-6 border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm overflow-hidden">
               <div className="overflow-x-auto -mx-6 lg:mx-0 px-6 lg:px-0">
-                {loading ? (
+                {walletLoading ? (
                   <div className="p-6 space-y-4">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <div key={i} className="flex items-center gap-4">
@@ -281,14 +337,31 @@ export default function TransactionsPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-foreground/10">
-                        {transactions.length === 0 ? (
+                        {paginatedTransactions.length === 0 ? (
                           <tr>
                             <td colSpan={4} className="px-3 sm:px-6 py-12 text-center text-sm text-foreground/60">
                               Nenhuma transação encontrada no período selecionado
                             </td>
                           </tr>
                         ) : (
-                          transactions.map((transaction) => {
+                          paginatedTransactions.map((transaction) => {
+                            // Formatar data de forma segura
+                            let formattedDate = ''
+                            let formattedDateShort = ''
+                            try {
+                              const date = new Date(transaction.date)
+                              if (!isNaN(date.getTime())) {
+                                formattedDate = format(date, "dd/MM/yyyy HH:mm", { locale: ptBR })
+                                formattedDateShort = format(date, "dd/MM/yyyy", { locale: ptBR })
+                              } else {
+                                formattedDate = '-'
+                                formattedDateShort = '-'
+                              }
+                            } catch {
+                              formattedDate = '-'
+                              formattedDateShort = '-'
+                            }
+
                             return (
                               <tr
                                 key={transaction.id}
@@ -300,8 +373,8 @@ export default function TransactionsPage() {
                                 }}
                               >
                                 <td className="px-3 sm:px-6 py-4 text-sm text-foreground/80 font-medium whitespace-nowrap">
-                                  <span className="hidden sm:inline">{format(transaction.date, "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
-                                  <span className="sm:hidden">{format(transaction.date, "dd/MM/yyyy", { locale: ptBR })}</span>
+                                  <span className="hidden sm:inline">{formattedDate}</span>
+                                  <span className="sm:hidden">{formattedDateShort}</span>
                                 </td>
                                 <td className="px-3 sm:px-6 py-4">
                                   <div className="flex items-center gap-2 sm:gap-3">

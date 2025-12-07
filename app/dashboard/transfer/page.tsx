@@ -5,11 +5,11 @@ import { SidebarDashboard } from '@/components/sidebar-dashboard'
 import { DashboardTopbar } from '@/components/dashboard-topbar'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faQrcode, faSpinner, faWallet, faArrowUp } from '@fortawesome/free-solid-svg-icons'
+import { faQrcode, faSpinner, faWallet, faArrowUp, faEnvelope, faExchangeAlt, faKey, faDollarSign, faAlignLeft, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 import { RippleButton } from '@/components/ripple-button'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import { createWithdraw, getBalance } from '@/lib/wallet'
+import { createWithdraw, createInternalTransfer, getBalance } from '@/lib/wallet'
 import { useRouter } from 'next/navigation'
 import { TransactionModal } from '@/components/transaction-modal'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -23,12 +23,15 @@ export default function TransferPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
+  const [transferType, setTransferType] = useState<'pix' | 'internal'>('pix')
+  const [recipientEmail, setRecipientEmail] = useState('')
   const [pixKey, setPixKey] = useState('')
   const [pixKeyType, setPixKeyType] = useState<'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'RANDOM'>('CPF')
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
   const [coverFee, setCoverFee] = useState(false)
   const [balance, setBalance] = useState<number | null>(null)
+  const [showBalance, setShowBalance] = useState(true)
   const [transactionFee, setTransactionFee] = useState<number | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [modalStatus, setModalStatus] = useState<'success' | 'error' | 'loading'>('loading')
@@ -120,48 +123,60 @@ export default function TransferPage() {
     setModalStatus('loading')
 
     try {
-      // Sanitizar chave PIX conforme tipo
-      let keyToSend = pixKey
-      if (pixKeyType === 'CPF' || pixKeyType === 'CNPJ' || pixKeyType === 'PHONE') {
-        keyToSend = pixKey.replace(/\D/g, '')
-      }
-
       // Garantir valor em número
       const amountNumber = parseAmount(amount)
 
-      const response = await createWithdraw({
-        amount: amountNumber,
-        pixKey: keyToSend || undefined,
-        pixKeyType: pixKeyType,
-        description: description || undefined,
-        coverFee: coverFee,
-        verificationCode: verificationCode || undefined
-      })
+      let response: any
+
+      if (transferType === 'internal') {
+        // Transferência interna (sem taxa, sem limite)
+        response = await createInternalTransfer({
+          email: recipientEmail,
+          amount: amountNumber,
+          description: description || undefined
+        })
+      } else {
+        // Transferência PIX
+        let keyToSend = pixKey
+        if (pixKeyType === 'CPF' || pixKeyType === 'CNPJ' || pixKeyType === 'PHONE') {
+          keyToSend = pixKey.replace(/\D/g, '')
+        }
+
+        response = await createWithdraw({
+          amount: amountNumber,
+          pixKey: keyToSend || undefined,
+          pixKeyType: pixKeyType,
+          description: description || undefined,
+          coverFee: coverFee,
+          verificationCode: verificationCode || undefined
+        })
+      }
 
       setWithdrawData(response.data)
       setModalStatus('success')
       setPixKey('')
+      setRecipientEmail('')
       setAmount('')
       setDescription('')
       setCoverFee(false)
       setVerificationCode(null)
-      setPendingWithdraw(null) // Limpar saque pendente após sucesso
+      setPendingWithdraw(null)
 
       // Recarregar saldo
       const res = await getBalance()
       setBalance(res.data.balance.total / 100)
     } catch (error: any) {
-      // Verificar se é erro de saque pendente
-      if (error?.pendingWithdrawId || error?.message?.includes('saque em processamento')) {
+      // Verificar se é erro de saque/transferência pendente
+      if (error?.pendingWithdrawId || error?.pendingTransferId || error?.message?.includes('em processamento')) {
         setPendingWithdraw({
-          id: error.pendingWithdrawId || 'N/A',
+          id: error.pendingWithdrawId || error.pendingTransferId || 'N/A',
           status: error.pendingWithdrawStatus || 'PROCESSING',
-          value: error.pendingWithdrawValue || 0,
-          createdAt: error.pendingWithdrawCreatedAt || new Date().toISOString()
+          value: error.pendingWithdrawValue || error.pendingTransferAmount || 0,
+          createdAt: error.pendingWithdrawCreatedAt || error.pendingTransferCreatedAt || new Date().toISOString()
         })
-        setModalOpen(false) // Fechar modal de loading
+        setModalOpen(false)
         setLoading(false)
-        return // Não mostrar modal de erro, mostrar banner
+        return
       }
 
       setModalStatus('error')
@@ -224,8 +239,8 @@ export default function TransferPage() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <DashboardTopbar onOpenSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
-        <main data-dashboard className="flex-1 overflow-auto flex justify-center">
-          <div className="p-6 lg:p-8 space-y-5 max-w-2xl w-full">
+        <main data-dashboard className="flex-1 overflow-auto">
+          <div className="p-6 lg:p-8 space-y-5">
             <DashboardHeader loading={pageLoading} />
 
             {pageLoading ? (
@@ -240,19 +255,37 @@ export default function TransferPage() {
               <>
                 {balance !== null && (
                   <div className="bg-foreground/5 p-6 rounded-xl border border-foreground/10 mb-6">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <FontAwesomeIcon icon={faWallet} className="w-4 h-4" />
-                        <span className="text-sm font-medium">Saldo Disponível</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <FontAwesomeIcon icon={faWallet} className="w-4 h-4" />
+                          <span className="text-sm font-medium">Saldo Disponível</span>
+                        </div>
+                        <div className="flex items-start">
+                          {showBalance ? (
+                            <>
+                              <span className="text-4xl font-bold text-foreground">
+                                R$ {Math.floor(balance).toLocaleString('pt-BR')}
+                              </span>
+                              <span className="text-lg font-bold text-foreground/70 ml-0.5">
+                                ,{String(Math.round((balance % 1) * 100)).padStart(2, '0')}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-4xl font-bold text-foreground">••••••</span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-start">
-                        <span className="text-4xl font-bold text-foreground">
-                          R$ {Math.floor(balance).toLocaleString('pt-BR')}
-                        </span>
-                        <span className="text-lg font-bold text-foreground/70 ml-0.5">
-                          ,{String(Math.round((balance % 1) * 100)).padStart(2, '0')}
-                        </span>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowBalance(!showBalance)}
+                        className="p-2 hover:bg-muted rounded-lg transition-colors"
+                      >
+                        <FontAwesomeIcon
+                          icon={showBalance ? faEye : faEyeSlash}
+                          className="w-4 h-4 text-muted-foreground"
+                        />
+                      </button>
                     </div>
                   </div>
                 )}
@@ -291,54 +324,113 @@ export default function TransferPage() {
 
                 <div className="bg-foreground/5 p-6 rounded-xl border border-foreground/10">
                   <form onSubmit={handleTransfer} className="space-y-5">
-                    {/* Informações de destino */}
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <label className="block text-sm font-medium text-foreground">
-                          Tipo de chave PIX
-                        </label>
-                        <Select value={pixKeyType} onValueChange={(v) => setPixKeyType(v as any)}>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Selecione o tipo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectLabel>Tipo de chave</SelectLabel>
-                              <SelectItem value="CPF" textValue="CPF">CPF</SelectItem>
-                              <SelectItem value="CNPJ" textValue="CNPJ">CNPJ</SelectItem>
-                              <SelectItem value="EMAIL" textValue="E-mail">E-mail</SelectItem>
-                              <SelectItem value="PHONE" textValue="Telefone">Telefone</SelectItem>
-                              <SelectItem value="RANDOM" textValue="Chave aleatória">Chave aleatória</SelectItem>
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    {/* Toggle PIX / Interna */}
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setTransferType('pix')}
+                        className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${transferType === 'pix'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-foreground/10 text-muted-foreground hover:bg-foreground/15'
+                          }`}
+                      >
+                        <FontAwesomeIcon icon={faQrcode} className="w-4 h-4" />
+                        PIX
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTransferType('internal')}
+                        className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${transferType === 'internal'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-foreground/10 text-muted-foreground hover:bg-foreground/15'
+                          }`}
+                      >
+                        <FontAwesomeIcon icon={faExchangeAlt} className="w-4 h-4" />
+                        Interna
+                      </button>
+                    </div>
 
-                      <div className="space-y-2">
-                        <label className="block text-sm font-medium text-foreground">
-                          Chave PIX
-                        </label>
-                        <div className="relative">
-                          <FontAwesomeIcon
-                            icon={faQrcode}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
-                          />
-                          <input
-                            type="text"
-                            value={pixKey}
-                            onChange={(e) => setPixKey(e.target.value)}
-                            placeholder={
-                              pixKeyType === 'CPF' ? '000.000.000-00' :
-                                pixKeyType === 'CNPJ' ? '00.000.000/0000-00' :
-                                  pixKeyType === 'EMAIL' ? 'exemplo@email.com' :
-                                    pixKeyType === 'PHONE' ? '(00) 00000-0000' :
-                                      'Chave aleatória'
-                            }
-                            className="w-full pl-10 pr-3 py-3 rounded-lg bg-input border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm"
-                            required
-                          />
+
+
+                    {/* Campos de destino */}
+                    <div className="space-y-4">
+                      {transferType === 'pix' ? (
+                        <>
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                              <FontAwesomeIcon icon={faKey} className="w-3.5 h-3.5 text-muted-foreground" />
+                              Tipo de chave PIX
+                            </label>
+                            <Select value={pixKeyType} onValueChange={(v) => setPixKeyType(v as any)}>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Selecione o tipo" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectGroup>
+                                  <SelectLabel>Tipo de chave</SelectLabel>
+                                  <SelectItem value="CPF" textValue="CPF">CPF</SelectItem>
+                                  <SelectItem value="CNPJ" textValue="CNPJ">CNPJ</SelectItem>
+                                  <SelectItem value="EMAIL" textValue="E-mail">E-mail</SelectItem>
+                                  <SelectItem value="PHONE" textValue="Telefone">Telefone</SelectItem>
+                                  <SelectItem value="RANDOM" textValue="Chave aleatória">Chave aleatória</SelectItem>
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                              <FontAwesomeIcon icon={faQrcode} className="w-3.5 h-3.5 text-muted-foreground" />
+                              Chave PIX
+                            </label>
+                            <div className="relative">
+                              <FontAwesomeIcon
+                                icon={faQrcode}
+                                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
+                              />
+                              <input
+                                type="text"
+                                value={pixKey}
+                                onChange={(e) => setPixKey(e.target.value)}
+                                placeholder={
+                                  pixKeyType === 'CPF' ? '000.000.000-00' :
+                                    pixKeyType === 'CNPJ' ? '00.000.000/0000-00' :
+                                      pixKeyType === 'EMAIL' ? 'exemplo@email.com' :
+                                        pixKeyType === 'PHONE' ? '(00) 00000-0000' :
+                                          'Chave aleatória'
+                                }
+                                className="w-full pl-10 pr-3 py-3 rounded-lg bg-input border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm"
+                                required
+                              />
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        /* Transferência interna - email */
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                            <FontAwesomeIcon icon={faEnvelope} className="w-3.5 h-3.5 text-muted-foreground" />
+                            Email do destinatário
+                          </label>
+                          <div className="relative">
+                            <FontAwesomeIcon
+                              icon={faEnvelope}
+                              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
+                            />
+                            <input
+                              type="email"
+                              value={recipientEmail}
+                              onChange={(e) => setRecipientEmail(e.target.value)}
+                              placeholder="usuario@email.com"
+                              className="w-full pl-10 pr-3 py-3 rounded-lg bg-input border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm"
+                              required
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Transfira para outra conta Vision Wallet usando o email
+                          </p>
                         </div>
-                      </div>
+                      )}
                     </div>
 
                     <Separator />
@@ -346,7 +438,8 @@ export default function TransferPage() {
                     {/* Valor e descrição */}
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <label className="block text-sm font-medium text-foreground">
+                        <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                          <FontAwesomeIcon icon={faDollarSign} className="w-3.5 h-3.5 text-muted-foreground" />
                           Valor
                         </label>
                         <div className="relative">
@@ -366,9 +459,12 @@ export default function TransferPage() {
                           />
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Valor mínimo: R$ 5,00
+                          {transferType === 'internal' ? 'Sem valor mínimo para transferências internas' : 'Valor mínimo: R$ 5,00'}
                         </p>
-                        {amount && transactionFee !== null && (
+                        {transferType === 'internal' && (
+                          <p className="text-xs text-green-400 !mt-0">Sem taxa • Sem limite • Instantânea</p>
+                        )}
+                        {amount && transactionFee !== null && transferType === 'pix' && (
                           <div className="p-3 rounded-lg bg-foreground/5 border border-foreground/10 space-y-1">
                             {(() => {
                               const fee = Number.isFinite(transactionFee) ? (transactionFee as number) : 0
@@ -423,18 +519,21 @@ export default function TransferPage() {
                         )}
                       </div>
 
-                      <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
-                        <Checkbox
-                          id="coverFee"
-                          checked={coverFee}
-                          onCheckedChange={(checked) => setCoverFee(checked === true)}
-                          label="Cobrir taxa"
-                          description="O valor digitado será o valor enviado. A taxa será adicionada ao total debitado."
-                        />
-                      </div>
+                      {transferType === 'pix' && (
+                        <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
+                          <Checkbox
+                            id="coverFee"
+                            checked={coverFee}
+                            onCheckedChange={(checked) => setCoverFee(checked === true)}
+                            label="Cobrir taxa"
+                            description="O valor digitado será o valor enviado. A taxa será adicionada ao total debitado."
+                          />
+                        </div>
+                      )}
 
                       <div className="space-y-2">
-                        <label className="block text-sm font-medium text-foreground">
+                        <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                          <FontAwesomeIcon icon={faAlignLeft} className="w-3.5 h-3.5 text-muted-foreground" />
                           Descrição <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
                         </label>
                         <input
