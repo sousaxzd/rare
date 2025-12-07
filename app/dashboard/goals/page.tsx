@@ -61,61 +61,6 @@ export default function GoalsPage() {
           <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
             <DashboardHeader />
 
-            {/* Hero Section */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/20 via-background to-background border border-primary/10 p-8 lg:p-12">
-              <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-primary/20 rounded-full blur-3xl opacity-50 animate-pulse" />
-
-              <div className="relative z-10">
-                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-                  <div className="space-y-4 max-w-2xl">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider">
-                      <FontAwesomeIcon icon={faTrophy} />
-                      Suas Conquistas
-                    </div>
-                    <h1 className="text-4xl lg:text-5xl font-bold tracking-tight">
-                      Desbloqueie seu <span className="text-primary">Potencial</span>
-                    </h1>
-                    <p className="text-lg text-muted-foreground">
-                      Cada marco atingido é uma prova do seu sucesso. Acompanhe seu progresso e receba prêmios exclusivos da Vision Wallet.
-                    </p>
-                  </div>
-
-                  {/* Progress Card */}
-                  <div className="w-full lg:w-96 bg-card/50 backdrop-blur-md border border-border rounded-2xl p-6 shadow-xl">
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="text-sm font-medium text-muted-foreground">Próxima Meta</span>
-                      <span className="text-sm font-bold text-primary">{nextGoal.title}</span>
-                    </div>
-                    <div className="space-y-2">
-                      {loading || totalReceived === null ? (
-                        <div className="space-y-2">
-                          <div className="h-4 bg-muted animate-pulse rounded" />
-                          <div className="h-3 bg-muted animate-pulse rounded-full" />
-                          <div className="h-3 bg-muted animate-pulse rounded w-20 ml-auto" />
-                        </div>
-                      ) : (
-                        <>
-                          <div className="flex justify-between text-xs font-medium">
-                            <span>R$ {totalReceived.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                            <span>{nextGoal.label}</span>
-                          </div>
-                          <div className="h-3 w-full bg-secondary/30 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-1000 ease-out"
-                              style={{ width: `${progress}%` }}
-                            />
-                          </div>
-                          <p className="text-xs text-right text-muted-foreground mt-1">
-                            {progress.toFixed(1)}% concluído
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* Rewards Grid */}
             <div className="space-y-6">
               <div className="flex items-center gap-3">
