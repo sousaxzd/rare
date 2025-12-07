@@ -548,11 +548,18 @@ export default function TransferPage() {
 
                     <button
                       type="submit"
-                      disabled={loading || !amount || !pixKey || !!pendingWithdraw || (balance !== null && transactionFee !== null && (() => {
-                        const fee = Number.isFinite(transactionFee) ? (transactionFee as number) : 0
-                        const amountNum = parseAmount(amount)
-                        return coverFee ? amountNum + fee > balance : amountNum > balance
-                      })())}
+                      disabled={
+                        loading ||
+                        !amount ||
+                        (transferType === 'pix' ? !pixKey : !recipientEmail) ||
+                        !!pendingWithdraw ||
+                        (transferType === 'pix' && balance !== null && transactionFee !== null && (() => {
+                          const fee = Number.isFinite(transactionFee) ? (transactionFee as number) : 0
+                          const amountNum = parseAmount(amount)
+                          return coverFee ? amountNum + fee > balance : amountNum > balance
+                        })()) ||
+                        (transferType === 'internal' && balance !== null && parseAmount(amount) > balance)
+                      }
                       className="w-full py-3 bg-foreground/10 text-foreground border border-foreground/10 rounded-lg font-medium hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {loading ? (
