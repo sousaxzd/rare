@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import '@/lib/fontawesome' // Font Awesome config - must be before globals.css
 import './globals.css'
 import LayoutClient from '@/components/layout-client'
 import { ErrorBoundary } from '@/components/error-boundary'
