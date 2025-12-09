@@ -19,7 +19,7 @@ interface Transaction {
   date: string
   description: string
   type: 'income' | 'expense'
-  transactionType: 'payment' | 'withdraw'
+  transactionType: 'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received'
   amount: number
   status: string
 }
@@ -64,7 +64,7 @@ export default function TransactionsPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [detailsModalOpen, setDetailsModalOpen] = useState(false)
   const [selectedTransactionId, setSelectedTransactionId] = useState<string>('')
-  const [selectedTransactionType, setSelectedTransactionType] = useState<'payment' | 'withdraw'>('payment')
+  const [selectedTransactionType, setSelectedTransactionType] = useState<'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received'>('payment')
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)

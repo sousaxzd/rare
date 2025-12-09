@@ -109,7 +109,7 @@ export function PlanSettings() {
       {/* Plano Atual */}
       <div className="border border-foreground/10 rounded-xl bg-foreground/2 p-6">
         <div className="flex items-center gap-3 mb-4">
-          <FontAwesomeIcon icon={faCreditCard} className="text-primary w-5 h-5" />
+          <FontAwesomeIcon icon={faCreditCard} className="text-foreground/60 w-5 h-5" />
           <div>
             <h3 className="text-sm font-semibold text-foreground">Plano Atual</h3>
             <p className="text-xs text-foreground/60">Informações do seu plano atual</p>
@@ -157,7 +157,7 @@ export function PlanSettings() {
       {/* Configurações */}
       <div className="border border-foreground/10 rounded-xl bg-foreground/2 p-6">
         <div className="flex items-center gap-3 mb-4">
-          <FontAwesomeIcon icon={faSync} className="text-primary w-5 h-5" />
+          <FontAwesomeIcon icon={faSync} className="text-foreground/60 w-5 h-5" />
           <div>
             <h3 className="text-sm font-semibold text-foreground">Configurações Automáticas</h3>
             <p className="text-xs text-foreground/60">Gerencie as configurações automáticas do seu plano</p>
@@ -196,7 +196,7 @@ export function PlanSettings() {
             <Separator />
             <div className="border border-foreground/10 rounded-xl bg-foreground/2 p-6">
               <div className="flex items-center gap-3 mb-4">
-                <FontAwesomeIcon icon={faArrowUp} className="text-primary w-5 h-5" />
+                <FontAwesomeIcon icon={faArrowUp} className="text-foreground/60 w-5 h-5" />
                 <div>
                   <h3 className="text-sm font-semibold text-foreground">Planos Disponíveis</h3>
                   <p className="text-xs text-foreground/60">Escolha um plano superior para fazer upgrade</p>

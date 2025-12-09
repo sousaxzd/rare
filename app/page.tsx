@@ -7,6 +7,7 @@ import { CTASection } from '@/components/home/cta'
 import { BenefitsSecuritySection } from '@/components/home/benefits-security'
 import { BenefitsPrivacySection } from '@/components/home/benefits-privacy'
 import { DashboardPreview } from '@/components/home/dashboard-preview'
+import { StatsSection } from '@/components/home/stats-section'
 
 export default function Home() {
   return (
@@ -14,6 +15,8 @@ export default function Home() {
       <Hero />
 
       <DashboardPreview />
+
+      <StatsSection />
 
       <BenefitsSecuritySection />
 

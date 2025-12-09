@@ -24,7 +24,7 @@ interface DashboardInicioProps {
 interface TransactionDisplay {
   id: string
   type: 'received' | 'sent'
-  transactionType: 'payment' | 'withdraw'
+  transactionType: 'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received'
   description: string
   amount: number
   date: string
@@ -45,7 +45,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
   const [transactions, setTransactions] = useState<TransactionDisplay[]>([])
   const [detailsModalOpen, setDetailsModalOpen] = useState(false)
   const [selectedTransactionId, setSelectedTransactionId] = useState<string>('')
-  const [selectedTransactionType, setSelectedTransactionType] = useState<'payment' | 'withdraw'>('payment')
+  const [selectedTransactionType, setSelectedTransactionType] = useState<'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received'>('payment')
   const [lastPaymentIds, setLastPaymentIds] = useState<Set<string>>(new Set())
   const [lastWithdrawIds, setLastWithdrawIds] = useState<Set<string>>(new Set())
   const [copiedPixKey, setCopiedPixKey] = useState<string | null>(null)
@@ -692,7 +692,11 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
                         ? 'Depósito cancelado'
                         : transaction.status === 'PENDING'
                           ? (transaction.type === 'received' ? 'Depósito pendente' : 'Transferência pendente')
-                          : (transaction.type === 'received' ? 'Depósito' : 'Transferência')
+                          : transaction.transactionType === 'internal_transfer_received'
+                            ? 'Transferência interna recebida'
+                            : transaction.transactionType === 'internal_transfer_sent'
+                              ? 'Transferência interna enviada'
+                              : (transaction.type === 'received' ? 'Depósito' : 'Transferência')
                       }
                     </p>
                     <p className="text-xs text-muted-foreground">

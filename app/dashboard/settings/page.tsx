@@ -563,7 +563,7 @@ export default function SettingsPage() {
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <FontAwesomeIcon icon={faUser} className="text-primary w-5 h-5" />
+                          <FontAwesomeIcon icon={faUser} className="text-foreground/60 w-5 h-5" />
                           <div>
                             <h3 className="text-sm font-semibold text-foreground">Nome</h3>
                             <p className="text-xs text-foreground/60">{user?.fullName || 'Não informado'}</p>
@@ -614,7 +614,7 @@ export default function SettingsPage() {
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <FontAwesomeIcon icon={faCalendar} className="text-primary w-5 h-5" />
+                          <FontAwesomeIcon icon={faCalendar} className="text-foreground/60 w-5 h-5" />
                           <div>
                             <h3 className="text-sm font-semibold text-foreground">Data de Nascimento</h3>
                             <p className="text-xs text-foreground/60">
@@ -666,7 +666,7 @@ export default function SettingsPage() {
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <FontAwesomeIcon icon={faPhone} className="text-primary w-5 h-5" />
+                          <FontAwesomeIcon icon={faPhone} className="text-foreground/60 w-5 h-5" />
                           <div>
                             <h3 className="text-sm font-semibold text-foreground">Telefone</h3>
                             <p className="text-xs text-foreground/60">{user?.phone || 'Não informado'}</p>
@@ -717,7 +717,7 @@ export default function SettingsPage() {
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <FontAwesomeIcon icon={faIdCard} className="text-primary w-5 h-5" />
+                          <FontAwesomeIcon icon={faIdCard} className="text-foreground/60 w-5 h-5" />
                           <div>
                             <h3 className="text-sm font-semibold text-foreground">CPF</h3>
                             <p className="text-xs text-foreground/60">
@@ -747,7 +747,7 @@ export default function SettingsPage() {
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <FontAwesomeIcon icon={faEnvelope} className="text-primary w-5 h-5" />
+                          <FontAwesomeIcon icon={faEnvelope} className="text-foreground/60 w-5 h-5" />
                           <div>
                             <h3 className="text-sm font-semibold text-foreground">E-mail</h3>
                             <p className="text-xs text-foreground/60">{user?.email || 'Não informado'}</p>
@@ -903,9 +903,12 @@ export default function SettingsPage() {
                       {notificationsSupported && notificationPermission === 'granted' && (
                         <div className="space-y-4">
                           <div className="flex items-center justify-between p-3 rounded-lg bg-foreground/5 border border-foreground/10">
-                            <div>
-                              <p className="text-sm font-medium text-foreground">Ativar Notificações</p>
-                              <p className="text-xs text-foreground/60">Receba notificações sobre suas transações</p>
+                            <div className="flex items-center gap-3">
+                              <FontAwesomeIcon icon={faBell} className="text-foreground/60 w-5 h-5" />
+                              <div>
+                                <p className="text-sm font-medium text-foreground">Ativar Notificações</p>
+                                <p className="text-xs text-foreground/60">Receba notificações sobre suas transações</p>
+                              </div>
                             </div>
                             <label className="relative inline-flex items-center cursor-pointer">
                               <input
@@ -982,7 +985,7 @@ export default function SettingsPage() {
                       <div>
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            <FontAwesomeIcon icon={faLock} className="text-primary w-5 h-5" />
+                            <FontAwesomeIcon icon={faLock} className="text-foreground/60 w-5 h-5" />
                             <div>
                               <h3 className="text-sm font-semibold text-foreground">Senha</h3>
                               <p className="text-xs text-foreground/60">••••••••</p>
@@ -1119,7 +1122,7 @@ export default function SettingsPage() {
                       <div>
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            <FontAwesomeIcon icon={faShieldAlt} className="text-primary w-5 h-5" />
+                            <FontAwesomeIcon icon={faShieldAlt} className="text-foreground/60 w-5 h-5" />
                             <div>
                               <h3 className="text-sm font-semibold text-foreground">Segurança de Transferências</h3>
                               <p className="text-xs text-foreground/60">
@@ -1258,12 +1261,11 @@ export default function SettingsPage() {
                           {trustedDevices.map((device) => (
                             <div
                               key={device.id}
-                              className="flex items-center justify-between p-4 rounded-lg bg-foreground/5 border border-foreground/10"
-                            >
-                              <div className="flex items-center gap-3 flex-1">
+                              className="flex items-center justify-between p-4 rounded-lg bg-foreground/5 border border-foreground/10 overflow-hidden">
+                              <div className="flex items-center gap-3 flex-1 min-w-0 overflow-hidden">
                                 <FontAwesomeIcon
                                   icon={device.userAgent?.includes('Mobile') ? faMobile : faDesktop}
-                                  className="w-5 h-5 text-primary"
+                                  className="w-5 h-5 text-foreground/60 flex-shrink-0"
                                 />
                                 <div className="flex-1 min-w-0">
                                   <h3 className="text-sm font-semibold text-foreground truncate">
@@ -1272,13 +1274,11 @@ export default function SettingsPage() {
                                   <p className="text-xs text-foreground/60 truncate">
                                     {device.userAgent || 'N/A'}
                                   </p>
-                                  <p className="text-xs text-foreground/40 mt-1">
+                                  <p className="text-xs text-foreground/40 mt-1 truncate">
                                     Último uso: {new Date(device.lastUsedAt).toLocaleDateString('pt-BR', {
                                       day: '2-digit',
                                       month: '2-digit',
-                                      year: 'numeric',
-                                      hour: '2-digit',
-                                      minute: '2-digit'
+                                      year: 'numeric'
                                     })}
                                   </p>
                                 </div>
@@ -1286,7 +1286,7 @@ export default function SettingsPage() {
                               <button
                                 onClick={() => handleRemoveDevice(device.id)}
                                 disabled={loading}
-                                className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 ml-2"
                                 title="Remover dispositivo"
                               >
                                 <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
@@ -1332,23 +1332,22 @@ export default function SettingsPage() {
                           {sessions.map((session) => (
                             <div
                               key={session.id}
-                              className={`flex items-center justify-between p-4 rounded-lg border ${session.isCurrent
+                              className={`flex items-center justify-between p-4 rounded-lg border overflow-hidden ${session.isCurrent
                                 ? 'bg-primary/10 border-primary/30'
                                 : 'bg-foreground/5 border-foreground/10'
-                                }`}
-                            >
-                              <div className="flex items-center gap-3 flex-1">
+                                }`}>
+                              <div className="flex items-center gap-3 flex-1 min-w-0 overflow-hidden">
                                 <FontAwesomeIcon
                                   icon={session.userAgent?.includes('Mobile') ? faMobile : faDesktop}
-                                  className={`w-5 h-5 ${session.isCurrent ? 'text-primary' : 'text-foreground/60'}`}
+                                  className={`w-5 h-5 flex-shrink-0 ${session.isCurrent ? 'text-primary' : 'text-foreground/60'}`}
                                 />
                                 <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <h3 className="text-sm font-semibold text-foreground truncate">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <h3 className="text-sm font-semibold text-foreground truncate max-w-[150px] sm:max-w-none">
                                       {session.deviceName || 'Dispositivo desconhecido'}
                                     </h3>
                                     {session.isCurrent && (
-                                      <span className="px-2 py-0.5 text-xs font-medium bg-primary/20 text-primary rounded">
+                                      <span className="px-2 py-0.5 text-xs font-medium bg-primary/20 text-primary rounded flex-shrink-0">
                                         Atual
                                       </span>
                                     )}
@@ -1356,13 +1355,11 @@ export default function SettingsPage() {
                                   <p className="text-xs text-foreground/60 truncate">
                                     {session.userAgent || 'N/A'}
                                   </p>
-                                  <p className="text-xs text-foreground/40 mt-1">
-                                    <span className="hidden sm:inline">IP: {session.ip} • </span>Última atividade: {new Date(session.lastActivity).toLocaleDateString('pt-BR', {
+                                  <p className="text-xs text-foreground/40 mt-1 truncate">
+                                    <span className="hidden sm:inline">IP: {session.ip} • </span>{new Date(session.lastActivity).toLocaleDateString('pt-BR', {
                                       day: '2-digit',
                                       month: '2-digit',
-                                      year: 'numeric',
-                                      hour: '2-digit',
-                                      minute: '2-digit'
+                                      year: 'numeric'
                                     })}
                                   </p>
                                 </div>
@@ -1371,7 +1368,7 @@ export default function SettingsPage() {
                                 <button
                                   onClick={() => handleRevokeSession(session.id)}
                                   disabled={loading}
-                                  className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 ml-2"
                                   title="Encerrar sessão"
                                 >
                                   <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />

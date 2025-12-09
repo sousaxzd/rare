@@ -23,6 +23,15 @@ const HERO_LINE_TWO_WORDS: { text: string; highlight: boolean }[] = [
 export function Hero() {
   return (
     <section className="flex flex-col justify-center md:items-center md:text-center pt-20 md:pt-32">
+      <GridLines
+        className="z-0 opacity-50"
+        style={{
+          WebkitMaskImage:
+            "radial-gradient(50% 40% at 50% 20%, #000 30%, transparent 80%)",
+          maskImage:
+            "radial-gradient(50% 40% at 50% 20%, #000 30%, transparent 80%)",
+        }}
+      />
 
       <section className="relative flex flex-col gap-2">
         <motion.div
@@ -77,7 +86,7 @@ export function Hero() {
           transition={{ delay: 1.2, duration: 0.5, ease: "easeOut" }}
           className="text-foreground/70 font-normal text-[15px] max-w-2xl self-center mt-4"
         >
-          Gerencie seus pagamentos com PIX. Tudo em um só lugar, de forma simples e segura. <span className="font-semibold text-primary">Performance, segurança e inovação</span> para o crescimento do seu negócio.
+          Receba e transfira PIX de forma anônima, sem MEDs ou bloqueios e sem idade mínima. <span className="font-semibold text-primary">Privacidade, liberdade e segurança</span> para você operar com tranquilidade.
         </motion.p>
         <div className="flex gap-2 md:gap-5 flex-col md:flex-row md:items-center md:justify-center mt-2">
           <motion.div

@@ -23,10 +23,10 @@ export default function GridLines({
       className={`pointer-events-none absolute inset-0 ${className}`}
       style={{
         backgroundImage: `
-          linear-gradient(to right, rgba(255, 107, 53, 0.06) ${stroke}px, transparent ${stroke}px) ,
-          linear-gradient(to bottom, rgba(255, 107, 53, 0.06) ${stroke}px, transparent ${stroke}px),
-          linear-gradient(to right, rgba(255, 107, 53, 0.12) ${stroke}px, transparent ${stroke}px),
-          linear-gradient(to bottom, rgba(255, 107, 53, 0.12) ${stroke}px, transparent ${stroke}px)
+          linear-gradient(to right, rgba(255, 255, 255, 0.06) ${stroke}px, transparent ${stroke}px) ,
+          linear-gradient(to bottom, rgba(255, 255, 255, 0.06) ${stroke}px, transparent ${stroke}px),
+          linear-gradient(to right, rgba(255, 255, 255, 0.12) ${stroke}px, transparent ${stroke}px),
+          linear-gradient(to bottom, rgba(255, 255, 255, 0.12) ${stroke}px, transparent ${stroke}px)
         `,
         backgroundSize: `
           ${gap}px ${gap}px,

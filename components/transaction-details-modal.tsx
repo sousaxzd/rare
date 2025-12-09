@@ -18,7 +18,7 @@ interface TransactionDetailsModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   transactionId: string
-  transactionType: 'payment' | 'withdraw'
+  transactionType: 'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received'
 }
 
 export function TransactionDetailsModal({
@@ -45,6 +45,16 @@ export function TransactionDetailsModal({
     try {
       setLoading(true)
       setError(null)
+
+      // Para transferências internas, não temos endpoint de detalhes ainda
+      if (transactionType === 'internal_transfer_sent' || transactionType === 'internal_transfer_received') {
+        setDetails({
+          id: transactionId,
+          status: 'COMPLETED',
+          type: transactionType
+        })
+        return
+      }
 
       if (transactionType === 'payment') {
         const response = await getPaymentById(transactionId)

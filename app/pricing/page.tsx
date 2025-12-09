@@ -27,14 +27,7 @@ export default function Pricing() {
 
   const loadPlans = async () => {
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000)
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}/api/v1/user/plan/list`, {
-        signal: controller.signal
-      })
-
-      clearTimeout(timeoutId)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}/api/v1/user/plan/list`)
 
       if (!response.ok) {
         throw new Error(`Erro ao carregar planos: ${response.statusText}`)
@@ -147,8 +140,8 @@ export default function Pricing() {
   }
 
   return (
-    <main className="min-h-screen py-12 px-4 md:px-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="w-full">
+      <div className="space-y-4">
         <div className="text-center mb-16 space-y-4">
           <motion.h1
             initial={{ opacity: 0, y: -20 }}
@@ -213,13 +206,12 @@ export default function Pricing() {
                       <RippleButton
                         onClick={() => !buttonState.disabled && router.push('/dashboard/settings')}
                         disabled={buttonState.disabled}
-                        className={`w-full py-2 rounded-lg text-xs font-medium ${
-                          buttonState.disabled
-                            ? 'bg-foreground/5 text-foreground/40 cursor-not-allowed'
-                            : plan.id.toUpperCase() === 'CARBON'
+                        className={`w-full py-2 rounded-lg text-xs font-medium ${buttonState.disabled
+                          ? 'bg-foreground/5 text-foreground/40 cursor-not-allowed'
+                          : plan.id.toUpperCase() === 'CARBON'
                             ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                             : 'bg-foreground/10 text-foreground hover:bg-foreground/20'
-                        }`}
+                          }`}
                       >
                         {buttonState.text}
                       </RippleButton>
@@ -342,6 +334,6 @@ export default function Pricing() {
 
         <FAQ />
       </div>
-    </main>
+    </div>
   )
 }

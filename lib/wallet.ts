@@ -241,7 +241,7 @@ export async function listWithdraws(params?: {
 export interface Transaction {
   id: string;
   type: 'income' | 'expense';
-  transactionType: 'payment' | 'withdraw';
+  transactionType: 'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received';
   date: string;
   amount: number;
   status: string;
