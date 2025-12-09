@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
@@ -10,6 +10,7 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_URL || 'https://visionwallet.com.br'),
   title: 'Vision Wallet - Sua carteira digital completa',
   description: 'A melhor solução de pagamentos via PIX, receba e transfira dinheiro de forma rápida, segura e anônima.',
   generator: 'v0.app',
@@ -35,6 +36,32 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: 'Vision Wallet',
   },
+  openGraph: {
+    title: 'Vision Wallet - Sua carteira digital completa',
+    description: 'A melhor solução de pagamentos via PIX, receba e transfira dinheiro de forma rápida, segura e anônima.',
+    type: 'website',
+    images: [
+      {
+        url: '/site.png',
+        width: 1200,
+        height: 630,
+        alt: 'Vision Wallet',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Vision Wallet - Sua carteira digital completa',
+    description: 'A melhor solução de pagamentos via PIX, receba e transfira dinheiro de forma rápida, segura e anônima.',
+    images: ['/site.png'],
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f97316' },
+    { media: '(prefers-color-scheme: dark)', color: '#f97316' },
+  ],
 }
 
 import { AuthProvider } from '@/components/providers/auth-provider'
