@@ -38,9 +38,8 @@ export function DashboardPreview() {
   return (
     <motion.section
       initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay: 1.3, ease: "easeOut" }}
       className="relative z-20 flex items-center justify-center w-full self-center overflow-visible mt-20 md:mt-32 mb-12"
     >
       {/* Container com largura igual ao header e outros elementos */}
@@ -50,16 +49,14 @@ export function DashboardPreview() {
           {/* Outer shadow/darkening effect - pode ultrapassar as bordas */}
           <motion.div
             initial={{ opacity: 0 }}
-            whileInView={{ opacity: 0.8 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1, delay: 0.3 }}
+            animate={{ opacity: 0.8 }}
+            transition={{ duration: 1, delay: 1.6 }}
             className="absolute -inset-8 bg-gradient-to-b from-background via-background/95 to-background rounded-3xl blur-2xl"
           />
           <motion.div
             initial={{ opacity: 0 }}
-            whileInView={{ opacity: 0.6 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1, delay: 0.4 }}
+            animate={{ opacity: 0.6 }}
+            transition={{ duration: 1, delay: 1.7 }}
             className="absolute -inset-4 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 rounded-3xl blur-xl"
           />
 
@@ -69,9 +66,8 @@ export function DashboardPreview() {
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
             initial={{ opacity: 0, scale: 0.9, y: 30 }}
-            whileInView={{ opacity: 1, scale: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.9, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 1.5, ease: [0.25, 0.46, 0.45, 0.94] }}
             style={{
               rotateX,
               rotateY,
@@ -105,16 +101,14 @@ export function DashboardPreview() {
           {/* Decorative glow effects - podem ultrapassar as bordas */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 0.4, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.2, delay: 0.5 }}
+            animate={{ opacity: 0.4, scale: 1 }}
+            transition={{ duration: 1.2, delay: 1.8 }}
             className="absolute -inset-12 bg-primary/5 rounded-3xl blur-3xl -z-10"
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 0.2, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.2, delay: 0.6 }}
+            animate={{ opacity: 0.2, scale: 1 }}
+            transition={{ duration: 1.2, delay: 1.9 }}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-primary/5 rounded-full blur-[120px] -z-10"
           />
         </div>

@@ -9,25 +9,22 @@ export function CTASection() {
   return (
     <motion.section
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 2.0 }}
     >
       <div className="flex flex-col md:flex-row md:justify-between gap-2 md:items-center">
         <motion.h1
           initial={{ opacity: 0, x: -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 2.1 }}
           className="text-4xl font-bold max-w-2xl"
         >
           Crie sua conta gratuitamente e surpreenda-se com o resultado
         </motion.h1>
         <motion.div
           initial={{ opacity: 0, x: 20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 2.2 }}
           className="flex flex-row gap-2 md:max-w-xl"
         >
           <Button
