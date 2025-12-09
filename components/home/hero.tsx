@@ -43,7 +43,7 @@ export function Hero() {
         />
 
         {/* Title with staggered word animations */}
-        <h1 className="text-[2.5rem] md:text-7xl font-bold leading-[1.1]">
+        <h1 className="text-[2.5rem] md:text-7xl font-bold leading-[1.1] whitespace-nowrap">
           {HERO_LINE_ONE_WORDS.map((item, index) => (
             <motion.span
               key={`l1-${index}`}
@@ -98,14 +98,14 @@ export function Hero() {
 
         {/* CTA Buttons - appear last */}
         <motion.div
-          className="flex gap-2 md:gap-5 flex-col md:flex-row md:items-center md:justify-center mt-4"
+          className="flex gap-2 md:gap-5 flex-col md:flex-row items-center justify-center mt-4 w-full px-4 md:px-0"
           initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ delay: 1.1, duration: 0.5, ease: "easeOut" }}
         >
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 w-full md:w-auto justify-center">
             <Button
-              className="w-fit bg-primary text-primary-foreground hover:bg-primary/90"
+              className="flex-1 md:flex-none md:w-fit bg-primary text-primary-foreground hover:bg-primary/90 min-w-0 text-sm"
               onClick={() => {
                 window.location.href = "/pricing";
               }}
@@ -113,13 +113,13 @@ export function Hero() {
               <span>Começar agora</span>
             </Button>
             <Button
-              className="w-fit bg-background border border-foreground/10 rounded-lg text-foreground hover:bg-foreground/10 md:hidden"
+              className="flex-1 md:hidden md:flex-none md:w-fit bg-background border border-foreground/10 rounded-lg text-foreground hover:bg-foreground/10 min-w-0 text-sm"
               onClick={() => {
                 window.location.href = "/about";
               }}
             >
-              <span className="flex items-center justify-center gap-1">
-                Conheça nossos produtos <FontAwesomeIcon icon={faChevronRight} className="text-[11px] duration-200 transition-all hover:text-foreground text-foreground/80" />
+              <span className="flex items-center justify-center gap-1 whitespace-nowrap">
+                Nossos produtos <FontAwesomeIcon icon={faChevronRight} className="text-[11px] duration-200 transition-all hover:text-foreground text-foreground/80" />
               </span>
             </Button>
           </div>
