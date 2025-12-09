@@ -12,8 +12,8 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_URL || 'https://visionwallet.com.br'),
   title: 'Vision Wallet - Sua carteira digital completa',
-  description: 'A melhor solução de pagamentos via PIX, receba e transfira dinheiro de forma rápida, segura e anônima.',
-  generator: 'v0.app',
+  description: 'A solução definitiva para pagamentos via PIX: receba e envie dinheiro de forma rápida, segura e totalmente anônima, sem idade mínima, sem bloqueios e sem MEDs. Crie sua conta gratuitamente agora mesmo, sem precisar enviar documentos — simples, direto e sem burocracia. Sem idade minima e sem bloqueios ou MEDs.',
+  generator: 'Vision Group Ltda',
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Vision Wallet - Sua carteira digital completa',
-    description: 'A melhor solução de pagamentos via PIX, receba e transfira dinheiro de forma rápida, segura e anônima.',
+    description: 'A solução definitiva para pagamentos via PIX: receba e envie dinheiro de forma rápida, segura e totalmente anônima, sem idade mínima, sem bloqueios e sem MEDs. Crie sua conta gratuitamente agora mesmo, sem precisar enviar documentos — simples, direto e sem burocracia.',
     type: 'website',
     images: [
       {
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Vision Wallet - Sua carteira digital completa',
-    description: 'A melhor solução de pagamentos via PIX, receba e transfira dinheiro de forma rápida, segura e anônima.',
+    description: 'A solução definitiva para pagamentos via PIX: receba e envie dinheiro de forma rápida, segura e totalmente anônima, sem idade mínima, sem bloqueios e sem MEDs. Crie sua conta gratuitamente agora mesmo, sem precisar enviar documentos — simples, direto e sem burocracia.',
     images: ['/site.png'],
   },
 }
