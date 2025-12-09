@@ -42,6 +42,23 @@ export function Hero() {
           className="pointer-events-none absolute top-20 left-25 h-40 md:left-50 md:h-50 w-1/2 max-w-sm rounded-full bg-primary/20 blur-[80px]"
         />
 
+        {/* Badge - appears first above title */}
+        <motion.div
+          initial={{ opacity: 0, y: -10, filter: "blur(8px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ delay: 0.1, duration: 0.4, ease: "easeOut" }}
+          className="w-full md:w-fit text-center items-center justify-center px-5 py-1 bg-primary/30 backdrop-blur-[32px] border border-primary/20 rounded-full text-foreground text-[12px] self-center flex flex-row gap-2 mb-4"
+        >
+          <p>
+            Conta gratuita <span className="font-semibold">para sempre</span>
+          </p>
+          <p className="text-primary/50">|</p>
+          <Link href="/pricing" className="text-xs text-foreground p-1 hover:text-primary transition-colors inline-flex items-center gap-1">
+            Começar agora
+            <FontAwesomeIcon icon={faUpRightFromSquare} className="text-[10px]" />
+          </Link>
+        </motion.div>
+
         {/* Title with staggered word animations */}
         <h1 className="text-[2.5rem] md:text-7xl font-bold leading-[1.1] whitespace-nowrap">
           {HERO_LINE_ONE_WORDS.map((item, index) => (
@@ -49,7 +66,7 @@ export function Hero() {
               key={`l1-${index}`}
               initial={{ opacity: 0, y: 15, filter: "blur(6px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              transition={{ delay: index * 0.08, duration: 0.4, ease: "easeOut" }}
+              transition={{ delay: 0.3 + index * 0.08, duration: 0.4, ease: "easeOut" }}
               className={`inline-block mr-2.5 ${item.highlight ? "text-primary" : ""}`}
             >
               {item.text}
@@ -61,7 +78,7 @@ export function Hero() {
               key={`l2-${index}`}
               initial={{ opacity: 0, y: 15, filter: "blur(6px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              transition={{ delay: (index + 3) * 0.08, duration: 0.4, ease: "easeOut" }}
+              transition={{ delay: 0.3 + (index + 3) * 0.08, duration: 0.4, ease: "easeOut" }}
               className={`inline-block mr-2.5 ${item.highlight ? "text-primary" : ""}`}
             >
               {item.text}
@@ -73,28 +90,11 @@ export function Hero() {
         <motion.p
           initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ delay: 0.7, duration: 0.5, ease: "easeOut" }}
+          transition={{ delay: 0.9, duration: 0.5, ease: "easeOut" }}
           className="text-foreground/70 font-normal text-[15px] max-w-2xl self-center mt-4"
         >
           Receba e transfira PIX de forma anônima, sem MEDs ou bloqueios e sem idade mínima. <span className="font-semibold text-primary">Privacidade, liberdade e segurança</span> para você operar com tranquilidade.
         </motion.p>
-
-        {/* Badge - appears after description */}
-        <motion.div
-          initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ delay: 0.9, duration: 0.4, ease: "easeOut" }}
-          className="w-full md:w-fit text-center items-center justify-center px-5 py-1 bg-primary/30 backdrop-blur-[32px] border border-primary/20 rounded-full text-foreground text-[12px] self-center flex flex-row gap-2 mt-4"
-        >
-          <p>
-            Conta gratuita <span className="font-semibold">para sempre</span>
-          </p>
-          <p className="text-primary/50">|</p>
-          <Link href="/pricing" className="text-xs text-foreground p-1 hover:text-primary transition-colors inline-flex items-center gap-1">
-            Começar agora
-            <FontAwesomeIcon icon={faUpRightFromSquare} className="text-[10px]" />
-          </Link>
-        </motion.div>
 
         {/* CTA Buttons - appear last */}
         <motion.div
