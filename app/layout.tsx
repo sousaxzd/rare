@@ -1,6 +1,12 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+
+// Font Awesome configuration to prevent icon flash on page load
+import { config } from '@fortawesome/fontawesome-svg-core'
+import '@fortawesome/fontawesome-svg-core/styles.css'
+config.autoAddCss = false
+
 import './globals.css'
 import LayoutClient from '@/components/layout-client'
 import { ErrorBoundary } from '@/components/error-boundary'
