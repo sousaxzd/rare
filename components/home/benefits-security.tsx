@@ -35,7 +35,7 @@ export function BenefitsSecuritySection() {
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.6 }}
-      className="relative mt-8 mb-8 md:mt-16 md:mb-12 py-10 md:py-16 overflow-hidden"
+      className="relative mt-16 mb-12 py-16"
     >
       {/* Organic background */}
       <div className="absolute inset-0 pointer-events-none">
@@ -87,14 +87,12 @@ export function BenefitsSecuritySection() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground leading-tight mb-5"
             >
-              <span className="md:hidden">API </span>
-              <span className="hidden md:inline">API </span>
+              API{' '}
               <span className="relative inline-block">
-                <span className="text-primary md:hidden">Simples</span>
-                <span className="text-primary hidden md:inline">poderosa</span>
+                <span className="text-primary">poderosa</span>
                 <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-primary to-primary/30 rounded-full" />
               </span>
-              <span className="hidden md:inline">{' '}e simples</span>
+              {' '}e simples
             </motion.h2>
 
             <motion.p
@@ -149,7 +147,7 @@ export function BenefitsSecuritySection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8"
+              className="grid grid-cols-2 gap-5 mb-8"
             >
               {features.map((feature, index) => (
                 <div

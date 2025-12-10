@@ -35,7 +35,7 @@ export function BenefitsPraticiadeSection() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.6 }}
-            className="relative mt-8 mb-8 md:mt-12 md:mb-16 py-10 md:py-16 overflow-hidden"
+            className="relative mt-12 mb-16 py-16"
         >
             {/* Organic background */}
             <div className="absolute inset-0 pointer-events-none">
@@ -72,11 +72,9 @@ export function BenefitsPraticiadeSection() {
                             transition={{ duration: 0.6, delay: 0.1 }}
                             className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground leading-tight mb-5"
                         >
-                            <span className="md:hidden">Tudo </span>
-                            <span className="hidden md:inline">Tudo que você </span>
+                            Tudo que você{' '}
                             <span className="relative inline-block">
-                                <span className="text-primary md:hidden">à Mão</span>
-                                <span className="text-primary hidden md:inline">precisa</span>
+                                <span className="text-primary">precisa</span>
                                 <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-primary to-primary/30 rounded-full" />
                             </span>
                         </motion.h2>
@@ -98,7 +96,7 @@ export function BenefitsPraticiadeSection() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: 0.3 }}
-                            className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6 mb-8"
+                            className="grid grid-cols-2 gap-6 mb-8"
                         >
                             {features.map((feature, index) => (
                                 <div

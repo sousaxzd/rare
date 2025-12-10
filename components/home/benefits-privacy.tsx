@@ -72,11 +72,9 @@ export function BenefitsPrivacySection() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground leading-tight mb-5"
             >
-              <span className="md:hidden">Conta </span>
-              <span className="hidden md:inline">Conta </span>
+              Conta{' '}
               <span className="relative inline-block">
-                <span className="text-primary md:hidden">Fácil</span>
-                <span className="text-primary hidden md:inline">sem burocracia</span>
+                <span className="text-primary">sem burocracia</span>
                 <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-primary to-primary/30 rounded-full" />
               </span>
             </motion.h2>
