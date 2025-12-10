@@ -40,79 +40,73 @@ export function DashboardPreview() {
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 1.3, ease: "easeOut" }}
-      className="relative z-20 flex items-center justify-center w-full self-center overflow-visible mt-20 md:mt-32 mb-12 px-4 md:px-6"
+      className="relative z-20 w-full self-center mt-16 md:mt-24 mb-8"
     >
-        {/* Container com largura igual ao header e outros elementos */}
-      <div className="w-full max-w-7xl mx-auto relative">
-        {/* Image Container with Effects - compensa o padding para imagem ocupar largura total */}
-        <div className="relative -mx-4 md:-mx-6">
-          {/* Outer shadow/darkening effect - reduzido no mobile */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.8 }}
-            transition={{ duration: 1, delay: 1.6 }}
-            className="absolute -inset-2 md:-inset-8 bg-gradient-to-b from-background via-background/95 to-background rounded-3xl blur-md md:blur-2xl"
-          />
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.6 }}
-            transition={{ duration: 1, delay: 1.7 }}
-            className="absolute -inset-1 md:-inset-4 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 rounded-3xl blur-sm md:blur-xl"
+      {/* Outer shadow/darkening effect - fora do container principal */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.8 }}
+        transition={{ duration: 1, delay: 1.6 }}
+        className="absolute -inset-4 md:-inset-8 bg-gradient-to-b from-background via-background/95 to-background rounded-3xl blur-md md:blur-2xl -z-10 pointer-events-none"
+      />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.6 }}
+        transition={{ duration: 1, delay: 1.7 }}
+        className="absolute -inset-4 md:-inset-8 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 rounded-3xl blur-sm md:blur-xl -z-10 pointer-events-none"
+      />
+
+      {/* Decorative glow effects - fora do container principal */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 0.4, scale: 1 }}
+        transition={{ duration: 1.2, delay: 1.8 }}
+        className="absolute -inset-12 md:-inset-20 bg-primary/5 rounded-3xl blur-xl md:blur-3xl -z-20 pointer-events-none"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 0.2, scale: 1 }}
+        transition={{ duration: 1.2, delay: 1.9 }}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-primary/5 rounded-full blur-[60px] md:blur-[120px] -z-20 pointer-events-none"
+      />
+
+      {/* Main image container - elemento visível alinhado */}
+      <motion.div
+        ref={containerRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        initial={{ opacity: 0, scale: 0.9, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.9, delay: 1.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+        style={{
+          rotateX,
+          rotateY,
+          transformStyle: 'preserve-3d',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 107, 53, 0.1)',
+          perspective: '1000px'
+        }}
+        className="relative rounded-2xl overflow-hidden bg-background border border-foreground/10 shadow-2xl dashboard-preview-3d cursor-pointer w-full"
+      >
+        {/* Inner darkening borders */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/60 z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/40 via-transparent to-background/40 z-10 pointer-events-none" />
+
+        {/* Image - ocupa toda largura do container */}
+        <div className="relative w-full bg-foreground/5 overflow-hidden">
+          <img
+            src="/preview.png"
+            alt="Dashboard Preview"
+            className="w-full h-auto object-contain select-none relative z-0"
+            draggable={false}
           />
 
-          {/* Main image container - largura total, alinhada com bordas do container */}
-          <motion.div
-            ref={containerRef}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            initial={{ opacity: 0, scale: 0.9, y: 30 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 1.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-            style={{
-              rotateX,
-              rotateY,
-              transformStyle: 'preserve-3d',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 107, 53, 0.1)',
-              perspective: '1000px'
-            }}
-            className="relative rounded-2xl overflow-hidden bg-background border border-foreground/10 shadow-2xl dashboard-preview-3d cursor-pointer"
-          >
-            {/* Inner darkening borders */}
-            <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent z-10 pointer-events-none" />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/60 z-10 pointer-events-none" />
-            <div className="absolute inset-0 bg-gradient-to-r from-background/40 via-transparent to-background/40 z-10 pointer-events-none" />
-
-            {/* Image - ocupa toda largura do container */}
-            <div className="relative w-full bg-foreground/5">
-              <img
-                src="/preview.png"
-                alt="Dashboard Preview"
-                className="w-full h-auto object-contain select-none relative z-0"
-                draggable={false}
-              />
-
-              {/* Additional overlay effects */}
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-20 pointer-events-none opacity-60" />
-              <div className="absolute top-0 left-0 right-0 h-16 md:h-32 bg-gradient-to-b from-background to-transparent z-20 pointer-events-none" />
-              <div className="absolute bottom-0 left-0 right-0 h-16 md:h-32 bg-gradient-to-t from-background to-transparent z-20 pointer-events-none" />
-            </div>
-          </motion.div>
-
-          {/* Decorative glow effects - reduzidos no mobile */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 0.4, scale: 1 }}
-            transition={{ duration: 1.2, delay: 1.8 }}
-            className="absolute -inset-4 md:-inset-12 bg-primary/5 rounded-3xl blur-xl md:blur-3xl -z-10"
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 0.2, scale: 1 }}
-            transition={{ duration: 1.2, delay: 1.9 }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 md:w-3/4 h-1/2 md:h-3/4 bg-primary/5 rounded-full blur-[60px] md:blur-[120px] -z-10"
-          />
+          {/* Additional overlay effects */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-20 pointer-events-none opacity-60" />
+          <div className="absolute top-0 left-0 right-0 h-16 md:h-32 bg-gradient-to-b from-background to-transparent z-20 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-16 md:h-32 bg-gradient-to-t from-background to-transparent z-20 pointer-events-none" />
         </div>
-      </div>
+      </motion.div>
     </motion.section>
   )
 }

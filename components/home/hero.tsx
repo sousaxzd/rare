@@ -32,7 +32,7 @@ export function Hero() {
             "radial-gradient(60% 60% at 50% 40%, #000 60%, transparent 100%)",
         }}
       />
-      <section className="relative flex flex-col gap-2">
+      <section className="relative flex flex-col gap-2 w-full">
         <motion.div
           initial={{ opacity: 0, y: 8, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}

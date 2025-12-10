@@ -30,17 +30,25 @@ export class ErrorBoundary extends Component<Props, State> {
 
     console.error('ErrorBoundary capturou um erro:', error, errorInfo)
     
-    // Se for erro de chunk, tentar recarregar a página
-    if (error.message?.includes('Failed to load chunk') || 
-        error.message?.includes('Loading chunk') ||
-        error.message?.includes('ChunkLoadError') ||
-        error.message?.includes('ChunkLoadError')) {
-      console.log('Erro de chunk detectado, recarregando página...')
-      setTimeout(() => {
-        if (typeof window !== 'undefined') {
-          window.location.reload()
-        }
-      }, 1000)
+    // Se for erro de chunk, não recarregar automaticamente em desenvolvimento
+    const isChunkError = 
+      error.message?.includes('Failed to load chunk') || 
+      error.message?.includes('Loading chunk') ||
+      error.message?.includes('ChunkLoadError') ||
+      error.message?.includes('_next/static/chunks') ||
+      error.message?.includes('react-server-dom-turbopack')
+    
+    if (isChunkError) {
+      if (process.env.NODE_ENV === 'production') {
+        console.log('Erro de chunk detectado, recarregando página...')
+        setTimeout(() => {
+          if (typeof window !== 'undefined') {
+            window.location.reload()
+          }
+        }, 1000)
+      } else {
+        console.warn('Erro de chunk do Turbopack em desenvolvimento (ignorado):', error.message)
+      }
       return
     }
 
@@ -100,8 +108,21 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.children
       }
 
+      // Em desenvolvimento, se tiver fallback, usar ele
       if (this.props.fallback) {
         return this.props.fallback
+      }
+
+      // Em desenvolvimento, ignorar erros de chunk do Turbopack e mostrar children
+      const isChunkError = 
+        this.state.error?.message?.includes('Failed to load chunk') ||
+        this.state.error?.message?.includes('ChunkLoadError') ||
+        this.state.error?.message?.includes('_next/static/chunks') ||
+        this.state.error?.message?.includes('react-server-dom-turbopack')
+      
+      if (process.env.NODE_ENV === 'development' && isChunkError) {
+        console.warn('Erro de chunk do Turbopack em desenvolvimento (ignorado):', this.state.error?.message)
+        return this.props.children
       }
 
       return (

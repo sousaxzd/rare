@@ -1,91 +1,202 @@
 'use client'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faBolt, faShieldAlt, faUserSecret } from '@fortawesome/free-solid-svg-icons'
+import { faCode, faBolt, faShieldHalved, faRocket, faUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
 import { motion } from 'framer-motion'
-import Link from 'next/link'
-import { faChevronRight } from '@fortawesome/free-solid-svg-icons'
+import { Button } from '@/components/ui/button'
 
-const securityBenefits = [
+const features = [
+  {
+    icon: faCode,
+    title: 'API simples',
+    description: 'Integração em minutos',
+  },
   {
     icon: faBolt,
-    title: 'Rapidez',
-    description: 'Transações instantâneas 24/7. Receba e envie pagamentos em segundos, sem esperas ou burocracias.',
+    title: 'Receba em segundos',
+    description: 'PIX instantâneo 24/7',
   },
   {
-    icon: faShieldAlt,
-    title: 'Segurança Total',
-    description: 'Criptografia de ponta e proteção avançada. Seus dados e transações estão completamente seguros.',
+    icon: faShieldHalved,
+    title: 'AES-256',
+    description: 'Criptografia bancária',
   },
   {
-    icon: faUserSecret,
-    title: 'Anonimato Garantido',
-    description: 'Venda sem usar seu nome real. Mantenha sua identidade protegida em todas as transações.',
+    icon: faRocket,
+    title: 'Sem limites',
+    description: 'Opere quanto precisar',
   },
 ]
 
 export function BenefitsSecuritySection() {
   return (
-    <section className="mt-20 mb-12 flex flex-col lg:flex-row justify-between w-full gap-8 relative px-4 md:px-0">
-      {/* Left Column - Text Content */}
-      <div className="w-full lg:w-1/2 flex flex-col gap-2 relative z-10">
-        <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none hidden lg:block" />
-
-        <div className="flex items-center gap-1 flex-wrap">
-          <FontAwesomeIcon icon={faShieldAlt} className="text-primary text-[12px]" />
-          <span className="text-primary/50 text-[12px] hidden sm:inline">|</span>
-          <span className="text-primary font-semibold text-[12px]">Segurança e Performance</span>
-        </div>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
-          Opere com rapidez, segurança e anonimato total
-        </h1>
-        <div className="flex flex-col gap-1">
-          <p className="text-foreground/70 text-sm md:text-base max-w-xl leading-relaxed">
-            Transações instantâneas protegidas por criptografia de nível bancário. Venda sem revelar sua identidade e opere com total discrição.
-          </p>
-          <Link
-            href="/pricing"
-            className="text-foreground flex items-center gap-1 w-fit px-4 py-2 bg-foreground/2 border border-foreground/10 rounded-lg hover:bg-foreground/10 duration-100 transition-all cursor-pointer my-2"
-          >
-            <span className="text-[12px] text-foreground/80">Ver planos e preços</span>
-            <FontAwesomeIcon icon={faChevronRight} className="text-foreground/70 text-[12px]" />
-          </Link>
-        </div>
-        <hr className="border-foreground/10 my-4" />
-
-        {/* Benefits List */}
-        <div className="flex flex-col gap-6 mt-2">
-          {securityBenefits.map((benefit, index) => (
-            <div
-              key={index}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-start"
-            >
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <div className="w-10 h-10 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center">
-                  <FontAwesomeIcon icon={benefit.icon} className="text-primary text-sm" />
-                </div>
-                <p className="text-foreground/90 text-sm font-semibold">
-                  {benefit.title}
-                </p>
-              </div>
-              <p className="text-foreground/60 text-xs sm:text-sm leading-tight sm:max-w-xs flex-1 sm:text-left">
-                {benefit.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Right Column - Image with Glow */}
-      <div className="w-full lg:w-1/2 h-auto relative flex items-center justify-end lg:block hidden">
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 blur-[120px] rounded-full opacity-60 pointer-events-none" />
-        <img
-          src="/roboanonimo.png"
-          alt="Segurança e Anonimato"
-          className="relative z-10 w-full h-auto object-contain max-h-[600px] scale-110 translate-x-10"
+    <motion.section
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.6 }}
+      className="relative mt-16 mb-12 py-16"
+    >
+      {/* Organic background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute right-0 top-1/2 -translate-y-1/2 w-[600px] h-[600px]"
+          style={{
+            background: 'radial-gradient(ellipse, rgba(255,100,0,0.03) 0%, transparent 55%)',
+          }}
         />
       </div>
-    </section>
+
+      <div className="relative z-10">
+        {/* Split layout: Image left, Content right */}
+        <div className="flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-16">
+
+          {/* Left side - Illustration */}
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="flex-1 hidden lg:flex justify-center lg:justify-start"
+          >
+            <img
+              src="/undraw_product-iteration_r2wg.svg"
+              alt="API Integration"
+              className="w-full max-w-sm lg:max-w-md h-auto"
+            />
+          </motion.div>
+
+          {/* Right side - Content */}
+          <div className="flex-1 lg:max-w-[55%]">
+            {/* Header */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-3 mb-5"
+            >
+              <span className="w-8 h-px bg-primary/30" />
+              <span className="text-primary text-xs font-medium uppercase tracking-[0.2em]">Para desenvolvedores</span>
+            </motion.div>
+
+            <motion.h2
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground leading-tight mb-5"
+            >
+              API{' '}
+              <span className="relative inline-block">
+                <span className="text-primary">poderosa</span>
+                <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-primary to-primary/30 rounded-full" />
+              </span>
+              {' '}e simples
+            </motion.h2>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-foreground/50 text-base md:text-lg max-w-xl mb-8"
+            >
+              Integre pagamentos PIX à sua aplicação com poucas linhas de código.
+              Webhooks em tempo real, documentação completa e suporte técnico dedicado.
+            </motion.p>
+
+            {/* Code preview - curl example */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="mb-8"
+            >
+              <div className="bg-[#0c0d0e] border border-foreground/[0.06] rounded-xl overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-foreground/[0.04]">
+                  <div className="flex gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
+                  </div>
+                  <span className="text-foreground/25 text-[11px] font-mono ml-2">terminal</span>
+                </div>
+                <div className="p-4 font-mono text-[12px] leading-relaxed overflow-x-auto">
+                  <div className="text-foreground/50">
+                    <span className="text-green-400/70">curl</span>
+                    <span className="text-foreground/30"> -X POST </span>
+                    <span className="text-yellow-400/70">'https://api.visionwallet.com.br/...'</span>
+                  </div>
+                  <div className="text-foreground/50 pl-2">
+                    <span className="text-foreground/30">-d </span>
+                    <span className="text-foreground/40">{'{'}</span>
+                    <span className="text-foreground/50">"value"</span>
+                    <span className="text-foreground/30">: </span>
+                    <span className="text-orange-400/80">100.00</span>
+                    <span className="text-foreground/40">{'}'}</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Features grid - 2x2 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="grid grid-cols-2 gap-5 mb-8"
+            >
+              {features.map((feature, index) => (
+                <div
+                  key={index}
+                  className="flex items-start gap-3"
+                >
+                  <FontAwesomeIcon
+                    icon={feature.icon}
+                    className="text-primary text-lg mt-0.5"
+                  />
+                  <div>
+                    <h3 className="text-foreground text-sm font-semibold mb-0.5">
+                      {feature.title}
+                    </h3>
+                    <p className="text-foreground/40 text-xs leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+
+            {/* CTA */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+              className="flex flex-wrap gap-3"
+            >
+              <Button
+                className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm px-5"
+                onClick={() => { window.location.href = "/pricing" }}
+              >
+                <span>Começar a integrar</span>
+              </Button>
+              <Button
+                className="bg-transparent border border-foreground/10 text-foreground hover:bg-foreground/5 text-sm px-5"
+                onClick={() => { window.open("https://docs.visionwallet.com.br", "_blank") }}
+              >
+                <span className="flex items-center gap-2">
+                  Ver documentação
+                  <FontAwesomeIcon icon={faUpRightFromSquare} className="text-[10px]" />
+                </span>
+              </Button>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </motion.section>
   )
 }
-

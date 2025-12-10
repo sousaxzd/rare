@@ -55,8 +55,8 @@ function formatCurrency(value: number): string {
     return new Intl.NumberFormat('pt-BR', {
         style: 'currency',
         currency: 'BRL',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
     }).format(value / 100)
 }
 
@@ -72,13 +72,28 @@ export function StatsSection() {
     const fetchStats = async () => {
         try {
             const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
-            const response = await fetch(`${backendUrl}/api/v1/public-stats`)
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 5000)
+
+            const response = await fetch(`${backendUrl}/api/v1/public-stats`, {
+                cache: 'no-store',
+                signal: controller.signal
+            })
+
+            clearTimeout(timeoutId)
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`)
+            }
             const data = await response.json()
             if (data.success) {
                 setStats(data.data)
             }
-        } catch (error) {
-            console.error('Erro ao buscar estatísticas:', error)
+        } catch (error: any) {
+            // Ignorar erros silenciosamente para não quebrar a página
+            if (error.name !== 'AbortError') {
+                console.error('Erro ao buscar estatísticas:', error)
+            }
         } finally {
             setLoading(false)
         }
@@ -96,16 +111,14 @@ export function StatsSection() {
     const animatedRegistrations = useCountUp(isInView ? (stats?.activeRegistrations || 0) : 0, 2000, 400)
     const animatedTransactions = useCountUp(isInView ? (stats?.totalTransactions || 0) : 0, 2200, 500)
 
+    // Se ainda está carregando, não mostrar nada
     if (loading) {
-        return (
-            <section className="py-8 md:py-12">
-                <div className="flex items-center justify-center gap-8 md:gap-16">
-                    <div className="animate-pulse bg-foreground/10 h-16 w-48 rounded-lg" />
-                    <div className="animate-pulse bg-foreground/10 h-16 w-48 rounded-lg" />
-                    <div className="animate-pulse bg-foreground/10 h-16 w-48 rounded-lg" />
-                </div>
-            </section>
-        )
+        return null
+    }
+
+    // Se não conseguiu carregar as estatísticas, não mostrar nada
+    if (!stats) {
+        return null
     }
 
     return (
@@ -115,74 +128,75 @@ export function StatsSection() {
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.6, ease: "easeOut" }}
             onViewportEnter={() => setIsInView(true)}
-            className="py-8 md:py-12 px-4 md:px-0"
+            className="mt-12 flex flex-col items-center justify-center"
         >
-            <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8 lg:gap-16 flex-wrap">
+            {/* Header with divider lines */}
+            <div className="w-full flex flex-col items-center">
+                <div className="flex items-center w-full">
+                    <div className="flex-grow border-t border-foreground/10"></div>
+                    <span className="mx-4 text-primary font-bold text-sm uppercase tracking-wider">
+                        Estatísticas em tempo real
+                    </span>
+                    <div className="flex-grow border-t border-foreground/10"></div>
+                </div>
+                <span className="block text-foreground/60 text-xs text-center mt-1">
+                    Informações atualizadas a cada 30 segundos
+                </span>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-3 w-full justify-center items-center text-center mt-8">
                 {/* Total Money Moved */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
-                    className="text-center"
                 >
-                    <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
+                    <p className="text-foreground text-4xl md:text-5xl font-bold mb-2">
                         {formatCurrency(animatedMoney)}
                     </p>
-                    <p className="text-xs sm:text-sm text-foreground/60 mt-1">movimentados</p>
+                    <span className="text-foreground/70 text-sm">movimentados</span>
                 </motion.div>
-
-                {/* Divider */}
-                <div className="hidden md:block w-px h-12 bg-foreground/20" />
 
                 {/* Active Registrations */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
-                    className="text-center"
                 >
-                    <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
+                    <p className="text-foreground text-4xl md:text-5xl font-bold mb-2">
                         {formatNumber(animatedRegistrations)}
                     </p>
-                    <p className="text-xs sm:text-sm text-foreground/60 mt-1">contas ativas</p>
+                    <span className="text-foreground/70 text-sm">contas ativas</span>
                 </motion.div>
-
-                {/* Divider */}
-                <div className="hidden md:block w-px h-12 bg-foreground/20" />
 
                 {/* Total Transactions */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
-                    className="text-center"
                 >
-                    <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
+                    <p className="text-foreground text-4xl md:text-5xl font-bold mb-2">
                         {formatNumber(animatedTransactions)}
                     </p>
-                    <p className="text-xs sm:text-sm text-foreground/60 mt-1">transações</p>
+                    <span className="text-foreground/70 text-sm">transações</span>
                 </motion.div>
+            </div>
 
-                {/* Divider */}
-                <div className="hidden md:block w-px h-12 bg-foreground/20" />
-
-                {/* Real-time indicator */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 0.4, ease: "easeOut" }}
-                    className="flex items-center gap-2"
-                >
-                    <span className="relative flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                    </span>
-                    <p className="text-xs sm:text-sm text-foreground/60">Em tempo real</p>
-                </motion.div>
+            {/* Decorative corner lines */}
+            <div className="flex items-start w-full justify-between mt-4">
+                <div className="flex flex-col items-start">
+                    <div className="w-[1px] h-8 bg-foreground/10"></div>
+                    <div className="w-8 h-[1px] bg-foreground/10"></div>
+                </div>
+                <div />
+                <div className="flex flex-col items-end">
+                    <div className="w-[1px] h-8 bg-foreground/10"></div>
+                    <div className="w-8 h-[1px] bg-foreground/10"></div>
+                </div>
             </div>
         </motion.section>
     )

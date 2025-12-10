@@ -3,12 +3,16 @@ import { headers } from 'next/headers'
 import { validateAffiliateCode } from '@/lib/wallet'
 import SetCookieAndRedirect from './set-cookie-client'
 
-export default async function AffiliateRedirectPage({ params }: { params: { affiliate: string } }) {
-    const affiliateCode = params.affiliate
+export default async function AffiliateRedirectPage({ params }: { params: Promise<{ affiliate: string }> }) {
+    const { affiliate } = await params
+    const affiliateCode = affiliate.toLowerCase().trim()
 
     // Ignorar arquivos estáticos e rotas comuns que podem cair aqui por engano
-    if (['favicon.ico', 'robots.txt', 'sitemap.xml', 'manifest.json'].includes(affiliateCode)) {
-        return null
+    const staticFiles = ['favicon.ico', 'robots.txt', 'sitemap.xml', 'manifest.json', 'favicon.svg', 'icon.svg']
+    const staticExtensions = ['.ico', '.svg', '.png', '.jpg', '.jpeg', '.json', '.txt', '.xml', '.webp']
+    
+    if (staticFiles.includes(affiliateCode) || staticExtensions.some(ext => affiliateCode.endsWith(ext))) {
+        redirect('/')
     }
 
     // Tentar validar o código no backend

@@ -6,8 +6,11 @@ import { Hero } from '@/components/home/hero'
 import { CTASection } from '@/components/home/cta'
 import { BenefitsSecuritySection } from '@/components/home/benefits-security'
 import { BenefitsPrivacySection } from '@/components/home/benefits-privacy'
+import { BenefitsPraticiadeSection } from '@/components/home/benefits-praticidade'
+import { SecurityFeaturesSection } from '@/components/home/security-features'
 import { DashboardPreview } from '@/components/home/dashboard-preview'
 import { StatsSection } from '@/components/home/stats-section'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 export default function Home() {
   return (
@@ -16,11 +19,17 @@ export default function Home() {
 
       <DashboardPreview />
 
-      <StatsSection />
+      <ErrorBoundary fallback={null}>
+        <StatsSection />
+      </ErrorBoundary>
+
+      <BenefitsPrivacySection />
 
       <BenefitsSecuritySection />
 
-      <BenefitsPrivacySection />
+      <BenefitsPraticiadeSection />
+
+      <SecurityFeaturesSection />
 
       <CTASection />
     </main>

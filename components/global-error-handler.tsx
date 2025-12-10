@@ -8,6 +8,21 @@ export function GlobalErrorHandler() {
     if (typeof window === 'undefined') return
 
     const handleError = (event: ErrorEvent) => {
+      // Em desenvolvimento, ignorar erros de chunk do Turbopack
+      if (process.env.NODE_ENV === 'development') {
+        const isChunkError = 
+          event.message?.includes('Failed to load chunk') ||
+          event.message?.includes('ChunkLoadError') ||
+          event.message?.includes('_next/static/chunks') ||
+          event.message?.includes('react-server-dom-turbopack')
+        
+        if (isChunkError) {
+          console.warn('Erro de chunk do Turbopack ignorado:', event.message)
+          event.preventDefault()
+          return
+        }
+      }
+      
       // Ignorar erros de servidor indisponível
       if (
         event.message?.includes('Servidor indisponível') ||
