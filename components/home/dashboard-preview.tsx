@@ -40,7 +40,7 @@ export function DashboardPreview() {
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 1.3, ease: "easeOut" }}
-      className="relative z-20 w-full self-center mt-12 md:mt-24 mb-8 max-w-[100vw] overflow-hidden md:overflow-visible px-4 md:px-0 [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)]"
+      className="relative z-20 w-full self-center mt-12 md:mt-24 mb-8 max-w-[100vw] md:overflow-visible px-4 md:px-0"
     >
       {/* Outer shadow/darkening effect - fora do container principal */}
       <motion.div

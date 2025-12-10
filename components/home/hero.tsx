@@ -22,7 +22,7 @@ const HERO_LINE_TWO_WORDS: { text: string; highlight: boolean }[] = [
 
 export function Hero() {
   return (
-    <section className="flex flex-col justify-center md:items-center md:text-center pt-16 md:pt-24 overflow-hidden w-full [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)]">
+    <section className="flex flex-col justify-center md:items-center md:text-center pt-16 md:pt-24 w-full relative">
       <GridLines
         className="z-0 opacity-20"
         style={{

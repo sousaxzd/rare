@@ -14,7 +14,7 @@ import { ErrorBoundary } from '@/components/error-boundary'
 
 export default function Home() {
   return (
-    <main className="flex flex-col">
+    <main className="flex flex-col overflow-x-hidden w-full">
       <Hero />
 
       <DashboardPreview />
