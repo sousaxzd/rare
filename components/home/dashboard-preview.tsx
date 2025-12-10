@@ -40,12 +40,12 @@ export function DashboardPreview() {
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 1.3, ease: "easeOut" }}
-      className="relative z-20 flex items-center justify-center w-full self-center overflow-hidden mt-20 md:mt-32 mb-12 px-4 md:px-6"
+      className="relative z-20 flex items-center justify-center w-full self-center overflow-hidden mt-20 md:mt-32 mb-12 px-0 md:px-6"
     >
         {/* Container com largura igual ao header e outros elementos */}
-      <div className="w-full max-w-7xl mx-auto relative overflow-hidden">
-        {/* Image Container with Effects - compensa o padding para imagem ocupar largura total */}
-        <div className="relative -mx-4 md:-mx-6">
+      <div className="w-full max-w-7xl mx-auto relative overflow-hidden px-4 md:px-0">
+        {/* Image Container with Effects - sem negativo no mobile para evitar overflow */}
+        <div className="relative md:-mx-6">
           {/* Outer shadow/darkening effect - reduzido no mobile */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -75,7 +75,7 @@ export function DashboardPreview() {
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 107, 53, 0.1)',
               perspective: '1000px'
             }}
-            className="relative rounded-2xl overflow-hidden bg-background border border-foreground/10 shadow-2xl dashboard-preview-3d cursor-pointer scale-95 md:scale-100"
+            className="relative rounded-2xl overflow-hidden bg-background border border-foreground/10 shadow-2xl dashboard-preview-3d cursor-pointer w-full"
           >
             {/* Inner darkening borders */}
             <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent z-10 pointer-events-none" />
