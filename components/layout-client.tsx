@@ -18,12 +18,12 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
   return (
     <ErrorBoundary>
       <PWAProvider>
-        <div className={`relative flex flex-col overflow-x-hidden w-full ${hideLayout ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
+        <div className={`relative flex flex-col ${hideLayout ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
           {!hideLayout && <Navbar />}
           {hideLayout ? (
             children
           ) : (
-            <main className={`flex-grow container mx-auto max-w-7xl w-full ${isHome ? 'mt-[-30] md:mt-0' : (isLogin || isSignup) ? 'mt-4 md:mt-6' : 'mt-8 md:mt-12'} mb-10 px-4 sm:px-6`}>
+            <main className={`flex-grow container mx-auto max-w-7xl ${isHome ? 'mt-[-30] md:mt-0' : (isLogin || isSignup) ? 'mt-4 md:mt-6' : 'mt-8 md:mt-12'} mb-10 px-4 sm:px-6`}>
               {children}
             </main>
           )}

@@ -26,9 +26,9 @@ const securityBenefits = [
 
 export function BenefitsSecuritySection() {
   return (
-    <section className="mt-20 mb-12 flex flex-col lg:flex-row justify-between w-full gap-8 relative px-4 md:px-0 overflow-hidden">
+    <section className="mt-20 mb-12 flex flex-col lg:flex-row justify-between w-full gap-8 relative px-4 md:px-0">
       {/* Left Column - Text Content */}
-      <div className="w-full lg:w-1/2 flex flex-col gap-2 relative z-10 overflow-hidden">
+      <div className="w-full lg:w-1/2 flex flex-col gap-2 relative z-10">
         <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none hidden lg:block" />
 
         <div className="flex items-center gap-1 flex-wrap">
