@@ -47,7 +47,7 @@ const faqItems = [
 
 export function FAQ() {
   return (
-    <section className="mt-12 md:mt-16">
+    <section className="mt-16">
       <div className="flex flex-col gap-4">
         <h2 className="text-2xl font-bold text-foreground">Perguntas Frequentes</h2>
         <Accordion

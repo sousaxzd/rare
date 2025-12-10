@@ -142,7 +142,7 @@ export default function Pricing() {
   return (
     <div className="w-full">
       <div className="space-y-4">
-        <div className="text-center mb-12 md:mb-16 space-y-4">
+        <div className="text-center mb-16 space-y-4">
           <motion.h1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}

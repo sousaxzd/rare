@@ -35,7 +35,7 @@ export function SecurityFeaturesSection() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.6 }}
-            className="relative mt-8 mb-8 py-12 lg:mt-24 lg:mb-24 lg:py-24"
+            className="relative mt-8 mb-8 md:mt-12 md:mb-16 py-10 md:py-16 overflow-hidden"
         >
             {/* Organic background */}
             <div className="absolute inset-0 pointer-events-none">
@@ -49,7 +49,7 @@ export function SecurityFeaturesSection() {
 
             <div className="relative z-10">
                 {/* Split layout: Image left, Content right */}
-                <div className="flex flex-col-reverse lg:flex-row items-center gap-8 lg:gap-16 px-4 md:px-0">
+                <div className="flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-16">
 
                     {/* Left side - Illustration */}
                     <motion.div
@@ -85,9 +85,10 @@ export function SecurityFeaturesSection() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.6, delay: 0.1 }}
-                            className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight mb-5"
+                            className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground leading-tight mb-5"
                         >
-                            Sua conta{' '}
+                            <span className="md:hidden">Conta </span>
+                            <span className="hidden md:inline">Sua conta </span>
                             <span className="relative inline-block">
                                 <span className="text-primary">blindada</span>
                                 <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-primary to-primary/30 rounded-full" />
@@ -111,7 +112,7 @@ export function SecurityFeaturesSection() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: 0.3 }}
-                            className="grid grid-cols-2 gap-6 mb-8"
+                            className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8"
                         >
                             {features.map((feature, index) => (
                                 <div

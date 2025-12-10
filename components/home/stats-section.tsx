@@ -128,7 +128,7 @@ export function StatsSection() {
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.6, ease: "easeOut" }}
             onViewportEnter={() => setIsInView(true)}
-            className="mt-12 flex flex-col items-center justify-center px-4 md:px-0"
+            className="relative mt-8 md:mt-12 flex flex-col items-center justify-center overflow-hidden w-full max-w-[100vw] px-4 md:px-0"
         >
             {/* Header with divider lines */}
             <div className="w-full flex flex-col items-center">

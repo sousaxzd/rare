@@ -14,7 +14,7 @@ const benefits = [
   {
     icon: faGavel,
     title: 'Sem MEDs',
-    description: '0 reembolsos por fraude',
+    description: 'Zero reembolsos por fraude',
   },
   {
     icon: faUserShield,
@@ -35,7 +35,7 @@ export function BenefitsPrivacySection() {
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.6 }}
-      className="relative mt-8 mb-8 py-12 lg:mt-24 lg:mb-24 lg:py-24"
+      className="relative mt-12 mb-12 py-16"
     >
       {/* Organic background */}
       <div className="absolute inset-0 pointer-events-none">
@@ -49,7 +49,7 @@ export function BenefitsPrivacySection() {
 
       <div className="relative z-10">
         {/* Split layout: Content left, Image right */}
-        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 px-4 md:px-0">
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
 
           {/* Left side - Content */}
           <div className="flex-1 lg:max-w-[55%]">
@@ -70,11 +70,13 @@ export function BenefitsPrivacySection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight mb-5"
+              className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground leading-tight mb-5"
             >
-              Conta{' '}
+              <span className="md:hidden">Conta </span>
+              <span className="hidden md:inline">Conta </span>
               <span className="relative inline-block">
-                <span className="text-primary">sem burocracia</span>
+                <span className="text-primary md:hidden">Fácil</span>
+                <span className="text-primary hidden md:inline">sem burocracia</span>
                 <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-primary to-primary/30 rounded-full" />
               </span>
             </motion.h2>

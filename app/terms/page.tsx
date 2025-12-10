@@ -101,7 +101,7 @@ export default function Terms() {
 
           {/* Content */}
           <div className="flex-1 max-w-4xl">
-            <div className="space-y-12 md:space-y-20">
+            <div className="space-y-20">
 
               <section id="aceitacao" className="scroll-mt-28">
                 <h2 className="text-2xl font-bold mb-4 text-foreground">1. Aceitação dos Termos</h2>

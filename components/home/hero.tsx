@@ -22,7 +22,7 @@ const HERO_LINE_TWO_WORDS: { text: string; highlight: boolean }[] = [
 
 export function Hero() {
   return (
-    <section className="flex flex-col justify-center md:items-center md:text-center pt-16 md:pt-24 w-full relative">
+    <section className="relative flex flex-col justify-center md:items-center md:text-center pt-12 md:pt-24 overflow-hidden w-full max-w-[100vw]">
       <GridLines
         className="z-0 opacity-20"
         style={{
@@ -54,7 +54,7 @@ export function Hero() {
           transition={{ delay: 1.5, duration: 0.2, ease: "easeOut" }}
           className="pointer-events-none absolute top-20 left-25 h-40 md:left-50 md:h-50 w-1/2 max-w-sm rounded-full bg-primary/20 blur-[80px]"
         />
-        <h1 className="text-[2.5rem] md:text-7xl font-bold leading-[1.1]">
+        <h1 className="text-4xl sm:text-[2.5rem] md:text-7xl font-bold leading-[1.1] px-4">
           {HERO_LINE_ONE_WORDS.map((item, index) => (
             <motion.span
               key={`l1-${index}`}
@@ -83,11 +83,11 @@ export function Hero() {
           initial={{ opacity: 0, y: 8, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ delay: 1.2, duration: 0.5, ease: "easeOut" }}
-          className="text-foreground/70 font-normal text-[15px] max-w-2xl self-center"
+          className="text-foreground/70 font-normal text-sm md:text-[15px] max-w-2xl self-center px-4"
         >
           Receba e transfira PIX de forma anônima, sem MEDs ou bloqueios e sem idade mínima. <span className="font-semibold text-primary">Privacidade, liberdade e segurança</span> para você operar com tranquilidade.
         </motion.p>
-        <div className="flex gap-2 md:gap-5 flex-row items-center justify-center mt-2 flex-wrap">
+        <div className="flex gap-2 md:gap-5 flex-col md:flex-row md:items-center md:justify-center mt-2">
           <motion.div
             initial={{ opacity: 0, y: 8, filter: "blur(8px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -109,7 +109,7 @@ export function Hero() {
               }}
             >
               <span className="flex items-center justify-center gap-1">
-                Nossos Planos <FontAwesomeIcon icon={faChevronRight} className="text-[11px] duration-200 transition-all hover:text-foreground text-foreground/80" />
+                Conheça nossos produtos <FontAwesomeIcon icon={faChevronRight} className="text-[11px] duration-200 transition-all hover:text-foreground text-foreground/80" />
               </span>
             </Button>
           </motion.div>
@@ -125,7 +125,7 @@ export function Hero() {
               }}
             >
               <span className="flex items-center justify-center gap-1">
-                Nossos Planos <FontAwesomeIcon icon={faChevronRight} className="text-[11px] duration-200 transition-all hover:text-foreground text-foreground/80" />
+                Conheça nossos produtos <FontAwesomeIcon icon={faChevronRight} className="text-[11px] duration-200 transition-all hover:text-foreground text-foreground/80" />
               </span>
             </Button>
           </motion.div>
