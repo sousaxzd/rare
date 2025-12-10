@@ -40,24 +40,24 @@ export function DashboardPreview() {
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 1.3, ease: "easeOut" }}
-      className="relative z-20 flex items-center justify-center w-full self-center overflow-hidden mt-20 md:mt-32 mb-12 px-4 md:px-6"
+      className="relative z-20 flex items-center justify-center w-full self-center overflow-visible mt-20 md:mt-32 mb-12 px-4 md:px-6"
     >
         {/* Container com largura igual ao header e outros elementos */}
-      <div className="w-full max-w-7xl mx-auto relative overflow-hidden">
+      <div className="w-full max-w-7xl mx-auto relative">
         {/* Image Container with Effects - compensa o padding para imagem ocupar largura total */}
-        <div className="relative -mx-4 md:-mx-6 overflow-hidden">
+        <div className="relative -mx-4 md:-mx-6">
           {/* Outer shadow/darkening effect - pode ultrapassar as bordas */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.8 }}
             transition={{ duration: 1, delay: 1.6 }}
-            className="absolute -inset-4 md:-inset-8 bg-gradient-to-b from-background via-background/95 to-background rounded-3xl blur-2xl"
+            className="absolute -inset-8 bg-gradient-to-b from-background via-background/95 to-background rounded-3xl blur-2xl"
           />
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.6 }}
             transition={{ duration: 1, delay: 1.7 }}
-            className="absolute -inset-2 md:-inset-4 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 rounded-3xl blur-xl"
+            className="absolute -inset-4 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 rounded-3xl blur-xl"
           />
 
           {/* Main image container - largura total, alinhada com bordas do container */}
@@ -103,7 +103,7 @@ export function DashboardPreview() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 0.4, scale: 1 }}
             transition={{ duration: 1.2, delay: 1.8 }}
-            className="absolute -inset-4 md:-inset-12 bg-primary/5 rounded-3xl blur-3xl -z-10"
+            className="absolute -inset-12 bg-primary/5 rounded-3xl blur-3xl -z-10"
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}

@@ -18,7 +18,7 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
   return (
     <ErrorBoundary>
       <PWAProvider>
-        <div className={`relative flex flex-col overflow-x-hidden ${hideLayout ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
+        <div className={`relative flex flex-col ${hideLayout ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
           {!hideLayout && <Navbar />}
           {hideLayout ? (
             children
