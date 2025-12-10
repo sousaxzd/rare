@@ -84,8 +84,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning className="overflow-x-hidden">
-      <body className={`font-sans antialiased overflow-x-hidden`} suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body className={`font-sans antialiased`} suppressHydrationWarning>
         <ErrorBoundary>
           <DevToolsBlocker />
           <AuthProvider>

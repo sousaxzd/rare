@@ -22,26 +22,24 @@ const HERO_LINE_TWO_WORDS: { text: string; highlight: boolean }[] = [
 
 export function Hero() {
   return (
-    <section className="flex flex-col justify-center md:items-center md:text-center pt-20 md:pt-32 px-4 md:px-0 overflow-hidden w-full relative">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <GridLines
-          className="z-0 opacity-50"
-          style={{
-            WebkitMaskImage:
-              "radial-gradient(50% 40% at 50% 20%, #000 30%, transparent 80%)",
-            maskImage:
-              "radial-gradient(50% 40% at 50% 20%, #000 30%, transparent 80%)",
-          }}
-        />
-      </div>
+    <section className="flex flex-col justify-center md:items-center md:text-center pt-20 md:pt-32 px-4 md:px-0 overflow-hidden w-full">
+      <GridLines
+        className="z-0 opacity-50"
+        style={{
+          WebkitMaskImage:
+            "radial-gradient(50% 40% at 50% 20%, #000 30%, transparent 80%)",
+          maskImage:
+            "radial-gradient(50% 40% at 50% 20%, #000 30%, transparent 80%)",
+        }}
+      />
 
-      <section className="relative flex flex-col gap-2 w-full overflow-hidden max-w-full">
+      <section className="relative flex flex-col gap-2 w-full overflow-hidden">
         {/* Glow effect - appears with content */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
-          className="pointer-events-none absolute top-20 left-1/2 -translate-x-1/2 h-40 md:h-64 w-[90%] max-w-sm rounded-full bg-primary/20 blur-[80px]"
+          className="pointer-events-none absolute top-20 left-1/2 -translate-x-1/2 h-40 md:h-64 w-full max-w-sm rounded-full bg-primary/20 blur-[80px]"
         />
 
         {/* Badge - appears first above title */}
@@ -62,29 +60,28 @@ export function Hero() {
         </motion.div>
 
         {/* Title with staggered word animations */}
-        <h1 className="text-[2rem] sm:text-[2.5rem] md:text-5xl lg:text-7xl font-bold leading-[1.15] md:leading-[1.1] w-full text-center">
-          <div className="inline-block">
+        <h1 className="text-[2rem] sm:text-[2.5rem] md:text-5xl lg:text-7xl font-bold leading-[1.1] w-full">
+          <div className="flex flex-wrap justify-center md:justify-center gap-x-2.5 gap-y-0">
             {HERO_LINE_ONE_WORDS.map((item, index) => (
               <motion.span
                 key={`l1-${index}`}
                 initial={{ opacity: 0, y: 15, filter: "blur(6px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 transition={{ delay: 0.3 + index * 0.08, duration: 0.4, ease: "easeOut" }}
-                className={`inline-block ${item.highlight ? "text-primary" : ""} ${index < HERO_LINE_ONE_WORDS.length - 1 ? 'mr-1.5 md:mr-2.5' : ''}`}
+                className={`inline-block ${item.highlight ? "text-primary" : ""}`}
               >
                 {item.text}
               </motion.span>
             ))}
           </div>
-          <br className="hidden sm:inline" />
-          <div className="inline-block mt-0">
+          <div className="flex flex-wrap justify-center md:justify-center gap-x-2.5 gap-y-0 mt-0">
             {HERO_LINE_TWO_WORDS.map((item, index) => (
               <motion.span
                 key={`l2-${index}`}
                 initial={{ opacity: 0, y: 15, filter: "blur(6px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 transition={{ delay: 0.3 + (index + 3) * 0.08, duration: 0.4, ease: "easeOut" }}
-                className={`inline-block ${item.highlight ? "text-primary" : ""} ${index < HERO_LINE_TWO_WORDS.length - 1 ? 'mr-1.5 md:mr-2.5' : ''}`}
+                className={`inline-block ${item.highlight ? "text-primary" : ""}`}
               >
                 {item.text}
               </motion.span>
