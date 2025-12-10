@@ -26,10 +26,10 @@ export function CTASection() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 2.2 }}
-          className="flex flex-col sm:flex-row gap-2 md:max-w-xl w-full sm:w-auto"
+          className="flex gap-2 md:max-w-xl w-full md:w-auto"
         >
           <Button
-            className="w-full sm:w-auto bg-transparent border border-foreground/10 text-foreground hover:bg-foreground/5 text-sm px-4"
+            className="w-fit bg-transparent border border-foreground/10 text-foreground hover:bg-foreground/5 text-sm px-4"
             onClick={() => {
               window.location.href = "/dashboard";
             }}
@@ -40,7 +40,7 @@ export function CTASection() {
             </span>
           </Button>
           <Button
-            className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 text-sm px-4"
+            className="w-fit bg-primary text-primary-foreground hover:bg-primary/90 text-sm px-4"
             onClick={() => {
               window.location.href = "/pricing";
             }}
