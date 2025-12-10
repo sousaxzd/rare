@@ -5,7 +5,7 @@ import { SidebarDashboard } from '@/components/sidebar-dashboard'
 import { DashboardTopbar } from '@/components/dashboard-topbar'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCalendar, faFilePdf, faFileExcel, faDownload, faArrowUp, faArrowDown, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faCalendar, faFilePdf, faFileExcel, faDownload, faArrowUp, faArrowDown, faSpinner, faHandHoldingDollar } from '@fortawesome/free-solid-svg-icons'
 import { RippleButton } from '@/components/ripple-button'
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -19,7 +19,7 @@ interface Transaction {
   date: string
   description: string
   type: 'income' | 'expense'
-  transactionType: 'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received'
+  transactionType: 'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received' | 'commission'
   amount: number
   status: string
 }
@@ -64,7 +64,7 @@ export default function TransactionsPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [detailsModalOpen, setDetailsModalOpen] = useState(false)
   const [selectedTransactionId, setSelectedTransactionId] = useState<string>('')
-  const [selectedTransactionType, setSelectedTransactionType] = useState<'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received'>('payment')
+  const [selectedTransactionType, setSelectedTransactionType] = useState<'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received' | 'commission'>('payment')
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -81,8 +81,8 @@ export default function TransactionsPage() {
         allTransactions.push({
           id: p.id,
           type: 'income',
-          transactionType: 'payment',
-          description: p.description || 'Depósito',
+          transactionType: (p.metadata && p.metadata.type === 'commission') ? 'commission' : 'payment',
+          description: (p.metadata && p.metadata.type === 'commission') ? 'Comissão de Afiliado' : (p.description || 'Depósito'),
           amount: p.netValue || p.value,
           date: p.createdAt,
           status: p.status
@@ -381,13 +381,19 @@ export default function TransactionsPage() {
                                     <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${transaction.type === 'income' ? 'bg-green-500/10' : 'bg-red-500/10'
                                       }`}>
                                       <FontAwesomeIcon
-                                        icon={transaction.type === 'income' ? faArrowDown : faArrowUp}
+                                        icon={
+                                          transaction.transactionType === 'commission' ? faHandHoldingDollar :
+                                            (transaction.type === 'income' ? faArrowDown : faArrowUp)
+                                        }
                                         className={`w-3 h-3 sm:w-4 sm:h-4 ${transaction.type === 'income' ? 'text-green-500' : 'text-red-500'
                                           }`}
                                       />
                                     </div>
                                     <span className="text-sm font-medium text-foreground">
-                                      {transaction.type === 'income' ? 'Entrada' : 'Saída'}
+                                      {transaction.transactionType === 'commission'
+                                        ? 'Comissão de Afiliado'
+                                        : (transaction.type === 'income' ? 'Entrada' : 'Saída')
+                                      }
                                     </span>
                                   </div>
                                 </td>
@@ -442,7 +448,7 @@ export default function TransactionsPage() {
 
           </div>
         </main>
-      </div>
+      </div >
 
       <TransactionDetailsModal
         open={detailsModalOpen}
@@ -450,6 +456,6 @@ export default function TransactionsPage() {
         transactionId={selectedTransactionId}
         transactionType={selectedTransactionType}
       />
-    </div>
+    </div >
   )
 }

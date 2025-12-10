@@ -8,9 +8,11 @@ import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import { toastSuccess, toastError } from '@/lib/toast'
 import { useWallet } from '@/components/providers/wallet-provider'
+import { useAuth } from '@/hooks/useAuth'
 
 export function PlanSettings() {
-  const { balance } = useWallet()
+  const { balance, refreshWallet } = useWallet()
+  const { refreshUser } = useAuth()
   const [planInfo, setPlanInfo] = useState<any>(null)
   const [availablePlans, setAvailablePlans] = useState<AvailablePlan[]>([])
   const [loading, setLoading] = useState(false)
@@ -76,7 +78,14 @@ export function PlanSettings() {
       setUpgrading(true)
       await upgradePlan(selectedPlan)
       toastSuccess('Plano atualizado com sucesso!')
-      await loadPlanInfo()
+
+      // Atualizar dados em paralelo para refletir mudanças imediatamente
+      await Promise.all([
+        loadPlanInfo(),
+        refreshUser(),
+        refreshWallet()
+      ])
+
       setSelectedPlan('')
     } catch (err) {
       toastError(err instanceof Error ? err.message : 'Erro ao fazer upgrade do plano')

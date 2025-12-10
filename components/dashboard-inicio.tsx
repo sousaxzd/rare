@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faWallet, faArrowUp, faArrowDown, faEye, faEyeSlash, faReceipt, faArrowRight, faPaperPlane, faInbox, faSpinner, faCopy, faCheck, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faWallet, faArrowUp, faArrowDown, faEye, faEyeSlash, faReceipt, faArrowRight, faPaperPlane, faInbox, faSpinner, faCopy, faCheck, faTimes, faTrash, faHandHoldingDollar } from '@fortawesome/free-solid-svg-icons'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
 import { RippleButton } from './ripple-button'
@@ -24,7 +24,7 @@ interface DashboardInicioProps {
 interface TransactionDisplay {
   id: string
   type: 'received' | 'sent'
-  transactionType: 'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received'
+  transactionType: 'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received' | 'commission'
   description: string
   amount: number
   date: string
@@ -45,7 +45,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
   const [transactions, setTransactions] = useState<TransactionDisplay[]>([])
   const [detailsModalOpen, setDetailsModalOpen] = useState(false)
   const [selectedTransactionId, setSelectedTransactionId] = useState<string>('')
-  const [selectedTransactionType, setSelectedTransactionType] = useState<'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received'>('payment')
+  const [selectedTransactionType, setSelectedTransactionType] = useState<'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received' | 'commission'>('payment')
   const [lastPaymentIds, setLastPaymentIds] = useState<Set<string>>(new Set())
   const [lastWithdrawIds, setLastWithdrawIds] = useState<Set<string>>(new Set())
   const [copiedPixKey, setCopiedPixKey] = useState<string | null>(null)
@@ -681,7 +681,11 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${transaction.status === 'PENDING' ? 'bg-yellow-500/10' : (transaction.status === 'CANCELLED' || transaction.status === 'FAILED') ? 'bg-white/10' : (transaction.type === 'received' ? 'bg-green-500/10' : 'bg-red-500/10')
                     }`}>
                     <FontAwesomeIcon
-                      icon={(transaction.status === 'CANCELLED' || transaction.status === 'FAILED') ? faTimes : (transaction.type === 'received' ? faArrowDown : faArrowUp)}
+                      icon={
+                        (transaction.status === 'CANCELLED' || transaction.status === 'FAILED') ? faTimes :
+                          transaction.transactionType === 'commission' ? faHandHoldingDollar :
+                            (transaction.type === 'received' ? faArrowDown : faArrowUp)
+                      }
                       className={`w-4 h-4 ${transaction.status === 'PENDING' ? 'text-yellow-500' : (transaction.status === 'CANCELLED' || transaction.status === 'FAILED') ? 'text-white' : (transaction.type === 'received' ? 'text-green-500' : 'text-red-500')
                         }`}
                     />
@@ -696,7 +700,9 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
                             ? 'Transferência interna recebida'
                             : transaction.transactionType === 'internal_transfer_sent'
                               ? 'Transferência interna enviada'
-                              : (transaction.type === 'received' ? 'Depósito' : 'Transferência')
+                              : transaction.transactionType === 'commission'
+                                ? 'Comissão de Afiliado'
+                                : (transaction.type === 'received' ? 'Depósito' : 'Transferência')
                       }
                     </p>
                     <p className="text-xs text-muted-foreground">

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faReceipt, faArrowUp, faSignOutAlt, faPlug, faKey, faExternalLink, faXmark, faBullseye, faChartLine, faArrowDown, faExchangeAlt, faGear, faLayerGroup, faWrench } from '@fortawesome/free-solid-svg-icons'
+import { faHome, faReceipt, faArrowUp, faSignOutAlt, faPlug, faUsers, faKey, faExternalLink, faXmark, faBullseye, faChartLine, faArrowDown, faExchangeAlt, faGear, faLayerGroup, faWrench } from '@fortawesome/free-solid-svg-icons'
 import { faDiscord } from '@fortawesome/free-brands-svg-icons'
 import { RippleButton } from './ripple-button'
 import { Separator } from '@/components/ui/separator'
@@ -29,6 +29,7 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
         { id: 'resumo', label: 'Resumo', icon: faChartLine, href: '/dashboard/summary' },
         { id: 'extrato', label: 'Extrato', icon: faReceipt, href: '/dashboard/transactions' },
         { id: 'metas', label: 'Metas', icon: faBullseye, href: '/dashboard/goals' },
+        { id: 'afiliados', label: 'Programa de Afiliados', icon: faUsers, href: '/dashboard/affiliates-program' },
       ]
     },
     {

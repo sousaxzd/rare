@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEnvelope, faLock, faUser, faCalendar, faPhone, faEye, faEyeSlash, faKey, faCheckCircle, faArrowRight, faSpinner, faUserPlus, faArrowLeft, faIdCard } from '@fortawesome/free-solid-svg-icons'
 import { RippleButton } from '@/components/ripple-button'
 import { requestSignupCode, signup, isAuthenticated } from '@/lib/auth'
+import { trackAffiliateClick } from '@/lib/wallet'
 import { validatePassword } from '@/lib/passwordValidator'
 
 export default function SignupPage() {
@@ -15,6 +16,7 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null)
   const [passwordErrors, setPasswordErrors] = useState<string[]>([])
   const [cpfError, setCpfError] = useState<string | null>(null)
+  const [fullNameError, setFullNameError] = useState<string | null>(null)
   const [step, setStep] = useState<'form' | 'code'>('form')
   const [code, setCode] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -29,12 +31,43 @@ export default function SignupPage() {
     confirmPassword: '',
   })
 
+  // Limites de caracteres
+  const MAX_NAME_LENGTH = 100
+  const MAX_PHONE_LENGTH = 15
+
+  const searchParams = useSearchParams()
+  const refCode = searchParams.get('ref')
+
+  // Salvar código de afiliado no cookie se existir na URL
+  useEffect(() => {
+    if (refCode) {
+      document.cookie = `affiliate_code=${refCode}; path=/; max-age=604800` // 7 dias
+      trackAffiliateClick(refCode).catch(console.error)
+    }
+  }, [refCode])
+
   // Redirecionar se já estiver logado
   useEffect(() => {
     if (isAuthenticated()) {
       router.push('/')
     }
   }, [router])
+
+  // Validar nome completo (pelo menos primeiro e último nome)
+  const validateFullName = (name: string): { valid: boolean; error: string | null } => {
+    const trimmed = name.trim()
+    if (!trimmed) {
+      return { valid: false, error: 'Nome é obrigatório' }
+    }
+    const nameParts = trimmed.split(/\s+/).filter(part => part.length > 0)
+    if (nameParts.length < 2) {
+      return { valid: false, error: 'Informe nome e sobrenome' }
+    }
+    if (nameParts.some(part => part.length < 2)) {
+      return { valid: false, error: 'Cada parte do nome deve ter pelo menos 2 caracteres' }
+    }
+    return { valid: true, error: null }
+  }
 
   // Função para formatar CPF
   const formatCPF = (value: string) => {
@@ -48,11 +81,30 @@ export default function SignupPage() {
     return value
   }
 
+  // Função para formatar telefone
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, '')
+    if (numbers.length <= 11) {
+      if (numbers.length <= 2) return numbers
+      if (numbers.length <= 7) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`
+      return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7)}`
+    }
+    return value
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value
+    const name = e.target.name
+
+    // Validar e limitar nome
+    if (name === 'fullName') {
+      if (value.length > MAX_NAME_LENGTH) return
+      const validation = validateFullName(value)
+      setFullNameError(value.length > 0 ? validation.error : null)
+    }
 
     // Formatar CPF automaticamente
-    if (e.target.name === 'cpf') {
+    if (name === 'cpf') {
       value = formatCPF(value)
       // Validar CPF em tempo real
       const cleaned = value.replace(/[.\-/]/g, '')
@@ -70,17 +122,23 @@ export default function SignupPage() {
       }
     }
 
+    // Formatar e limitar telefone
+    if (name === 'phone') {
+      value = formatPhone(value)
+      if (value.length > MAX_PHONE_LENGTH) return
+    }
+
     setFormData({
       ...formData,
-      [e.target.name]: value,
+      [name]: value,
     })
     setError(null)
 
     // Validar senha em tempo real
-    if (e.target.name === 'password') {
+    if (name === 'password') {
       const validation = validatePassword(e.target.value)
       setPasswordErrors(validation.errors)
-    } else if (e.target.name === 'confirmPassword') {
+    } else if (name === 'confirmPassword') {
       setPasswordErrors([])
     }
   }
@@ -130,6 +188,14 @@ export default function SignupPage() {
     e.preventDefault()
     setError(null)
 
+    // Validar nome completo
+    const nameValidation = validateFullName(formData.fullName)
+    if (!nameValidation.valid) {
+      setError(nameValidation.error || 'Nome completo é obrigatório')
+      setFullNameError(nameValidation.error)
+      return
+    }
+
     // Validar CPF com algoritmo completo de dígitos verificadores
     if (!formData.cpf) {
       setError('CPF é obrigatório')
@@ -173,6 +239,17 @@ export default function SignupPage() {
     setLoading(true)
 
     try {
+
+      // Obter código de afiliado do cookie se existir
+      let affiliateCode = undefined;
+      if (typeof document !== 'undefined') {
+        const cookies = document.cookie.split(';');
+        const affiliateCookie = cookies.find(c => c.trim().startsWith('affiliate_code='));
+        if (affiliateCookie) {
+          affiliateCode = affiliateCookie.split('=')[1];
+        }
+      }
+
       const response = await signup({
         fullName: formData.fullName,
         email: formData.email,
@@ -181,6 +258,7 @@ export default function SignupPage() {
         birthDate: formData.birthDate || undefined,
         phone: formData.phone || undefined,
         taxID: formData.cpf.replace(/\D/g, ''), // Remover formatação antes de enviar
+        affiliateCode,
       })
 
       if (response.success && response.token) {
@@ -254,11 +332,21 @@ export default function SignupPage() {
                       onChange={handleChange}
                       placeholder="Seu nome completo"
                       autoComplete="off"
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${loading ? 'opacity-60 cursor-not-allowed' : ''
-                        }`}
+                      maxLength={MAX_NAME_LENGTH}
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border ${fullNameError && formData.fullName ? 'border-red-500/50' : !fullNameError && formData.fullName && validateFullName(formData.fullName).valid ? 'border-green-500/50' : 'border-foreground/10'} text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
                       required
                       disabled={loading}
                     />
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    {fullNameError && formData.fullName ? (
+                      <p className="text-xs text-red-500">{fullNameError}</p>
+                    ) : !fullNameError && formData.fullName && validateFullName(formData.fullName).valid ? (
+                      <p className="text-xs text-green-500">✓ Nome válido</p>
+                    ) : (
+                      <p className="text-xs text-foreground/60">Informe nome e sobrenome</p>
+                    )}
+                    <p className="text-xs text-foreground/40">{formData.fullName.length}/{MAX_NAME_LENGTH}</p>
                   </div>
                 </div>
 
@@ -303,10 +391,10 @@ export default function SignupPage() {
                       autoComplete="off"
                       maxLength={14}
                       className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border ${cpfError && formData.cpf
-                          ? 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/50'
-                          : formData.cpf && !cpfError && formData.cpf.replace(/[.\-/]/g, '').length === 11
-                            ? 'border-green-500/50 focus:border-green-500/50 focus:ring-green-500/50'
-                            : 'border-foreground/10 focus:border-primary/30 focus:ring-primary/50'
+                        ? 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/50'
+                        : formData.cpf && !cpfError && formData.cpf.replace(/[.\-/]/g, '').length === 11
+                          ? 'border-green-500/50 focus:border-green-500/50 focus:ring-green-500/50'
+                          : 'border-foreground/10 focus:border-primary/30 focus:ring-primary/50'
                         } text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 transition-all ${loading ? 'opacity-60 cursor-not-allowed' : ''
                         }`}
                       required
@@ -370,11 +458,14 @@ export default function SignupPage() {
                       onChange={handleChange}
                       placeholder="(00) 00000-0000"
                       autoComplete="off"
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${loading ? 'opacity-60 cursor-not-allowed' : ''
-                        }`}
+                      maxLength={MAX_PHONE_LENGTH}
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
                       required
                       disabled={loading}
                     />
+                  </div>
+                  <div className="flex justify-end mt-1">
+                    <p className="text-xs text-foreground/40">{formData.phone.length}/{MAX_PHONE_LENGTH}</p>
                   </div>
                 </div>
 
@@ -395,8 +486,8 @@ export default function SignupPage() {
                       placeholder="••••••••"
                       autoComplete="new-password"
                       className={`w-full pl-10 pr-12 py-3 rounded-lg bg-foreground/5 border ${passwordErrors.length > 0 && formData.password
-                          ? 'border-red-500/50'
-                          : 'border-foreground/10'
+                        ? 'border-red-500/50'
+                        : 'border-foreground/10'
                         } text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all`}
                       required
                       disabled={loading}
@@ -464,7 +555,7 @@ export default function SignupPage() {
                 <RippleButton
                   type="submit"
                   className="w-full py-3.5 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 mt-2 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  disabled={loading || !!cpfError || !formData.cpf || formData.cpf.replace(/[.\-/]/g, '').length !== 11}
+                  disabled={loading || !!cpfError || !!fullNameError || !formData.fullName || !formData.cpf || formData.cpf.replace(/[.\-/]/g, '').length !== 11}
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">

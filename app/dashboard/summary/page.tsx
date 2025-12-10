@@ -7,10 +7,11 @@ import { DashboardHeader } from '@/components/dashboard-header'
 import { RippleButton } from '@/components/ripple-button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
-import { format, subDays, startOfDay, endOfDay, startOfYear, parseISO } from 'date-fns'
+import { format, subDays, startOfDay, endOfDay, startOfYear, parseISO, eachDayOfInterval, isSameDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { listPayments, listWithdraws, getBalance } from '@/lib/wallet'
 import { useAuth } from '@/hooks/useAuth'
+import { CalendarIcon, Wallet, TrendingUp, TrendingDown } from 'lucide-react'
 
 type PeriodFilter = 'today' | '7days' | '30days' | 'year' | 'all'
 
@@ -199,51 +200,70 @@ export default function SummaryPage() {
 
   // Preparar dados para o gráfico
   const chartData = useMemo(() => {
-    const groupedByDate = new Map<string, {
-      date: string
-      fullDate: Date
-      income: number
-      expense: number
-      volume: number
-      runningBalance: number
-    }>()
+    const now = new Date()
+    let startDate: Date
 
-    // Ordenar transações por data
-    const sortedTransactions = [...filteredTransactions].sort((a, b) => a.date.getTime() - b.date.getTime())
+    switch (periodFilter) {
+      case 'today':
+        startDate = startOfDay(now)
+        break
+      case '7days':
+        startDate = startOfDay(subDays(now, 7))
+        break
+      case '30days':
+        startDate = startOfDay(subDays(now, 30))
+        break
+      case 'year':
+        startDate = startOfYear(now)
+        break
+      case 'all':
+        if (allTransactions.length > 0) {
+          startDate = startOfDay(allTransactions[0].date)
+        } else {
+          startDate = startOfDay(subDays(now, 30))
+        }
+        break
+    }
 
-    // Calcular saldo inicial do período
+    if (startDate > now) startDate = startOfDay(now)
+
+    let days: Date[] = []
+    try {
+      days = eachDayOfInterval({ start: startDate, end: now })
+    } catch (e) {
+      days = [now]
+    }
+
     let runningBalance = stats.initialBalance
 
-    sortedTransactions.forEach(transaction => {
-      const dateKey = format(transaction.date, 'dd/MM', { locale: ptBR })
+    return days.map(day => {
+      const displayDate = format(day, 'dd/MM', { locale: ptBR })
 
-      if (!groupedByDate.has(dateKey)) {
-        groupedByDate.set(dateKey, {
-          date: dateKey,
-          fullDate: transaction.date,
-          income: 0,
-          expense: 0,
-          volume: 0,
-          runningBalance: runningBalance
-        })
+      const dayTransactions = filteredTransactions.filter(t => isSameDay(t.date, day))
+
+      let income = 0
+      let expense = 0
+
+      dayTransactions.forEach(t => {
+        if (t.type === 'income') {
+          income += t.amount
+        } else {
+          expense += Math.abs(t.amount)
+        }
+      })
+
+      runningBalance += income - expense
+
+      return {
+        date: displayDate,
+        fullDate: day,
+        income,
+        expense,
+        volume: income + expense,
+        runningBalance
       }
-
-      const dayData = groupedByDate.get(dateKey)!
-      if (transaction.type === 'income') {
-        dayData.income += transaction.amount
-        runningBalance += transaction.amount
-      } else {
-        dayData.expense += Math.abs(transaction.amount)
-        runningBalance -= Math.abs(transaction.amount)
-      }
-      dayData.volume = dayData.income + dayData.expense
-      dayData.runningBalance = runningBalance
     })
-
-    return Array.from(groupedByDate.values()).sort((a, b) => {
-      return a.fullDate.getTime() - b.fullDate.getTime()
-    })
-  }, [filteredTransactions, stats.initialBalance])
+  }, [filteredTransactions, stats.initialBalance, periodFilter, allTransactions])
 
   const formatCurrency = (value: number) => {
     return `R$ ${value.toFixed(2).replace('.', ',')}`
@@ -374,100 +394,124 @@ export default function SummaryPage() {
               {loading ? (
                 <Skeleton className="h-[280px] sm:h-[400px] w-full rounded-lg" />
               ) : chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={typeof window !== 'undefined' && window.innerWidth < 640 ? 280 : 400}>
-                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
-                    <defs>
-                      <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.5} />
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" vertical={false} />
-                    <XAxis
-                      dataKey="date"
-                      stroke="rgba(255,255,255,0.3)"
-                      style={{ fontSize: '10px' }}
-                      tick={{ fill: 'rgba(255,255,255,0.5)' }}
-                      tickLine={false}
-                      axisLine={false}
-                      interval="preserveStartEnd"
-                    />
-                    <YAxis
-                      stroke="rgba(255,255,255,0.3)"
-                      style={{ fontSize: '10px' }}
-                      tick={{ fill: 'rgba(255,255,255,0.5)' }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={50}
-                      tickFormatter={(value) => {
-                        if (value >= 1000) return `${(value / 1000).toFixed(0)}k`
-                        return value.toFixed(0)
-                      }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'rgba(10, 10, 10, 0.95)',
-                        border: '1px solid rgba(255,255,255,0.15)',
-                        borderRadius: '12px',
-                        color: '#fff',
-                        padding: '12px 16px',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-                      }}
-                      formatter={(value: number, name: string) => {
-                        const labels: Record<string, string> = {
-                          runningBalance: 'Saldo',
-                          income: 'Entradas',
-                          expense: 'Saídas'
-                        }
-                        return [formatCurrency(value), labels[name] || name]
-                      }}
-                      labelFormatter={(label) => `📅 ${label}`}
-                      labelStyle={{ color: 'rgba(255,255,255,0.7)', marginBottom: '8px', fontWeight: 500 }}
-                      itemStyle={{ padding: '2px 0' }}
-                    />
-                    {/* Linha de Saldo - Principal */}
-                    <Area
-                      type="monotone"
-                      dataKey="runningBalance"
-                      stroke="#3b82f6"
-                      fillOpacity={1}
-                      fill="url(#colorBalance)"
-                      strokeWidth={3}
-                      dot={false}
-                      activeDot={{ r: 6, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }}
-                    />
-                    {/* Entradas */}
-                    <Area
-                      type="monotone"
-                      dataKey="income"
-                      stroke="#22c55e"
-                      fillOpacity={0.8}
-                      fill="url(#colorIncome)"
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 5, fill: '#22c55e' }}
-                    />
-                    {/* Saídas */}
-                    <Area
-                      type="monotone"
-                      dataKey="expense"
-                      stroke="#ef4444"
-                      fillOpacity={0.8}
-                      fill="url(#colorExpense)"
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 5, fill: '#ef4444' }}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <div className="h-[280px] sm:h-[400px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
+                      <defs>
+                        <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.5} />
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#22c55e" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" vertical={false} />
+                      <XAxis
+                        dataKey="date"
+                        stroke="rgba(255,255,255,0.3)"
+                        style={{ fontSize: '10px' }}
+                        tick={{ fill: 'rgba(255,255,255,0.5)' }}
+                        tickLine={false}
+                        axisLine={false}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis
+                        stroke="rgba(255,255,255,0.3)"
+                        style={{ fontSize: '10px' }}
+                        tick={{ fill: 'rgba(255,255,255,0.5)' }}
+                        tickLine={false}
+                        axisLine={false}
+                        width={50}
+                        tickFormatter={(value) => {
+                          if (value >= 1000) return `${(value / 1000).toFixed(0)}k`
+                          return value.toFixed(0)
+                        }}
+                      />
+                      <Tooltip
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="rounded-xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-xl p-3 min-w-[180px]">
+                                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/50">
+                                  <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                                  <span className="text-sm font-medium">{label}</span>
+                                </div>
+                                <div className="space-y-1.5">
+                                  {payload.map((entry: any, index: number) => {
+                                    let icon = <Wallet className="w-3.5 h-3.5" />
+                                    let label = entry.name
+                                    if (entry.name === 'runningBalance') {
+                                      icon = <Wallet className="w-3.5 h-3.5" />
+                                      label = 'Saldo'
+                                    } else if (entry.name === 'income') {
+                                      icon = <TrendingUp className="w-3.5 h-3.5" />
+                                      label = 'Entradas'
+                                    } else if (entry.name === 'expense') {
+                                      icon = <TrendingDown className="w-3.5 h-3.5" />
+                                      label = 'Saídas'
+                                    }
+
+                                    return (
+                                      <div key={index} className="flex items-center justify-between gap-4 text-xs">
+                                        <div className="flex items-center gap-1.5" style={{ color: entry.stroke }}>
+                                          {icon}
+                                          <span>{label}</span>
+                                        </div>
+                                        <span className="font-mono font-medium">
+                                          {formatCurrency(entry.value)}
+                                        </span>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              </div>
+                            )
+                          }
+                          return null
+                        }}
+                      />
+                      {/* Linha de Saldo - Principal */}
+                      <Area
+                        type="monotone"
+                        dataKey="runningBalance"
+                        stroke="#3b82f6"
+                        fillOpacity={1}
+                        fill="url(#colorBalance)"
+                        strokeWidth={3}
+                        dot={{ r: 4, strokeWidth: 2, fill: '#3b82f6', stroke: '#fff' }}
+                        activeDot={{ r: 6, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }}
+                      />
+                      {/* Entradas */}
+                      <Area
+                        type="monotone"
+                        dataKey="income"
+                        stroke="#22c55e"
+                        fillOpacity={0.8}
+                        fill="url(#colorIncome)"
+                        strokeWidth={2}
+                        dot={{ r: 3, strokeWidth: 1, fill: '#22c55e' }}
+                        activeDot={{ r: 5, fill: '#22c55e' }}
+                      />
+                      {/* Saídas */}
+                      <Area
+                        type="monotone"
+                        dataKey="expense"
+                        stroke="#ef4444"
+                        fillOpacity={0.8}
+                        fill="url(#colorExpense)"
+                        strokeWidth={2}
+                        dot={{ r: 3, strokeWidth: 1, fill: '#ef4444' }}
+                        activeDot={{ r: 5, fill: '#ef4444' }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               ) : (
                 <div className="h-[280px] sm:h-[400px] flex items-center justify-center text-foreground/60">
                   <div className="text-center">

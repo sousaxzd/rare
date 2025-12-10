@@ -93,6 +93,7 @@ export interface Payment {
   description?: string;
   createdAt: string;
   updatedAt: string;
+  metadata?: any;
 }
 
 export interface PaymentListResponse {
@@ -241,7 +242,7 @@ export async function listWithdraws(params?: {
 export interface Transaction {
   id: string;
   type: 'income' | 'expense';
-  transactionType: 'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received';
+  transactionType: 'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received' | 'commission';
   date: string;
   amount: number;
   status: string;
@@ -357,3 +358,117 @@ export async function getUserData(): Promise<{ success: boolean; data: UserData 
   return apiGet('/auth/user');
 }
 
+// ========== AFILIADOS ==========
+
+export interface AffiliateData {
+  id: string;
+  code: string;
+  link: string;
+  totalReferrals: number;
+  totalEarnings: number;
+  totalEarningsInReais: string;
+  // Taxa de comissão
+  commissionRate: number;
+  commissionRateInReais: string;
+  stats: {
+    clicks: number;
+    referrals: number;
+    earnings: number;
+    conversion: string;
+  };
+  recentReferrals: {
+    name: string;
+    email: string;
+    plan: string;
+    date: string;
+  }[];
+  status: string;
+  createdAt: string;
+}
+
+export interface AffiliateReferral {
+  id: string;
+  email: string;
+  name: string;
+  plan: string;
+  createdAt: string;
+  transactions: number;
+  earnings: number;
+}
+
+export interface AffiliateStatsData {
+  affiliate: {
+    id: string;
+    code: string;
+    link: string;
+    status: string;
+    createdAt: string;
+  };
+  stats: {
+    totalReferrals: number;
+    totalEarnings: number;
+    totalEarningsInReais: string;
+    totalTransactionsFromReferrals: number;
+    commissionPerTransaction: number;
+    commissionPerTransactionInReais: string;
+    referralsLast7Days: number;
+    referralsLast30Days: number;
+  };
+  referrals: AffiliateReferral[];
+  generatedAt: string;
+}
+
+/**
+ * Registrar como afiliado
+ */
+export async function registerAsAffiliate(code?: string): Promise<{ success: boolean; message: string; data: AffiliateData }> {
+  return apiPost('/affiliates/join', code ? { code } : {});
+}
+
+/**
+ * Obter dados do afiliado
+ */
+export async function getAffiliateData(): Promise<{ success: boolean; isAffiliate: boolean; data?: AffiliateData; error?: string }> {
+  return apiGet('/affiliates');
+}
+
+/**
+ * Atualizar código do afiliado
+ */
+export async function updateAffiliateCode(code: string): Promise<{ success: boolean; message: string; data: { code: string; link: string } }> {
+  return apiPut('/affiliates/code', { newCode: code });
+}
+
+/**
+ * Obter estatísticas detalhadas do afiliado
+ */
+export async function getAffiliateStats(): Promise<{ success: boolean; data: AffiliateStatsData }> {
+  // Por enquanto, o endpoint principal já retorna stats
+  const response = await apiGet<any>('/affiliates');
+  return {
+    success: response.success,
+    data: {
+      ...response.affiliate, // Mapear campos se necessário
+      stats: response.affiliate.stats,
+      referrals: response.affiliate.recentReferrals
+    } as any
+  };
+}
+
+export async function trackAffiliateClick(code: string): Promise<void> {
+  // Rota pública, não precisa de autenticação mas a func apiPost pode enviar token se tiver.
+  // Como é public e silenciosa, não tem problema.
+  await apiPost(`/affiliates/track/${code}`);
+}
+
+/**
+ * Validar código de afiliado (pública)
+ */
+export async function validateAffiliateCode(code: string): Promise<{ valid: boolean; data?: { code: string; name: string }; error?: string }> {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.visionwallet.com.br'}/affiliates/validate/${code}`);
+    return await response.json();
+  } catch {
+    return { valid: false, error: 'Erro ao validar código' };
+  }
+}

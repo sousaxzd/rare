@@ -18,7 +18,7 @@ interface TransactionDetailsModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   transactionId: string
-  transactionType: 'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received'
+  transactionType: 'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received' | 'commission'
 }
 
 export function TransactionDetailsModal({
@@ -56,7 +56,7 @@ export function TransactionDetailsModal({
         return
       }
 
-      if (transactionType === 'payment') {
+      if (transactionType === 'payment' || transactionType === 'commission') {
         const response = await getPaymentById(transactionId)
         if (response.success) {
           setDetails(response.data)
@@ -156,7 +156,7 @@ export function TransactionDetailsModal({
                 )}
               </div>
               <DialogTitle className="text-center text-2xl font-bold">
-                {transactionType === 'payment' ? 'Comprovante de Depósito' : 'Comprovante de Transferência'}
+                {transactionType === 'payment' ? 'Comprovante de Depósito' : transactionType === 'commission' ? 'Comprovante de Comissão' : 'Comprovante de Transferência'}
               </DialogTitle>
               <DialogDescription className="text-center pt-2">
                 {statusInfo?.label}
@@ -173,7 +173,7 @@ export function TransactionDetailsModal({
                   </span>
                 </div>
 
-                {transactionType === 'payment' && details.netValue && details.netValue !== details.value && (
+                {(transactionType === 'payment' || transactionType === 'commission') && details.netValue && details.netValue !== details.value && (
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Taxa</span>

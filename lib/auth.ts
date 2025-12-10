@@ -12,6 +12,7 @@ export interface SignupData {
   birthDate?: string;
   phone?: string;
   taxID?: string;
+  affiliateCode?: string;
 }
 
 export interface LoginData {

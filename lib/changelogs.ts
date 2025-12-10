@@ -15,6 +15,21 @@ export interface Changelog {
 
 export const changelogs: Changelog[] = [
     {
+        version: '1.3.0',
+        date: '2025-12-09',
+        title: 'Programa de Afiliados e Novas Funcionalidades',
+        description: 'Grande atualização com o lançamento do programa de afiliados, novas funcionalidades de pagamento e melhorias gerais na plataforma.',
+        type: 'feature',
+        changes: [
+            'Lançamento do Programa de Afiliados Vision Wallet.',
+            'Atualização da logo da plataforma.',
+            'Adição de Splits em pagamentos via API.',
+            'Implementação de Transferências Internas entre usuários.',
+            'Refatoração completa de várias seções da Dashboard.',
+            'Melhorias nas páginas de Configurações.'
+        ]
+    },
+    {
         version: '1.2.0',
         date: '2025-12-03',
         title: 'Refinamentos Visuais e Segurança',

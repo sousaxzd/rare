@@ -51,6 +51,7 @@ export default function SettingsPage() {
   const [emailCode, setEmailCode] = useState('')
   const [emailStep, setEmailStep] = useState<'form' | 'code'>('form')
   const [fullName, setFullName] = useState('')
+  const [fullNameError, setFullNameError] = useState<string | null>(null)
   const [birthDate, setBirthDate] = useState('')
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [oldPassword, setOldPassword] = useState('')
@@ -59,6 +60,26 @@ export default function SettingsPage() {
   const [passwordStep, setPasswordStep] = useState<'form' | 'code'>('form')
   const [forgotPassword, setForgotPassword] = useState(false)
   const [passwordValidation, setPasswordValidation] = useState<{ valid: boolean; errors: string[] }>({ valid: true, errors: [] })
+
+  // Limites de caracteres
+  const MAX_NAME_LENGTH = 100
+  const MAX_PHONE_LENGTH = 15
+
+  // Validar nome completo (pelo menos primeiro e último nome)
+  const validateFullName = (name: string): { valid: boolean; error: string | null } => {
+    const trimmed = name.trim()
+    if (!trimmed) {
+      return { valid: false, error: 'Nome é obrigatório' }
+    }
+    const nameParts = trimmed.split(/\s+/).filter(part => part.length > 0)
+    if (nameParts.length < 2) {
+      return { valid: false, error: 'Informe nome e sobrenome' }
+    }
+    if (nameParts.some(part => part.length < 2)) {
+      return { valid: false, error: 'Cada parte do nome deve ter pelo menos 2 caracteres' }
+    }
+    return { valid: true, error: null }
+  }
 
   // Estados de segurança de transferências
   const [transferSecurityEnabled, setTransferSecurityEnabled] = useState(false)
@@ -284,6 +305,14 @@ export default function SettingsPage() {
 
   const handleChangeName = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validar nome
+    const validation = validateFullName(fullName)
+    if (!validation.valid) {
+      setFullNameError(validation.error)
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -291,10 +320,29 @@ export default function SettingsPage() {
       await refreshUser()
       toastSuccess('Nome atualizado com sucesso!')
       setActiveSection(null)
+      setFullNameError(null)
     } catch (err) {
       toastError(err instanceof Error ? err.message : 'Erro ao atualizar nome')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleNameChange = (value: string) => {
+    // Limitar caracteres
+    if (value.length <= MAX_NAME_LENGTH) {
+      setFullName(value)
+      // Validar em tempo real
+      const validation = validateFullName(value)
+      setFullNameError(value.length > 0 ? validation.error : null)
+    }
+  }
+
+  const handlePhoneChange = (value: string) => {
+    // Limitar caracteres e permitir apenas números e caracteres de formatação
+    const formatted = value.replace(/[^0-9()\s-]/g, '')
+    if (formatted.length <= MAX_PHONE_LENGTH) {
+      setPhone(formatted)
     }
   }
 
@@ -578,18 +626,29 @@ export default function SettingsPage() {
                       </div>
                       {activeSection === 'name' && (
                         <form onSubmit={handleChangeName} className="space-y-3">
-                          <input
-                            type="text"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            placeholder="Seu nome completo"
-                            className="w-full px-4 py-2 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                            disabled={loading}
-                            required
-                          />
+                          <div>
+                            <input
+                              type="text"
+                              value={fullName}
+                              onChange={(e) => handleNameChange(e.target.value)}
+                              placeholder="Seu nome completo"
+                              maxLength={MAX_NAME_LENGTH}
+                              className={`w-full px-4 py-2 rounded-lg bg-foreground/5 border text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 ${fullNameError ? 'border-red-500' : 'border-foreground/10'}`}
+                              disabled={loading}
+                              required
+                            />
+                            <div className="flex justify-between mt-1">
+                              {fullNameError ? (
+                                <p className="text-xs text-red-500">{fullNameError}</p>
+                              ) : (
+                                <p className="text-xs text-foreground/40">Informe nome e sobrenome</p>
+                              )}
+                              <p className="text-xs text-foreground/40">{fullName.length}/{MAX_NAME_LENGTH}</p>
+                            </div>
+                          </div>
                           <button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || !!fullNameError}
                             className="w-full py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                           >
                             {loading ? (
@@ -681,15 +740,21 @@ export default function SettingsPage() {
                       </div>
                       {activeSection === 'phone' && (
                         <form onSubmit={handleChangePhone} className="space-y-3">
-                          <input
-                            type="tel"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            placeholder="(00) 00000-0000"
-                            className="w-full px-4 py-2 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                            disabled={loading}
-                            required
-                          />
+                          <div>
+                            <input
+                              type="tel"
+                              value={phone}
+                              onChange={(e) => handlePhoneChange(e.target.value)}
+                              placeholder="(00) 00000-0000"
+                              maxLength={MAX_PHONE_LENGTH}
+                              className="w-full px-4 py-2 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                              disabled={loading}
+                              required
+                            />
+                            <div className="flex justify-end mt-1">
+                              <p className="text-xs text-foreground/40">{phone.length}/{MAX_PHONE_LENGTH}</p>
+                            </div>
+                          </div>
                           <button
                             type="submit"
                             disabled={loading}
