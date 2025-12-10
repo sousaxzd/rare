@@ -35,7 +35,7 @@ export function SecurityFeaturesSection() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.6 }}
-            className="relative mt-12 mb-12 py-16 lg:mt-24 lg:mb-24 lg:py-24 overflow-hidden"
+            className="relative mt-8 mb-8 py-12 lg:mt-24 lg:mb-24 lg:py-24 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)]"
         >
             {/* Organic background */}
             <div className="absolute inset-0 pointer-events-none">
@@ -85,7 +85,7 @@ export function SecurityFeaturesSection() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.6, delay: 0.1 }}
-                            className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground leading-tight mb-5"
+                            className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight mb-5"
                         >
                             Sua conta{' '}
                             <span className="relative inline-block">

@@ -22,7 +22,7 @@ const HERO_LINE_TWO_WORDS: { text: string; highlight: boolean }[] = [
 
 export function Hero() {
   return (
-    <section className="flex flex-col justify-center md:items-center md:text-center pt-16 md:pt-24 overflow-hidden w-full">
+    <section className="flex flex-col justify-center md:items-center md:text-center pt-16 md:pt-24 overflow-hidden w-full [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)]">
       <GridLines
         className="z-0 opacity-20"
         style={{
@@ -87,7 +87,7 @@ export function Hero() {
         >
           Receba e transfira PIX de forma anônima, sem MEDs ou bloqueios e sem idade mínima. <span className="font-semibold text-primary">Privacidade, liberdade e segurança</span> para você operar com tranquilidade.
         </motion.p>
-        <div className="flex gap-2 md:gap-5 flex-col md:flex-row md:items-center md:justify-center mt-2">
+        <div className="flex gap-2 md:gap-5 flex-row items-center justify-center mt-2 flex-wrap">
           <motion.div
             initial={{ opacity: 0, y: 8, filter: "blur(8px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -109,7 +109,7 @@ export function Hero() {
               }}
             >
               <span className="flex items-center justify-center gap-1">
-                Conheça nossos produtos <FontAwesomeIcon icon={faChevronRight} className="text-[11px] duration-200 transition-all hover:text-foreground text-foreground/80" />
+                Nossos Planos <FontAwesomeIcon icon={faChevronRight} className="text-[11px] duration-200 transition-all hover:text-foreground text-foreground/80" />
               </span>
             </Button>
           </motion.div>
@@ -125,7 +125,7 @@ export function Hero() {
               }}
             >
               <span className="flex items-center justify-center gap-1">
-                Conheça nossos produtos <FontAwesomeIcon icon={faChevronRight} className="text-[11px] duration-200 transition-all hover:text-foreground text-foreground/80" />
+                Nossos Planos <FontAwesomeIcon icon={faChevronRight} className="text-[11px] duration-200 transition-all hover:text-foreground text-foreground/80" />
               </span>
             </Button>
           </motion.div>
