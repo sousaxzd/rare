@@ -13,8 +13,8 @@ export function Footer() {
   const isExternalLink = (href: string) => href.startsWith('http://') || href.startsWith('https://')
 
   return (
-    <footer className="flex flex-col py-10 border-t border-foreground/10 w-full">
-      <section className="flex w-full flex-col md:flex-row gap-5 md:gap-20 max-w-7xl mx-auto px-6 md:justify-between">
+    <footer className="flex flex-col py-10 border-t border-foreground/10 w-full overflow-x-hidden">
+      <section className="flex w-full flex-col md:flex-row gap-5 md:gap-20 max-w-7xl mx-auto px-4 sm:px-6 md:justify-between">
         <div className="flex flex-col gap-2 md:justify-center">
           <div className="flex items-center justify-start gap-3">
             <Link href="/" className="flex flex-row gap-2 items-center select-none w-fit">

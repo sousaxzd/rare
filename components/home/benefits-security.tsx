@@ -77,7 +77,7 @@ export function BenefitsSecuritySection() {
       </div>
 
       {/* Right Column - Image with Glow */}
-      <div className="w-full lg:w-1/2 h-auto relative flex items-center justify-end lg:block hidden">
+      <div className="w-full lg:w-1/2 h-auto relative flex items-center justify-end lg:block hidden overflow-hidden">
         <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 blur-[120px] rounded-full opacity-60 pointer-events-none" />
         <img
           src="/roboanonimo.png"
