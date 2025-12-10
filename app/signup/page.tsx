@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -10,7 +10,7 @@ import { requestSignupCode, signup, isAuthenticated } from '@/lib/auth'
 import { trackAffiliateClick } from '@/lib/wallet'
 import { validatePassword } from '@/lib/passwordValidator'
 
-export default function SignupPage() {
+function SignupContent() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -682,3 +682,15 @@ export default function SignupPage() {
   )
 }
 
+// Wrapper com Suspense para useSearchParams
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[calc(100vh-120px)] flex items-center justify-center">
+        <FontAwesomeIcon icon={faSpinner} className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    }>
+      <SignupContent />
+    </Suspense>
+  )
+}
