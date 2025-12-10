@@ -11,7 +11,7 @@ import { StatsSection } from '@/components/home/stats-section'
 
 export default function Home() {
   return (
-    <main className="flex flex-col">
+    <main className="flex flex-col overflow-x-hidden w-full">
       <Hero />
 
       <DashboardPreview />

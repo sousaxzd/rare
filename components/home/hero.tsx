@@ -22,7 +22,7 @@ const HERO_LINE_TWO_WORDS: { text: string; highlight: boolean }[] = [
 
 export function Hero() {
   return (
-    <section className="flex flex-col justify-center md:items-center md:text-center pt-16 md:pt-24">
+    <section className="flex flex-col justify-center md:items-center md:text-center pt-16 md:pt-24 overflow-x-hidden w-full">
       <GridLines
         className="z-0 opacity-20"
         style={{
@@ -32,7 +32,7 @@ export function Hero() {
             "radial-gradient(60% 60% at 50% 40%, #000 60%, transparent 100%)",
         }}
       />
-      <section className="relative flex flex-col gap-2">
+      <section className="relative flex flex-col gap-2 w-full overflow-x-hidden">
         <motion.div
           initial={{ opacity: 0, y: 8, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -52,7 +52,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 8, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(64px)" }}
           transition={{ delay: 1.5, duration: 0.2, ease: "easeOut" }}
-          className="pointer-events-none absolute top-20 left-25 h-40 md:left-50 md:h-50 w-1/2 max-w-sm rounded-full bg-primary/20 blur-[80px]"
+          className="pointer-events-none absolute top-20 left-1/2 -translate-x-1/2 h-40 md:h-50 w-1/2 max-w-sm rounded-full bg-primary/20 blur-[80px]"
         />
         <h1 className="text-[2.5rem] md:text-7xl font-bold leading-[1.1]">
           {HERO_LINE_ONE_WORDS.map((item, index) => (

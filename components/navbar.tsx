@@ -17,8 +17,8 @@ export function Navbar() {
   const isExternalLink = (href: string) => href.startsWith('http://') || href.startsWith('https://')
 
   return (
-    <header className="py-4 sticky top-0 z-50 bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/85 border-b border-foreground/10">
-      <div className="max-w-7xl mx-auto px-6">
+    <header className="py-4 sticky top-0 z-50 bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/85 border-b border-foreground/10 overflow-x-hidden w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between w-full">
           {/* Logo - Left */}
           <div className="flex items-center justify-start flex-shrink-0">
@@ -83,8 +83,8 @@ export function Navbar() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-foreground/10 bg-background/95 backdrop-blur">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col gap-4">
+        <div className="md:hidden border-t border-foreground/10 bg-background/95 backdrop-blur overflow-x-hidden w-full">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col gap-4">
             {navItems.map((item) => {
               const isActive = pathname === item.href
               const external = isExternalLink(item.href)

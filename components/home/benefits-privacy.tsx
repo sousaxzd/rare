@@ -27,7 +27,7 @@ export function BenefitsPrivacySection() {
   return (
     <section className="mt-20 mb-12 flex flex-col lg:flex-row justify-between w-full gap-8 relative px-4 md:px-0">
       {/* Left Column - Text Content */}
-      <div className="w-full lg:w-1/2 flex flex-col gap-2 relative z-10">
+      <div className="w-full lg:w-1/2 flex flex-col gap-2 relative z-10 overflow-hidden">
         <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none hidden lg:block" />
 
         <div className="flex items-center gap-1 flex-wrap">
@@ -76,12 +76,12 @@ export function BenefitsPrivacySection() {
       </div>
 
       {/* Right Column - Image with Glow */}
-      <div className="w-full lg:w-1/2 h-auto relative flex items-center justify-end lg:block hidden">
+      <div className="w-full lg:w-1/2 h-auto relative flex items-center justify-end lg:block hidden overflow-hidden">
         <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 blur-[120px] rounded-full opacity-60 pointer-events-none" />
         <img
           src="/roboapresentando.png"
           alt="Privacidade e Liberdade"
-          className="relative z-10 w-full h-auto object-contain max-h-[600px] scale-110 translate-x-10"
+          className="relative z-10 w-full h-auto object-contain max-h-[600px] scale-110 lg:translate-x-10"
         />
       </div>
     </section>
