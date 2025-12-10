@@ -22,7 +22,7 @@ const HERO_LINE_TWO_WORDS: { text: string; highlight: boolean }[] = [
 
 export function Hero() {
   return (
-    <section className="flex flex-col justify-center md:items-center md:text-center pt-20 md:pt-32 px-4 md:px-0">
+    <section className="flex flex-col justify-center md:items-center md:text-center pt-20 md:pt-32 px-4 md:px-0 overflow-hidden w-full">
       <GridLines
         className="z-0 opacity-50"
         style={{
@@ -33,13 +33,13 @@ export function Hero() {
         }}
       />
 
-      <section className="relative flex flex-col gap-2 w-full">
+      <section className="relative flex flex-col gap-2 w-full overflow-hidden">
         {/* Glow effect - appears with content */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
-          className="pointer-events-none absolute top-20 left-25 h-40 md:left-50 md:h-50 w-1/2 max-w-sm rounded-full bg-primary/20 blur-[80px]"
+          className="pointer-events-none absolute top-20 left-1/2 -translate-x-1/2 h-40 md:h-64 w-full max-w-sm rounded-full bg-primary/20 blur-[80px]"
         />
 
         {/* Badge - appears first above title */}
@@ -60,28 +60,29 @@ export function Hero() {
         </motion.div>
 
         {/* Title with staggered word animations */}
-        <h1 className="text-[2rem] sm:text-[2.5rem] md:text-5xl lg:text-7xl font-bold leading-[1.1] px-4 md:px-0">
-          <div className="flex flex-wrap justify-center md:justify-center gap-x-2.5 gap-y-0">
+        <h1 className="text-[2rem] sm:text-[2.5rem] md:text-5xl lg:text-7xl font-bold leading-[1.15] md:leading-[1.1] w-full text-center">
+          <div className="inline-block">
             {HERO_LINE_ONE_WORDS.map((item, index) => (
               <motion.span
                 key={`l1-${index}`}
                 initial={{ opacity: 0, y: 15, filter: "blur(6px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 transition={{ delay: 0.3 + index * 0.08, duration: 0.4, ease: "easeOut" }}
-                className={`inline-block ${item.highlight ? "text-primary" : ""}`}
+                className={`inline-block ${item.highlight ? "text-primary" : ""} ${index < HERO_LINE_ONE_WORDS.length - 1 ? 'mr-1.5 md:mr-2.5' : ''}`}
               >
                 {item.text}
               </motion.span>
             ))}
           </div>
-          <div className="flex flex-wrap justify-center md:justify-center gap-x-2.5 gap-y-0 mt-0">
+          <br className="hidden sm:inline" />
+          <div className="inline-block mt-0">
             {HERO_LINE_TWO_WORDS.map((item, index) => (
               <motion.span
                 key={`l2-${index}`}
                 initial={{ opacity: 0, y: 15, filter: "blur(6px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 transition={{ delay: 0.3 + (index + 3) * 0.08, duration: 0.4, ease: "easeOut" }}
-                className={`inline-block ${item.highlight ? "text-primary" : ""}`}
+                className={`inline-block ${item.highlight ? "text-primary" : ""} ${index < HERO_LINE_TWO_WORDS.length - 1 ? 'mr-1.5 md:mr-2.5' : ''}`}
               >
                 {item.text}
               </motion.span>
@@ -94,14 +95,14 @@ export function Hero() {
           initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ delay: 0.9, duration: 0.5, ease: "easeOut" }}
-          className="text-foreground/70 font-normal text-sm sm:text-[15px] max-w-2xl self-center mt-4 px-4 md:px-0 text-center"
+          className="text-foreground/70 font-normal text-sm sm:text-[15px] max-w-2xl self-center mt-4 w-full text-center"
         >
           Receba e transfira PIX de forma anônima, sem MEDs ou bloqueios e sem idade mínima. <span className="font-semibold text-primary">Privacidade, liberdade e segurança</span> para você operar com tranquilidade.
         </motion.p>
 
         {/* CTA Buttons - appear last */}
         <motion.div
-          className="flex gap-2 md:gap-5 flex-col sm:flex-row items-stretch sm:items-center justify-center mt-4 w-full px-4 md:px-0"
+          className="flex gap-2 md:gap-5 flex-col sm:flex-row items-stretch sm:items-center justify-center mt-4 w-full"
           initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ delay: 1.1, duration: 0.5, ease: "easeOut" }}

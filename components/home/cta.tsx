@@ -11,7 +11,7 @@ export function CTASection() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 2.0 }}
-      className="px-4 md:px-0"
+      className="px-4 md:px-0 overflow-hidden w-full"
     >
       <div className="flex flex-col md:flex-row md:justify-between gap-4 md:gap-6 md:items-center">
         <motion.h1
