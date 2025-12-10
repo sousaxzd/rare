@@ -40,12 +40,12 @@ export function DashboardPreview() {
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 1.3, ease: "easeOut" }}
-      className="relative z-20 flex items-center justify-center w-full self-center overflow-visible mt-20 md:mt-32 mb-12"
+      className="relative z-20 flex items-center justify-center w-full self-center overflow-visible mt-20 md:mt-32 mb-12 px-4 md:px-6"
     >
       {/* Container com largura igual ao header e outros elementos */}
-      <div className="w-full max-w-7xl mx-auto px-6 relative">
+      <div className="w-full max-w-7xl mx-auto relative">
         {/* Image Container with Effects - compensa o padding para imagem ocupar largura total */}
-        <div className="relative -mx-6">
+        <div className="relative -mx-4 md:-mx-6">
           {/* Outer shadow/darkening effect - pode ultrapassar as bordas */}
           <motion.div
             initial={{ opacity: 0 }}

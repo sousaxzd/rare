@@ -25,17 +25,17 @@ const privacyBenefits = [
 
 export function BenefitsPrivacySection() {
   return (
-    <section className="mt-20 mb-12 flex flex-col lg:flex-row justify-between w-full gap-8 relative">
+    <section className="mt-20 mb-12 flex flex-col lg:flex-row justify-between w-full gap-8 relative px-4 md:px-0">
       {/* Left Column - Text Content */}
       <div className="w-full lg:w-1/2 flex flex-col gap-2 relative z-10">
-        <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none hidden lg:block" />
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 flex-wrap">
           <FontAwesomeIcon icon={faLock} className="text-primary text-[12px]" />
-          <span className="text-primary/50 text-[12px]">|</span>
+          <span className="text-primary/50 text-[12px] hidden sm:inline">|</span>
           <span className="text-primary font-semibold text-[12px]">Privacidade e Liberdade</span>
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
           Privacidade total e operação sem limites
         </h1>
         <div className="flex flex-col gap-1">
@@ -57,17 +57,17 @@ export function BenefitsPrivacySection() {
           {privacyBenefits.map((benefit, index) => (
             <div
               key={index}
-              className="flex flex-row gap-4 justify-between items-start"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-start"
             >
               <div className="flex items-center gap-2 flex-shrink-0">
                 <div className="w-10 h-10 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center">
                   <FontAwesomeIcon icon={benefit.icon} className="text-primary text-sm" />
                 </div>
-                <p className="text-foreground/90 text-sm font-semibold whitespace-nowrap">
+                <p className="text-foreground/90 text-sm font-semibold">
                   {benefit.title}
                 </p>
               </div>
-              <p className="text-foreground/60 text-xs md:text-sm leading-tight md:max-w-xs max-w-1/2 text-right lg:text-left">
+              <p className="text-foreground/60 text-xs sm:text-sm leading-tight sm:max-w-xs flex-1 sm:text-left">
                 {benefit.description}
               </p>
             </div>

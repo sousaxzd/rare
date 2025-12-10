@@ -115,9 +115,9 @@ export function StatsSection() {
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.6, ease: "easeOut" }}
             onViewportEnter={() => setIsInView(true)}
-            className="py-8 md:py-12"
+            className="py-8 md:py-12 px-4 md:px-0"
         >
-            <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8 lg:gap-16 flex-wrap">
                 {/* Total Money Moved */}
                 <motion.div
                     initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -126,10 +126,10 @@ export function StatsSection() {
                     transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
                     className="text-center"
                 >
-                    <p className="text-3xl md:text-4xl font-bold text-foreground">
+                    <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
                         {formatCurrency(animatedMoney)}
                     </p>
-                    <p className="text-sm text-foreground/60 mt-1">movimentados</p>
+                    <p className="text-xs sm:text-sm text-foreground/60 mt-1">movimentados</p>
                 </motion.div>
 
                 {/* Divider */}
@@ -143,10 +143,10 @@ export function StatsSection() {
                     transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
                     className="text-center"
                 >
-                    <p className="text-3xl md:text-4xl font-bold text-foreground">
+                    <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
                         {formatNumber(animatedRegistrations)}
                     </p>
-                    <p className="text-sm text-foreground/60 mt-1">contas ativas</p>
+                    <p className="text-xs sm:text-sm text-foreground/60 mt-1">contas ativas</p>
                 </motion.div>
 
                 {/* Divider */}
@@ -160,10 +160,10 @@ export function StatsSection() {
                     transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
                     className="text-center"
                 >
-                    <p className="text-3xl md:text-4xl font-bold text-foreground">
+                    <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
                         {formatNumber(animatedTransactions)}
                     </p>
-                    <p className="text-sm text-foreground/60 mt-1">transações</p>
+                    <p className="text-xs sm:text-sm text-foreground/60 mt-1">transações</p>
                 </motion.div>
 
                 {/* Divider */}
@@ -181,7 +181,7 @@ export function StatsSection() {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
                     </span>
-                    <p className="text-sm text-foreground/60">Em tempo real</p>
+                    <p className="text-xs sm:text-sm text-foreground/60">Em tempo real</p>
                 </motion.div>
             </div>
         </motion.section>

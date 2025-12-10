@@ -23,7 +23,7 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
           {hideLayout ? (
             children
           ) : (
-            <main className={`flex-grow container mx-auto max-w-7xl ${isHome ? 'mt-[-30] md:mt-0' : (isLogin || isSignup) ? 'mt-4 md:mt-6' : 'mt-8 md:mt-12'} mb-10 px-6`}>
+            <main className={`flex-grow container mx-auto max-w-7xl ${isHome ? 'mt-[-30] md:mt-0' : (isLogin || isSignup) ? 'mt-4 md:mt-6' : 'mt-8 md:mt-12'} mb-10 px-4 sm:px-6`}>
               {children}
             </main>
           )}
