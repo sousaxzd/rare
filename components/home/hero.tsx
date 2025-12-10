@@ -47,21 +47,21 @@ export function Hero() {
           initial={{ opacity: 0, y: -10, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ delay: 0.1, duration: 0.4, ease: "easeOut" }}
-          className="w-full max-w-fit mx-auto text-center items-center justify-center px-3 py-0.5 md:px-5 md:py-1 bg-primary/30 backdrop-blur-[32px] border border-primary/20 rounded-full text-foreground text-[9px] sm:text-[10px] md:text-[12px] self-center flex flex-row gap-1.5 md:gap-2 mb-4 whitespace-nowrap"
+          className="w-full max-w-fit mx-auto text-center items-center justify-center px-2.5 py-0.5 md:px-5 md:py-1 bg-primary/30 backdrop-blur-[32px] border border-primary/20 rounded-full text-foreground text-[8px] sm:text-[10px] md:text-[12px] self-center flex flex-row gap-1 md:gap-2 mb-3 md:mb-4 whitespace-nowrap scale-90 md:scale-100"
         >
           <p className="whitespace-nowrap">
             Conta gratuita <span className="font-semibold">para sempre</span>
           </p>
           <p className="text-primary/50 hidden sm:inline">|</p>
-          <Link href="/pricing" className="text-[9px] sm:text-[10px] md:text-xs text-foreground p-0.5 md:p-1 hover:text-primary transition-colors inline-flex items-center gap-0.5 md:gap-1 whitespace-nowrap">
+          <Link href="/pricing" className="text-[8px] sm:text-[10px] md:text-xs text-foreground p-0 md:p-1 hover:text-primary transition-colors inline-flex items-center gap-0.5 md:gap-1 whitespace-nowrap">
             Começar agora
-            <FontAwesomeIcon icon={faUpRightFromSquare} className="text-[8px] md:text-[10px]" />
+            <FontAwesomeIcon icon={faUpRightFromSquare} className="text-[7px] md:text-[10px]" />
           </Link>
         </motion.div>
 
         {/* Title with staggered word animations */}
-        <h1 className="text-[2rem] sm:text-[2.5rem] md:text-5xl lg:text-7xl font-bold leading-[1.1] px-4 md:px-0">
-          <div className="flex flex-wrap justify-center md:justify-center gap-x-2.5 gap-y-0">
+        <h1 className="text-[1.75rem] sm:text-[2.5rem] md:text-5xl lg:text-7xl font-bold leading-[1.15] sm:leading-[1.1] px-2 md:px-0 text-center">
+          <div className="flex flex-wrap justify-center items-center gap-x-1.5 sm:gap-x-2.5 gap-y-0">
             {HERO_LINE_ONE_WORDS.map((item, index) => (
               <motion.span
                 key={`l1-${index}`}
@@ -74,7 +74,7 @@ export function Hero() {
               </motion.span>
             ))}
           </div>
-          <div className="flex flex-wrap justify-center md:justify-center gap-x-2.5 gap-y-0 mt-0">
+          <div className="flex flex-wrap justify-center items-center gap-x-1.5 sm:gap-x-2.5 gap-y-0 mt-0">
             {HERO_LINE_TWO_WORDS.map((item, index) => (
               <motion.span
                 key={`l2-${index}`}
