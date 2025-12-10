@@ -88,11 +88,30 @@ export default function DepositPage() {
   }
 
   const formatCurrency = (value: string) => {
-    // Remove tudo exceto números e vírgula/ponto
-    const cleaned = value.replace(/[^\d,.]/g, '')
-    // Converte vírgula para ponto
-    const normalized = cleaned.replace(',', '.')
-    return normalized
+    // Remove tudo exceto números, vírgula e ponto
+    let cleaned = value.replace(/[^\d,.]/g, '')
+
+    // Garantir apenas um separador decimal
+    // Se tiver tanto ponto quanto vírgula, manter apenas o último como decimal
+    const lastComma = cleaned.lastIndexOf(',')
+    const lastDot = cleaned.lastIndexOf('.')
+
+    // Determinar qual é o separador decimal (o último)
+    if (lastComma > lastDot) {
+      // Vírgula é decimal, remover pontos de milhar
+      cleaned = cleaned.replace(/\./g, '')
+    } else if (lastDot > lastComma) {
+      // Ponto é decimal, remover vírgulas de milhar e converter para vírgula
+      cleaned = cleaned.replace(/,/g, '').replace('.', ',')
+    }
+
+    // Garantir máximo 2 casas decimais
+    const parts = cleaned.split(',')
+    if (parts.length > 1 && parts[1].length > 2) {
+      cleaned = parts[0] + ',' + parts[1].substring(0, 2)
+    }
+
+    return cleaned
   }
 
   const parseAmount = (value: string): number => {
