@@ -22,7 +22,7 @@ export function Navbar() {
         <div className="flex items-center justify-between w-full">
           {/* Logo - Left */}
           <div className="flex items-center justify-start flex-shrink-0">
-            <Link href="/" className="flex items-center gap-3">
+            <Link href="/" className="flex justify-start items-center gap-3">
               <Logo size={38} width={38} height={38} />
               <div className="flex flex-col leading-[15px]">
                 <span className="text-foreground/90 font-normal font-sans text-[13px]">

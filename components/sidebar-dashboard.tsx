@@ -78,7 +78,7 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
       >
         {/* Logo & Close Button */}
         <div className="h-14 flex items-center justify-between px-4 lg:px-6 border-b border-foreground/10">
-          <div className="flex items-center gap-3 cursor-pointer select-none" onClick={() => router.push('/')}>
+          <div className="flex justify-start items-center gap-3 cursor-pointer select-none" onClick={() => router.push('/')}>
             <Logo size={38} width={38} height={38} />
             <div className="flex flex-col leading-[15px]">
               <span className="text-foreground/90 font-normal font-sans text-[13px]">
