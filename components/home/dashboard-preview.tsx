@@ -40,7 +40,7 @@ export function DashboardPreview() {
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 1.3, ease: "easeOut" }}
-      className="relative z-20 w-full self-center mt-16 md:mt-24 mb-8"
+      className="relative z-20 w-full self-center mt-12 md:mt-24 mb-8 max-w-[100vw] overflow-hidden md:overflow-visible px-4 md:px-0"
     >
       {/* Outer shadow/darkening effect - fora do container principal */}
       <motion.div
@@ -61,7 +61,7 @@ export function DashboardPreview() {
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 0.4, scale: 1 }}
         transition={{ duration: 1.2, delay: 1.8 }}
-        className="absolute -inset-12 md:-inset-20 bg-primary/5 rounded-3xl blur-xl md:blur-3xl -z-20 pointer-events-none"
+        className="absolute -inset-4 md:-inset-20 bg-primary/5 rounded-3xl blur-xl md:blur-3xl -z-20 pointer-events-none"
       />
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
