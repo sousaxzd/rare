@@ -208,7 +208,7 @@ export default function TransferPage() {
 
   const formatCurrency = (value: string) => {
     // Remove tudo exceto números, vírgula e ponto
-    let cleaned = value.replace(/[^\\d,.]/g, '')
+    let cleaned = value.replace(/[^\d,.]/g, '')
 
     // Garantir apenas um separador decimal
     // Se tiver tanto ponto quanto vírgula, manter apenas o último como decimal
@@ -218,7 +218,7 @@ export default function TransferPage() {
     // Determinar qual é o separador decimal (o último)
     if (lastComma > lastDot) {
       // Vírgula é decimal, remover pontos de milhar
-      cleaned = cleaned.replace(/\\./g, '')
+      cleaned = cleaned.replace(/\./g, '')
     } else if (lastDot > lastComma) {
       // Ponto é decimal, remover vírgulas de milhar e converter para vírgula
       cleaned = cleaned.replace(/,/g, '').replace('.', ',')

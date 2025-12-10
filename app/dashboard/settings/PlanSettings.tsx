@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSpinner, faCheck, faCreditCard, faSync, faArrowUp } from '@fortawesome/free-solid-svg-icons'
 import { getMyPlan, updatePlanSettings, getAvailablePlans, upgradePlan, AvailablePlan } from '@/lib/user-plan'
@@ -21,13 +21,9 @@ export function PlanSettings() {
   const [upgrading, setUpgrading] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<string>('')
 
-  useEffect(() => {
-    loadPlanInfo()
-  }, [])
-
-  const loadPlanInfo = async () => {
+  const loadPlanInfo = useCallback(async (showLoading = true) => {
     try {
-      setLoading(true)
+      if (showLoading) setLoading(true)
       const [planResponse, plansResponse] = await Promise.all([
         getMyPlan(),
         getAvailablePlans(),
@@ -37,11 +33,30 @@ export function PlanSettings() {
       setAutoRenew(planResponse.data.settings.autoRenew)
       setAutoUpgrade(planResponse.data.settings.autoUpgrade)
     } catch (err) {
-      toastError(err instanceof Error ? err.message : 'Erro ao carregar informações do plano')
+      if (showLoading) {
+        toastError(err instanceof Error ? err.message : 'Erro ao carregar informações do plano')
+      }
     } finally {
-      setLoading(false)
+      if (showLoading) setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    loadPlanInfo()
+
+    // Atualizar dados quando a aba voltar ao foco
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadPlanInfo(false) // Não mostrar loading ao voltar para a aba
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [loadPlanInfo])
 
   const handleToggleAutoRenew = async (checked: boolean) => {
     try {
