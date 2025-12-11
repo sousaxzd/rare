@@ -35,9 +35,21 @@ const nextConfig = {
         ],
       },
       {
-        // Páginas HTML - revalidar sempre
+        // Todas as páginas - não cachear HTML
         source: '/:path*',
         headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+          {
+            key: 'Expires',
+            value: '0',
+          },
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
