@@ -5,7 +5,9 @@ import disableDevtool from 'disable-devtool'
 
 export function DevToolsBlocker() {
     useEffect(() => {
-        disableDevtool()
+        if (process.env.NODE_ENV === 'production') {
+            disableDevtool()
+        }
     }, [])
 
     return null

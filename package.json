@@ -1,7 +1,9 @@
 {
-  "name": "my-v0-project",
-  "version": "0.1.0",
+  "name": "vision-wallet",
+  "version": "1.5.0",
   "private": true,
+  "author": "Carlos Mendes",
+  "license": "INPI BRASIL",
   "scripts": {
     "build": "next build",
     "dev": "next dev --turbopack",

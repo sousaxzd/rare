@@ -7,7 +7,7 @@ export const navItems = [
   {
     label: 'Saiba mais',
     href: '/about',
-    description: 'Conheça nossos produtos',
+    description: 'Saiba mais',
   },
   {
     label: 'Documentação',

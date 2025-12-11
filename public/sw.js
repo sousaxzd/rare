@@ -1,5 +1,7 @@
 // Service Worker para Vision Wallet
-const CACHE_NAME = 'vision-wallet-v1'
+// Cache version - update this to force cache refresh on new deployments
+const CACHE_VERSION = Date.now()
+const CACHE_NAME = `vision-wallet-v${CACHE_VERSION}`
 const urlsToCache = [
   '/',
   '/dashboard',
@@ -17,13 +19,15 @@ self.addEventListener('install', (event) => {
   self.skipWaiting()
 })
 
-// Ativação do Service Worker
+// Ativação do Service Worker - limpar caches antigos
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
+          // Deletar todos os caches antigos
+          if (cacheName.startsWith('vision-wallet-') && cacheName !== CACHE_NAME) {
+            console.log('[SW] Deletando cache antigo:', cacheName)
             return caches.delete(cacheName)
           }
         })
@@ -33,12 +37,55 @@ self.addEventListener('activate', (event) => {
   return self.clients.claim()
 })
 
-// Interceptar requisições
+// Interceptar requisições - Network First para HTML, Cache First para assets
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url)
+
+  // Para requisições de navegação (páginas HTML) - sempre buscar da rede primeiro
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Atualizar cache com nova versão
+          const responseClone = response.clone()
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone)
+          })
+          return response
+        })
+        .catch(() => {
+          // Fallback para cache se offline
+          return caches.match(event.request)
+        })
+    )
+    return
+  }
+
+  // Para assets estáticos com hash (/_next/static) - cache first
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(
+      caches.match(event.request).then((response) => {
+        return response || fetch(event.request).then((fetchResponse) => {
+          const responseClone = fetchResponse.clone()
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone)
+          })
+          return fetchResponse
+        })
+      })
+    )
+    return
+  }
+
+  // Para outras requisições - network first com fallback para cache
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request)
-    })
+    fetch(event.request)
+      .then((response) => {
+        return response
+      })
+      .catch(() => {
+        return caches.match(event.request)
+      })
   )
 })
 

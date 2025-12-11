@@ -40,20 +40,18 @@ export function DashboardPreview() {
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 1.3, ease: "easeOut" }}
-      className="relative z-20 w-full self-center mt-16 md:mt-24 mb-8"
+      className="relative z-20 w-full md:w-full max-w-[1200px] self-center mt-8 md:mt-24 mb-4 md:mb-8 mx-auto"
     >
       {/* Outer shadow/darkening effect - fora do container principal */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.8 }}
         transition={{ duration: 1, delay: 1.6 }}
-        className="absolute -inset-4 md:-inset-8 bg-gradient-to-b from-background via-background/95 to-background rounded-3xl blur-md md:blur-2xl -z-10 pointer-events-none"
       />
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.6 }}
         transition={{ duration: 1, delay: 1.7 }}
-        className="absolute -inset-4 md:-inset-8 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 rounded-3xl blur-sm md:blur-xl -z-10 pointer-events-none"
       />
 
       {/* Decorative glow effects - fora do container principal */}
@@ -61,13 +59,11 @@ export function DashboardPreview() {
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 0.4, scale: 1 }}
         transition={{ duration: 1.2, delay: 1.8 }}
-        className="absolute -inset-12 md:-inset-20 bg-primary/5 rounded-3xl blur-xl md:blur-3xl -z-20 pointer-events-none"
       />
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 0.2, scale: 1 }}
         transition={{ duration: 1.2, delay: 1.9 }}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-primary/5 rounded-full blur-[60px] md:blur-[120px] -z-20 pointer-events-none"
       />
 
       {/* Main image container - elemento visível alinhado */}

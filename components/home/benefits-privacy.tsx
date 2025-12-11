@@ -35,17 +35,10 @@ export function BenefitsPrivacySection() {
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.6 }}
-      className="relative mt-12 mb-12 py-16"
+      className="relative mt-8 mb-6 py-8 md:mt-12 md:mb-12 md:py-16"
     >
       {/* Organic background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-[600px] h-[600px]"
-          style={{
-            background: 'radial-gradient(ellipse, rgba(255,100,0,0.04) 0%, transparent 60%)',
-          }}
-        />
-      </div>
+
 
       <div className="relative z-10">
         {/* Split layout: Content left, Image right */}

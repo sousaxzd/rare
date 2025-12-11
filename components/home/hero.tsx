@@ -52,7 +52,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 8, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(64px)" }}
           transition={{ delay: 1.5, duration: 0.2, ease: "easeOut" }}
-          className="pointer-events-none absolute top-20 left-25 h-40 md:left-50 md:h-50 w-1/2 max-w-sm rounded-full bg-primary/20 blur-[80px]"
+          className="pointer-events-none absolute top-20 left-1/2 -translate-x-1/2 h-40 md:h-50 w-[60%] max-w-sm rounded-full bg-primary/20 blur-[80px]"
         />
         <h1 className="text-[2.5rem] md:text-7xl font-bold leading-[1.1]">
           {HERO_LINE_ONE_WORDS.map((item, index) => (
@@ -109,7 +109,7 @@ export function Hero() {
               }}
             >
               <span className="flex items-center justify-center gap-1">
-                Conheça nossos produtos <FontAwesomeIcon icon={faChevronRight} className="text-[11px] duration-200 transition-all hover:text-foreground text-foreground/80" />
+                Saiba mais <FontAwesomeIcon icon={faChevronRight} className="text-[11px] duration-200 transition-all hover:text-foreground text-foreground/80" />
               </span>
             </Button>
           </motion.div>
@@ -125,7 +125,7 @@ export function Hero() {
               }}
             >
               <span className="flex items-center justify-center gap-1">
-                Conheça nossos produtos <FontAwesomeIcon icon={faChevronRight} className="text-[11px] duration-200 transition-all hover:text-foreground text-foreground/80" />
+                Saiba mais <FontAwesomeIcon icon={faChevronRight} className="text-[11px] duration-200 transition-all hover:text-foreground text-foreground/80" />
               </span>
             </Button>
           </motion.div>
