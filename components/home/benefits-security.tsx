@@ -175,7 +175,10 @@ export function BenefitsSecuritySection() {
                 className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm px-5"
                 onClick={() => { window.location.href = "/pricing" }}
               >
-                <span>Começar a integrar</span>
+                <span className="flex items-center gap-2">
+                  <FontAwesomeIcon icon={faCode} className="text-sm" />
+                  Começar a integrar
+                </span>
               </Button>
               <Button
                 className="bg-transparent border border-foreground/10 text-foreground hover:bg-foreground/5 text-sm px-5"
@@ -190,6 +193,6 @@ export function BenefitsSecuritySection() {
           </div>
         </div>
       </div>
-    </motion.section>
+    </motion.section >
   )
 }

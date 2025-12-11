@@ -1,7 +1,7 @@
 'use client'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEyeSlash, faIdCard, faGavel, faUserShield, faUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
+import { faEyeSlash, faIdCard, faGavel, faUserShield, faUpRightFromSquare, faUserPlus } from '@fortawesome/free-solid-svg-icons'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 
@@ -124,7 +124,10 @@ export function BenefitsPrivacySection() {
                 className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm px-5"
                 onClick={() => { window.location.href = "/pricing" }}
               >
-                <span>Criar conta grátis</span>
+                <span className="flex items-center gap-2">
+                  <FontAwesomeIcon icon={faUserPlus} className="text-sm" />
+                  Criar conta grátis
+                </span>
               </Button>
               <Button
                 className="bg-transparent border border-foreground/10 text-foreground hover:bg-foreground/5 text-sm px-5"

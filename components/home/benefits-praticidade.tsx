@@ -1,7 +1,7 @@
 'use client'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faQrcode, faArrowRightArrowLeft, faChartLine, faMobileScreen, faUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
+import { faQrcode, faArrowRightArrowLeft, faChartLine, faMobileScreen, faUpRightFromSquare, faUserPlus } from '@fortawesome/free-solid-svg-icons'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 
@@ -121,7 +121,10 @@ export function BenefitsPraticiadeSection() {
                                 className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm px-5"
                                 onClick={() => { window.location.href = "/pricing" }}
                             >
-                                <span>Criar minha conta</span>
+                                <span className="flex items-center gap-2">
+                                    <FontAwesomeIcon icon={faUserPlus} className="text-sm" />
+                                    Criar minha conta
+                                </span>
                             </Button>
                             <Button
                                 className="bg-transparent border border-foreground/10 text-foreground hover:bg-foreground/5 text-sm px-5"
