@@ -132,7 +132,7 @@ export default function AffiliatesPage() {
                                 </header>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                     {[1, 2, 3, 4].map((i) => (
-                                        <Card key={i} className="bg-card border-none shadow-sm h-32">
+                                        <Card key={i} className="bg-foreground/5 border border-foreground/10 shadow-none h-32">
                                             <CardContent className="p-6">
                                                 <Skeleton className="h-4 w-32 mb-4" />
                                                 <Skeleton className="h-8 w-16" />
@@ -141,7 +141,7 @@ export default function AffiliatesPage() {
                                     ))}
                                 </div>
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                    <Card className="bg-card border-none shadow-sm h-48">
+                                    <Card className="bg-foreground/5 border border-foreground/10 shadow-none h-48">
                                         <CardContent className="p-6">
                                             <Skeleton className="h-6 w-48 mb-2" />
                                             <Skeleton className="h-4 w-full mb-6" />
@@ -151,7 +151,7 @@ export default function AffiliatesPage() {
                                             </div>
                                         </CardContent>
                                     </Card>
-                                    <Card className="bg-card border-none shadow-sm h-48">
+                                    <Card className="bg-foreground/5 border border-foreground/10 shadow-none h-48">
                                         <CardContent className="p-6">
                                             <Skeleton className="h-6 w-48 mb-2" />
                                             <Skeleton className="h-4 w-full mb-6" />
@@ -284,7 +284,7 @@ export default function AffiliatesPage() {
                             <div className="space-y-8">
                                 {/* Stats Cards */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                    <Card className="bg-card border-none shadow-sm">
+                                    <Card className="bg-foreground/5 border border-foreground/10 shadow-none">
                                         <CardContent className="p-6">
                                             <div className="flex items-center gap-2 mb-2">
                                                 <div className="flex items-center justify-center text-muted-foreground w-4">
@@ -296,7 +296,7 @@ export default function AffiliatesPage() {
                                         </CardContent>
                                     </Card>
 
-                                    <Card className="bg-card border-none shadow-sm">
+                                    <Card className="bg-foreground/5 border border-foreground/10 shadow-none">
                                         <CardContent className="p-6">
                                             <div className="flex items-center gap-2 mb-2">
                                                 <div className="flex items-center justify-center text-muted-foreground w-4">
@@ -311,7 +311,7 @@ export default function AffiliatesPage() {
                                     </Card>
 
                                     {/* Placeholder Stats */}
-                                    <Card className="bg-card border-none shadow-sm">
+                                    <Card className="bg-foreground/5 border border-foreground/10 shadow-none">
                                         <CardContent className="p-6">
                                             <div className="flex items-center gap-2 mb-2">
                                                 <div className="flex items-center justify-center text-muted-foreground w-4">
@@ -323,7 +323,7 @@ export default function AffiliatesPage() {
                                         </CardContent>
                                     </Card>
 
-                                    <Card className="bg-card border-none shadow-sm">
+                                    <Card className="bg-foreground/5 border border-foreground/10 shadow-none">
                                         <CardContent className="p-6">
                                             <div className="flex items-center gap-2 mb-2">
                                                 <div className="flex items-center justify-center text-muted-foreground w-4">
@@ -340,7 +340,7 @@ export default function AffiliatesPage() {
 
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                     {/* Link Card */}
-                                    <Card className="bg-card border-none shadow-sm">
+                                    <Card className="bg-foreground/5 border border-foreground/10 shadow-none">
                                         <CardHeader>
                                             <CardTitle className="text-lg flex items-center gap-2">
                                                 <FontAwesomeIcon icon={faLink} className="text-muted-foreground" />
@@ -369,7 +369,7 @@ export default function AffiliatesPage() {
                                     </Card>
 
                                     {/* Code Editor Card */}
-                                    <Card className="bg-card border-none shadow-sm">
+                                    <Card className="bg-foreground/5 border border-foreground/10 shadow-none">
                                         <CardHeader>
                                             <CardTitle className="text-lg flex items-center gap-2">
                                                 <FontAwesomeIcon icon={faSignature} className="text-muted-foreground" />
