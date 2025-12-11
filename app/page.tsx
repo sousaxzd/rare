@@ -10,6 +10,7 @@ import { BenefitsPraticiadeSection } from '@/components/home/benefits-praticidad
 import { SecurityFeaturesSection } from '@/components/home/security-features'
 import { DashboardPreview } from '@/components/home/dashboard-preview'
 import { StatsSection } from '@/components/home/stats-section'
+import { DiscordBotSection } from '@/components/home/discord-bot-section'
 import { ErrorBoundary } from '@/components/error-boundary'
 
 export default function Home() {
@@ -30,6 +31,8 @@ export default function Home() {
       <BenefitsPraticiadeSection />
 
       <SecurityFeaturesSection />
+
+      <DiscordBotSection />
 
       <CTASection />
     </main>

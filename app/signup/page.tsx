@@ -196,16 +196,13 @@ function SignupContent() {
       return
     }
 
-    // Validar CPF com algoritmo completo de dígitos verificadores
-    if (!formData.cpf) {
-      setError('CPF é obrigatório')
-      return
-    }
-
-    const cpfValidation = validateCPF(formData.cpf)
-    if (!cpfValidation.valid) {
-      setError(cpfValidation.error || 'CPF inválido')
-      return
+    // Validar CPF com algoritmo completo de dígitos verificadores (se preenchido)
+    if (formData.cpf) {
+      const cpfValidation = validateCPF(formData.cpf)
+      if (!cpfValidation.valid) {
+        setError(cpfValidation.error || 'CPF inválido')
+        return
+      }
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -397,7 +394,6 @@ function SignupContent() {
                           : 'border-foreground/10 focus:border-primary/30 focus:ring-primary/50'
                         } text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 transition-all ${loading ? 'opacity-60 cursor-not-allowed' : ''
                         }`}
-                      required
                       disabled={loading}
                     />
                   </div>
@@ -555,7 +551,7 @@ function SignupContent() {
                 <RippleButton
                   type="submit"
                   className="w-full py-3.5 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 mt-2 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  disabled={loading || !!cpfError || !!fullNameError || !formData.fullName || !formData.cpf || formData.cpf.replace(/[.\-/]/g, '').length !== 11}
+                  disabled={loading || !!cpfError || !!fullNameError || !formData.fullName || (!!formData.cpf && formData.cpf.replace(/[.\-/]/g, '').length !== 11)}
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">

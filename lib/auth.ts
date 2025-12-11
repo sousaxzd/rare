@@ -48,6 +48,7 @@ export interface User {
 
   transferSecurityEnabled?: boolean; // Added transferSecurityEnabled field
   taxID?: string; // CPF/CNPJ (somente leitura)
+  balance?: number; // Saldo da conta (em centavos)
 }
 
 /**
