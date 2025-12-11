@@ -18,18 +18,20 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
   return (
     <ErrorBoundary>
       <PWAProvider>
-        <div className={`relative flex flex-col overflow-x-hidden ${hideLayout ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
+        <div className={`relative flex flex-col ${hideLayout ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
           {!hideLayout && <Navbar />}
-          {hideLayout ? (
-            children
-          ) : (
-            <main className={`flex-grow ${isHome ? 'mt-[-30] md:mt-0' : (isLogin || isSignup) ? 'mt-4 md:mt-6' : 'mt-8 md:mt-12'} mb-10 ${isHome ? '' : 'container mx-auto max-w-7xl px-4 sm:px-6'}`}>
-              <div className={isHome ? 'max-w-7xl mx-auto px-6' : ''}>
-                {children}
-              </div>
-            </main>
-          )}
-          {!hideLayout && <Footer />}
+          <div className="overflow-x-hidden flex-grow flex flex-col">
+            {hideLayout ? (
+              children
+            ) : (
+              <main className={`flex-grow ${isHome ? 'mt-[-30] md:mt-0' : (isLogin || isSignup) ? 'mt-4 md:mt-6' : 'mt-8 md:mt-12'} mb-10 ${isHome ? '' : 'container mx-auto max-w-7xl px-4 sm:px-6'}`}>
+                <div className={isHome ? 'max-w-7xl mx-auto px-6' : ''}>
+                  {children}
+                </div>
+              </main>
+            )}
+            {!hideLayout && <Footer />}
+          </div>
         </div>
         <Toaster />
       </PWAProvider>
