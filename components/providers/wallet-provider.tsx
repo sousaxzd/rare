@@ -69,15 +69,19 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         }
     }, [isAuthenticated, user, loadWalletData])
 
-    // Polling automático quando a janela está em foco
+    // Polling automático - continua em segundo plano para notificações
     useEffect(() => {
         if (!isAuthenticated || !user) return
 
-        const startPolling = () => {
-            if (pollIntervalRef.current) return
+        const BACKGROUND_POLL_INTERVAL = 30000 // 30 segundos em segundo plano
+
+        const startPolling = (interval: number) => {
+            if (pollIntervalRef.current) {
+                clearInterval(pollIntervalRef.current)
+            }
             pollIntervalRef.current = setInterval(() => {
                 loadWalletData(false) // Não mostrar loading no polling
-            }, POLL_INTERVAL)
+            }, interval)
         }
 
         const stopPolling = () => {
@@ -90,16 +94,15 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
                 loadWalletData(false) // Atualizar ao voltar para a aba
-                startPolling()
+                startPolling(POLL_INTERVAL) // Polling mais rápido quando visível
             } else {
-                stopPolling()
+                // Continuar polling em segundo plano com intervalo maior para notificações
+                startPolling(BACKGROUND_POLL_INTERVAL)
             }
         }
 
-        // Iniciar polling se a aba estiver visível
-        if (document.visibilityState === 'visible') {
-            startPolling()
-        }
+        // Iniciar polling com intervalo apropriado
+        startPolling(document.visibilityState === 'visible' ? POLL_INTERVAL : BACKGROUND_POLL_INTERVAL)
 
         document.addEventListener('visibilitychange', handleVisibilityChange)
 
