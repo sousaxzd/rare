@@ -117,7 +117,7 @@ export function DiscordBotSection() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: 0.4 }}
-                            className="flex flex-wrap gap-3"
+                            className="flex gap-3"
                         >
                             <Button
                                 className="bg-[#5865F2] text-white hover:bg-[#4752C4] text-sm px-5 border-none"

@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faSearch, faLock, faUnlock, faEye, faSpinner } from '@fortawesome/free-solid-svg-icons'
-import { getAdminUsers, getAdminUser, blockUser, AdminUser, AdminUserDetails } from '@/lib/admin'
+import {
+  faSearch, faLock, faUnlock, faEye, faSpinner, faArrowLeft, faWallet, faCoins,
+  faReceipt, faArrowUp, faArrowDown, faClock, faCheck, faTimes, faKey, faLink, faCalendar, faPercent, faUser
+} from '@fortawesome/free-solid-svg-icons'
+import { getAdminUsers, getAdminUser, blockUser, updateUserPlanAdmin, getAdminUserTransactions, AdminUser, AdminUserDetails, AdminTransaction } from '@/lib/admin'
 
 export function UsuariosSection() {
   const [users, setUsers] = useState<AdminUser[]>([])
@@ -14,15 +17,34 @@ export function UsuariosSection() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [blockedFilter, setBlockedFilter] = useState<string>('')
+
+  // User Detail View
   const [selectedUser, setSelectedUser] = useState<AdminUserDetails | null>(null)
-  const [showUserModal, setShowUserModal] = useState(false)
+  const [showUserDetail, setShowUserDetail] = useState(false)
   const [loadingUser, setLoadingUser] = useState(false)
 
+  // Plan Update
+  const [selectedPlan, setSelectedPlan] = useState<string>('FREE')
+  const [planDays, setPlanDays] = useState<string>('30')
+  const [updatingPlan, setUpdatingPlan] = useState(false)
+
+  // Transactions
+  const [transactions, setTransactions] = useState<AdminTransaction[]>([])
+  const [loadingTransactions, setLoadingTransactions] = useState(false)
+  const [transactionPage, setTransactionPage] = useState(1)
+  const [transactionTotal, setTransactionTotal] = useState(0)
+
   const limit = 20
+  const transactionLimit = 10
+
+  // Reset page when search changes
+  useEffect(() => {
+    setPage(1)
+  }, [search, statusFilter, blockedFilter])
 
   useEffect(() => {
     loadUsers()
-  }, [page, statusFilter, blockedFilter])
+  }, [page, statusFilter, blockedFilter, search])
 
   const loadUsers = async () => {
     try {
@@ -34,6 +56,7 @@ export function UsuariosSection() {
       }
       if (statusFilter) params.status = statusFilter
       if (blockedFilter) params.blocked = blockedFilter === 'true'
+      if (search.trim()) params.search = search.trim()
 
       const response = await getAdminUsers(params)
       setUsers(response.data.users)
@@ -55,11 +78,31 @@ export function UsuariosSection() {
       setLoadingUser(true)
       const response = await getAdminUser(userId)
       setSelectedUser(response.data.user as AdminUserDetails)
-      setShowUserModal(true)
+      setSelectedPlan(response.data.user.plan || 'FREE')
+      setShowUserDetail(true)
+      loadTransactions(userId, 1)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar usuário')
     } finally {
       setLoadingUser(false)
+    }
+  }
+
+  const loadTransactions = async (userId: string, p: number) => {
+    try {
+      setLoadingTransactions(true)
+      const response = await getAdminUserTransactions(userId, {
+        limit: transactionLimit,
+        offset: (p - 1) * transactionLimit,
+        type: 'all'
+      })
+      setTransactions(response.data.transactions)
+      setTransactionTotal(response.data.pagination.total)
+      setTransactionPage(p)
+    } catch (err) {
+      console.error('Erro ao carregar transações:', err)
+    } finally {
+      setLoadingTransactions(false)
     }
   }
 
@@ -76,6 +119,22 @@ export function UsuariosSection() {
     }
   }
 
+  const handleUpdatePlan = async () => {
+    if (!selectedUser) return
+    try {
+      setUpdatingPlan(true)
+      await updateUserPlanAdmin(selectedUser.id, selectedPlan, parseInt(planDays))
+      await loadUsers()
+      const response = await getAdminUser(selectedUser.id)
+      setSelectedUser(response.data.user as AdminUserDetails)
+      alert('Plano atualizado com sucesso!')
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || 'Erro ao atualizar plano')
+    } finally {
+      setUpdatingPlan(false)
+    }
+  }
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -83,16 +142,311 @@ export function UsuariosSection() {
     }).format(value / 100)
   }
 
-  const filteredUsers = users.filter((user) => {
-    if (!search) return true
-    const searchLower = search.toLowerCase()
-    return (
-      user.name.toLowerCase().includes(searchLower) ||
-      user.email.toLowerCase().includes(searchLower) ||
-      user.id.toLowerCase().includes(searchLower)
-    )
-  })
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A'
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    })
+  }
 
+  const getStatusBadge = (status: string) => {
+    const statusMap: { [key: string]: { color: string; label: string } } = {
+      'COMPLETED': { color: 'bg-green-500/10 text-green-500', label: 'Concluído' },
+      'PAID': { color: 'bg-green-500/10 text-green-500', label: 'Pago' },
+      'PENDING': { color: 'bg-yellow-500/10 text-yellow-500', label: 'Pendente' },
+      'ACTIVE': { color: 'bg-blue-500/10 text-blue-500', label: 'Ativo' },
+      'PROCESSING': { color: 'bg-blue-500/10 text-blue-500', label: 'Processando' },
+      'FAILED': { color: 'bg-red-500/10 text-red-500', label: 'Falhou' },
+      'CANCELLED': { color: 'bg-gray-500/10 text-gray-500', label: 'Cancelado' },
+      'EXPIRED': { color: 'bg-gray-500/10 text-gray-500', label: 'Expirado' },
+    }
+    const s = statusMap[status] || { color: 'bg-gray-500/10 text-gray-500', label: status }
+    return <span className={`px-2 py-1 text-xs font-semibold rounded-full ${s.color}`}>{s.label}</span>
+  }
+
+  // User Detail View
+  if (showUserDetail && selectedUser) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setShowUserDetail(false)}
+            className="p-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 text-foreground transition-colors"
+          >
+            <FontAwesomeIcon icon={faArrowLeft} />
+          </button>
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-foreground">{selectedUser.name}</h2>
+            <p className="text-foreground/60">{selectedUser.email}</p>
+          </div>
+          <span className={`px-3 py-1 text-sm font-semibold rounded-full ${selectedUser.blocked ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'}`}>
+            {selectedUser.blocked ? 'Bloqueado' : 'Ativo'}
+          </span>
+          <span className="px-3 py-1 text-sm font-semibold rounded-full bg-primary/10 text-primary">
+            {selectedUser.plan || 'FREE'}
+          </span>
+        </div>
+
+        {/* Balance Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 rounded-xl bg-foreground/5 border border-foreground/10">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                <FontAwesomeIcon icon={faWallet} className="text-green-500" />
+              </div>
+              <span className="text-foreground/70 text-sm">Saldo</span>
+            </div>
+            <p className="text-2xl font-bold text-foreground">{formatCurrency(selectedUser.balance)}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-foreground/5 border border-foreground/10">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <FontAwesomeIcon icon={faCoins} className="text-blue-500" />
+              </div>
+              <span className="text-foreground/70 text-sm">Saldo Split</span>
+            </div>
+            <p className="text-2xl font-bold text-foreground">{formatCurrency(selectedUser.saldo_split)}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-foreground/5 border border-foreground/10">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                <FontAwesomeIcon icon={faArrowDown} className="text-purple-500" />
+              </div>
+              <span className="text-foreground/70 text-sm">Total Recebido</span>
+            </div>
+            <p className="text-2xl font-bold text-foreground">{formatCurrency(selectedUser.statistics?.totalReceived || 0)}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-foreground/5 border border-foreground/10">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <FontAwesomeIcon icon={faReceipt} className="text-orange-500" />
+              </div>
+              <span className="text-foreground/70 text-sm">Movimentado</span>
+            </div>
+            <p className="text-2xl font-bold text-foreground">{formatCurrency((selectedUser.statistics?.totalReceived || 0) + (selectedUser.statistics?.totalWithdrawn || 0))}</p>
+          </div>
+        </div>
+
+        {/* Account Info Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* User Info */}
+          <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
+            <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+              <FontAwesomeIcon icon={faUser} className="text-primary" />
+              Informações da Conta
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs text-foreground/50 uppercase tracking-wide">CPF/CNPJ</label>
+                <p className="text-foreground font-medium">{selectedUser.taxID || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-xs text-foreground/50 uppercase tracking-wide">Telefone</label>
+                <p className="text-foreground font-medium">{selectedUser.phone || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-xs text-foreground/50 uppercase tracking-wide">PIX</label>
+                <p className="text-foreground font-medium">{selectedUser.pixKey || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-xs text-foreground/50 uppercase tracking-wide">Tipo PIX</label>
+                <p className="text-foreground font-medium">{selectedUser.pixKeyType || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-xs text-foreground/50 uppercase tracking-wide">Criado em</label>
+                <p className="text-foreground font-medium">{formatDate(selectedUser.createdAt)}</p>
+              </div>
+              <div>
+                <label className="text-xs text-foreground/50 uppercase tracking-wide">Atualizado</label>
+                <p className="text-foreground font-medium">{formatDate(selectedUser.updatedAt)}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* API & Webhook */}
+          <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
+            <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+              <FontAwesomeIcon icon={faKey} className="text-primary" />
+              API & Webhook
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs text-foreground/50 uppercase tracking-wide">API Key</label>
+                <p className="text-foreground font-mono text-sm bg-foreground/5 p-2 rounded break-all">
+                  {selectedUser.apiKey ? `${selectedUser.apiKey.slice(0, 20)}...` : 'N/A'}
+                </p>
+              </div>
+              <div>
+                <label className="text-xs text-foreground/50 uppercase tracking-wide">Webhook URL</label>
+                <p className="text-foreground font-mono text-sm bg-foreground/5 p-2 rounded break-all">
+                  {selectedUser.webhookUrl || 'Não configurado'}
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className={`px-2 py-1 text-xs rounded-full ${selectedUser.isAffiliate ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-500'}`}>
+                  {selectedUser.isAffiliate ? 'Afiliado' : 'Não é afiliado'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Plan Info */}
+        <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
+          <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+            <FontAwesomeIcon icon={faCalendar} className="text-primary" />
+            Plano & Taxas
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
+            <div>
+              <label className="text-xs text-foreground/50 uppercase tracking-wide">Plano</label>
+              <p className="text-foreground font-bold text-lg">{selectedUser.plan || 'FREE'}</p>
+            </div>
+            <div>
+              <label className="text-xs text-foreground/50 uppercase tracking-wide">Taxa Pagamento</label>
+              <p className="text-foreground font-medium">{formatCurrency(selectedUser.paymentFee || 0)}</p>
+            </div>
+            <div>
+              <label className="text-xs text-foreground/50 uppercase tracking-wide">Taxa Split</label>
+              <p className="text-foreground font-medium">{formatCurrency(selectedUser.splitFee || 0)}</p>
+            </div>
+            <div>
+              <label className="text-xs text-foreground/50 uppercase tracking-wide">Início Plano</label>
+              <p className="text-foreground font-medium">{selectedUser.planStartDate ? formatDate(selectedUser.planStartDate) : 'N/A'}</p>
+            </div>
+            <div>
+              <label className="text-xs text-foreground/50 uppercase tracking-wide">Fim Plano</label>
+              <p className="text-foreground font-medium">{selectedUser.planEndDate ? formatDate(selectedUser.planEndDate) : 'N/A'}</p>
+            </div>
+            <div>
+              <label className="text-xs text-foreground/50 uppercase tracking-wide">Renovação Auto</label>
+              <p className={`font-medium ${selectedUser.planAutoRenew ? 'text-green-500' : 'text-red-500'}`}>
+                {selectedUser.planAutoRenew ? 'Sim' : 'Não'}
+              </p>
+            </div>
+          </div>
+
+          {/* Update Plan */}
+          <div className="pt-4 border-t border-foreground/10">
+            <h4 className="text-sm font-bold text-foreground mb-3">Alterar Plano (Manual)</h4>
+            <div className="flex flex-col md:flex-row gap-4 items-end">
+              <div className="flex-1">
+                <label className="text-xs text-foreground/50 mb-1 block">Plano</label>
+                <select
+                  value={selectedPlan}
+                  onChange={(e) => setSelectedPlan(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg bg-background border border-foreground/10 text-foreground"
+                >
+                  <option value="FREE">FREE</option>
+                  <option value="CARBON">CARBON</option>
+                  <option value="DIAMOND">DIAMOND</option>
+                  <option value="RICH">RICH</option>
+                  <option value="ENTERPRISE">ENTERPRISE</option>
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="text-xs text-foreground/50 mb-1 block">Dias</label>
+                <input
+                  type="number"
+                  value={planDays}
+                  onChange={(e) => setPlanDays(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg bg-background border border-foreground/10 text-foreground"
+                />
+              </div>
+              <button
+                onClick={handleUpdatePlan}
+                disabled={updatingPlan}
+                className="px-6 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                {updatingPlan ? 'Atualizando...' : 'Definir Plano'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Transactions */}
+        <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
+          <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+            <FontAwesomeIcon icon={faReceipt} className="text-primary" />
+            Transações Recentes
+          </h3>
+          {loadingTransactions ? (
+            <div className="flex items-center justify-center py-8">
+              <FontAwesomeIcon icon={faSpinner} className="w-6 h-6 text-primary animate-spin" />
+            </div>
+          ) : transactions.length === 0 ? (
+            <p className="text-foreground/60 text-center py-8">Nenhuma transação encontrada</p>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="border-b border-foreground/10">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-foreground/70 uppercase">Tipo</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-foreground/70 uppercase">ID</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-foreground/70 uppercase">Valor</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-foreground/70 uppercase">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-foreground/70 uppercase">Data</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-foreground/10">
+                    {transactions.map((tx) => (
+                      <tr key={tx.id} className="hover:bg-foreground/5 transition-colors">
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full ${tx.type === 'payment' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'}`}>
+                            <FontAwesomeIcon icon={tx.type === 'payment' ? faArrowDown : faArrowUp} className="w-3 h-3" />
+                            {tx.type === 'payment' ? 'Pagamento' : 'Saque'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-foreground/70 font-mono">{tx.id.slice(0, 12)}...</td>
+                        <td className="px-4 py-3 text-sm font-medium text-foreground">{formatCurrency(tx.value)}</td>
+                        <td className="px-4 py-3">{getStatusBadge(tx.status)}</td>
+                        <td className="px-4 py-3 text-sm text-foreground/70">{formatDate(tx.createdAt)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {/* Transaction Pagination */}
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-foreground/10">
+                <span className="text-sm text-foreground/60">Total: {transactionTotal}</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => loadTransactions(selectedUser.id, transactionPage - 1)}
+                    disabled={transactionPage === 1 || loadingTransactions}
+                    className="px-3 py-1 text-sm rounded-lg bg-foreground/5 text-foreground hover:bg-foreground/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Anterior
+                  </button>
+                  <span className="text-sm text-foreground/70">Página {transactionPage}</span>
+                  <button
+                    onClick={() => loadTransactions(selectedUser.id, transactionPage + 1)}
+                    disabled={transactionPage * transactionLimit >= transactionTotal || loadingTransactions}
+                    className="px-3 py-1 text-sm rounded-lg bg-foreground/5 text-foreground hover:bg-foreground/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Próxima
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-4">
+          <button
+            onClick={() => handleBlockUser(selectedUser.id, !selectedUser.blocked)}
+            className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${selectedUser.blocked ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-red-500 text-white hover:bg-red-600'}`}
+          >
+            {selectedUser.blocked ? 'Desbloquear Usuário' : 'Bloquear Usuário'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Users List View
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -150,24 +504,12 @@ export function UsuariosSection() {
           <table className="w-full">
             <thead className="bg-foreground/5">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider">
-                  Nome
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider">
-                  Plano
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider">
-                  Saldo
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider">
-                  Ações
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider">Nome</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider">Plano</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider">Saldo</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-foreground/10">
@@ -177,14 +519,14 @@ export function UsuariosSection() {
                     <FontAwesomeIcon icon={faSpinner} className="w-6 h-6 text-primary animate-spin mx-auto" />
                   </td>
                 </tr>
-              ) : filteredUsers.length === 0 ? (
+              ) : users.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-foreground/60">
                     Nenhum usuário encontrado
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((user) => (
+                users.map((user) => (
                   <tr key={user.id} className="hover:bg-foreground/5 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-foreground">{user.name}</div>
@@ -200,15 +542,7 @@ export function UsuariosSection() {
                       {formatCurrency(user.balance)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                          user.blocked
-                            ? 'bg-red-500/10 text-red-500'
-                            : user.status === 'active'
-                            ? 'bg-green-500/10 text-green-500'
-                            : 'bg-gray-500/10 text-gray-500'
-                        }`}
-                      >
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${user.blocked ? 'bg-red-500/10 text-red-500' : user.status === 'active' ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-500'}`}>
                         {user.blocked ? 'Bloqueado' : user.status === 'active' ? 'Ativo' : 'Inativo'}
                       </span>
                     </td>
@@ -223,11 +557,7 @@ export function UsuariosSection() {
                         </button>
                         <button
                           onClick={() => handleBlockUser(user.id, !user.blocked)}
-                          className={`transition-colors ${
-                            user.blocked
-                              ? 'text-green-500 hover:text-green-600'
-                              : 'text-red-500 hover:text-red-600'
-                          }`}
+                          className={`transition-colors ${user.blocked ? 'text-green-500 hover:text-green-600' : 'text-red-500 hover:text-red-600'}`}
                           title={user.blocked ? 'Desbloquear' : 'Bloquear'}
                         >
                           <FontAwesomeIcon icon={user.blocked ? faUnlock : faLock} />
@@ -245,7 +575,7 @@ export function UsuariosSection() {
       {/* Paginação */}
       <div className="flex items-center justify-between">
         <div className="text-sm text-foreground/60">
-          Mostrando {filteredUsers.length} de {total} usuários
+          Mostrando {users.length} de {total} usuários
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -265,113 +595,6 @@ export function UsuariosSection() {
           </button>
         </div>
       </div>
-
-      {/* Modal de Detalhes do Usuário */}
-      {showUserModal && selectedUser && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-background rounded-xl border border-foreground/10 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-foreground/10 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-foreground">Detalhes do Usuário</h3>
-              <button
-                onClick={() => setShowUserModal(false)}
-                className="text-foreground/60 hover:text-foreground"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm text-foreground/70">Nome</label>
-                  <p className="text-foreground font-medium">{selectedUser.name}</p>
-                </div>
-                <div>
-                  <label className="text-sm text-foreground/70">Email</label>
-                  <p className="text-foreground font-medium">{selectedUser.email}</p>
-                </div>
-                <div>
-                  <label className="text-sm text-foreground/70">CPF/CNPJ</label>
-                  <p className="text-foreground font-medium">{selectedUser.taxID}</p>
-                </div>
-                <div>
-                  <label className="text-sm text-foreground/70">Telefone</label>
-                  <p className="text-foreground font-medium">{selectedUser.phone || 'N/A'}</p>
-                </div>
-                <div>
-                  <label className="text-sm text-foreground/70">Plano</label>
-                  <p className="text-foreground font-medium">{selectedUser.plan || 'FREE'}</p>
-                </div>
-                <div>
-                  <label className="text-sm text-foreground/70">Status</label>
-                  <p className="text-foreground font-medium">
-                    {selectedUser.blocked ? 'Bloqueado' : selectedUser.status}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm text-foreground/70">Saldo</label>
-                  <p className="text-foreground font-medium">{formatCurrency(selectedUser.balance)}</p>
-                </div>
-                <div>
-                  <label className="text-sm text-foreground/70">Saldo Split</label>
-                  <p className="text-foreground font-medium">{formatCurrency(selectedUser.saldo_split)}</p>
-                </div>
-              </div>
-
-              {selectedUser.statistics && (
-                <div className="mt-6 pt-6 border-t border-foreground/10">
-                  <h4 className="text-lg font-bold text-foreground mb-4">Estatísticas</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm text-foreground/70">Pagamentos Totais</label>
-                      <p className="text-foreground font-medium">{selectedUser.statistics.totalPayments}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm text-foreground/70">Pagamentos Completos</label>
-                      <p className="text-foreground font-medium">{selectedUser.statistics.completedPayments}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm text-foreground/70">Total Recebido</label>
-                      <p className="text-foreground font-medium">
-                        {formatCurrency(selectedUser.statistics.totalReceived)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm text-foreground/70">Total em Taxas</label>
-                      <p className="text-foreground font-medium">
-                        {formatCurrency(selectedUser.statistics.totalFees)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm text-foreground/70">Saques Totais</label>
-                      <p className="text-foreground font-medium">{selectedUser.statistics.totalWithdraws}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm text-foreground/70">Total Sacado</label>
-                      <p className="text-foreground font-medium">
-                        {formatCurrency(selectedUser.statistics.totalWithdrawn)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-6 pt-6 border-t border-foreground/10 flex gap-4">
-                <button
-                  onClick={() => handleBlockUser(selectedUser.id, !selectedUser.blocked)}
-                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-                    selectedUser.blocked
-                      ? 'bg-green-500 text-white hover:bg-green-600'
-                      : 'bg-red-500 text-white hover:bg-red-600'
-                  }`}
-                >
-                  {selectedUser.blocked ? 'Desbloquear Usuário' : 'Bloquear Usuário'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
-

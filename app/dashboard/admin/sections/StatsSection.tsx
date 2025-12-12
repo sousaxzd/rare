@@ -137,7 +137,7 @@ export function StatsSection() {
         {(stats as any).transfers && (
           <div className="p-4 md:p-6 rounded-xl border border-foreground/10 bg-foreground/2">
             <div className="flex items-center justify-between mb-3 md:mb-4">
-              <h3 className="text-xs md:text-sm font-medium text-foreground/70">Transferências</h3>
+              <h3 className="text-xs md:text-sm font-medium text-foreground/70">Transferências Internas</h3>
               <FontAwesomeIcon icon={faExchangeAlt} className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />
             </div>
             <div className="space-y-1 md:space-y-2">

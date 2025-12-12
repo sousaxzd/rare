@@ -31,6 +31,15 @@ export interface AdminUser {
 }
 
 export interface AdminUserDetails extends AdminUser {
+  planStartDate?: string;
+  planEndDate?: string;
+  planRenewalDate?: string;
+  planAutoRenew?: boolean;
+  paymentFee?: number;
+  splitFee?: number;
+  webhookUrl?: string;
+  isAffiliate?: boolean;
+  referredBy?: string;
   statistics: {
     totalPayments: number;
     completedPayments: number;
@@ -39,6 +48,19 @@ export interface AdminUserDetails extends AdminUser {
     totalWithdraws: number;
     totalWithdrawn: number;
   };
+}
+
+export interface AdminTransaction {
+  id: string;
+  type: 'payment' | 'withdraw';
+  value: number;
+  netValue?: number;
+  fee?: number;
+  status: string;
+  description?: string;
+  createdAt: string;
+  paidAt?: string;
+  completedAt?: string;
 }
 
 export interface AdminUsersResponse {
@@ -191,12 +213,14 @@ export async function getAdminUsers(params?: {
   blocked?: boolean;
   limit?: number;
   offset?: number;
+  search?: string;
 }): Promise<AdminUsersResponse> {
   const queryParams = new URLSearchParams();
   if (params?.status) queryParams.append('status', params.status);
   if (params?.blocked !== undefined) queryParams.append('blocked', String(params.blocked));
-  if (params?.limit) queryParams.append('limit', String(params.limit));
-  if (params?.offset) queryParams.append('offset', String(params.offset));
+  if (params?.limit !== undefined) queryParams.append('limit', String(params.limit));
+  if (params?.search) queryParams.append('search', params.search);
+  if (params?.offset !== undefined) queryParams.append('offset', String(params.offset));
 
   const query = queryParams.toString();
   return apiGet<AdminUsersResponse>(`/v1/admin/users${query ? `?${query}` : ''}`);
@@ -264,6 +288,41 @@ export async function getAuditLogs(params?: {
  */
 export async function updateUserPlan(data: PlanUpdateUserRequest): Promise<PlanUpdateResponse> {
   return apiPut<PlanUpdateResponse>('/v1/user/plan', data);
+}
+
+/**
+ * Definir plano do usuário com dias específicos (Admin)
+ */
+export async function updateUserPlanAdmin(userId: string, plan: string, days: number): Promise<{ success: boolean; data: any }> {
+  return apiPut(`/v1/admin/users/${userId}/plan`, { plan, days });
+}
+
+/**
+ * Listar transações do usuário (Admin)
+ */
+export async function getAdminUserTransactions(userId: string, params?: {
+  limit?: number;
+  offset?: number;
+  type?: 'payment' | 'withdraw' | 'all';
+}): Promise<{
+  success: boolean;
+  data: {
+    transactions: AdminTransaction[];
+    pagination: {
+      total: number;
+      limit: number;
+      offset: number;
+      hasMore: boolean;
+    };
+  };
+}> {
+  const queryParams = new URLSearchParams();
+  if (params?.limit) queryParams.append('limit', String(params.limit));
+  if (params?.offset) queryParams.append('offset', String(params.offset));
+  if (params?.type) queryParams.append('type', params.type);
+
+  const query = queryParams.toString();
+  return apiGet(`/v1/admin/users/${userId}/transactions${query ? `?${query}` : ''}`);
 }
 
 /**
