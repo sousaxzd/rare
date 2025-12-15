@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faReceipt, faArrowUp, faSignOutAlt, faStore, faRobot, faBrush, faDollar, faFolder, faTag, faBox, faPlug, faUsers, faKey, faExternalLink, faXmark, faBullseye, faChartLine, faArrowDown, faExchangeAlt, faGear, faLayerGroup, faWrench, faChevronDown } from '@fortawesome/free-solid-svg-icons'
+import { faHome, faReceipt, faArrowUp, faSignOutAlt, faStore, faUser, faComment, faSliders, faBullhorn, faBagShopping, faRobot, faWrench, faBrush, faDollar, faFolder, faTag, faBox, faPlug, faUsers, faKey, faExternalLink, faXmark, faBullseye, faChartLine, faArrowDown, faExchangeAlt, faGear, faLayerGroup, faChevronDown } from '@fortawesome/free-solid-svg-icons'
 import { faDiscord } from '@fortawesome/free-brands-svg-icons'
 import { RippleButton } from './ripple-button'
 import { Separator } from '@/components/ui/separator'
@@ -40,17 +40,6 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
         { id: 'depositar', label: 'Depositar', icon: faArrowDown, href: '/dashboard/deposit' },
       ]
     },
-    // {
-    //   title: 'Checkout',
-    //   icon: faStore,
-    //   items: [
-    //     { id: 'personalização', label: 'Personalização', icon: faBrush, href: '/dashboard/checkout/personalization' },
-    //     { id: 'clientes', label: 'Clientes', icon: faUsers, href: '/dashboard/checkout/customers' },
-    //     { id: 'categorias', label: 'Categorias', icon: faFolder, href: '/dashboard/categories' },
-    //     { id: 'produtos', label: 'Produtos', icon: faBox, href: '/dashboard/checkout/products' },
-    //     { id: 'cupons', label: 'Cupons', icon: faTag, href: '/dashboard/checkout/cupons' },
-    //   ]
-    // },
     {
       title: 'Integrações',
       icon: faPlug,
@@ -61,8 +50,8 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
       ]
     },
     {
-      title: 'Ajustes',
-      icon: faWrench,
+      title: 'Minha Conta',
+      icon: faUser,
       items: [
         { id: 'config', label: 'Configurações', icon: faGear, href: '/dashboard/settings' },
       ]
@@ -192,7 +181,7 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
         >
           {categories.map((category) => {
             const isCollapsed = collapsedCategories.has(category.title)
-            const isCollapsible = !['Plataforma', 'Ajustes'].includes(category.title)
+            const isCollapsible = !['Plataforma', 'Minha Conta'].includes(category.title)
 
             return (
               <div key={category.title} className="space-y-1">

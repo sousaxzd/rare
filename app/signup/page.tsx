@@ -372,7 +372,7 @@ function SignupContent() {
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    CPF
+                    CPF <span className="text-foreground/50 font-normal">(Opcional)</span>
                   </label>
                   <div className="relative">
                     <FontAwesomeIcon
