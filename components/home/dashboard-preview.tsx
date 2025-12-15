@@ -81,7 +81,7 @@ export function DashboardPreview() {
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 107, 53, 0.1)',
           perspective: '1000px'
         }}
-        className="relative rounded-2xl overflow-hidden bg-background border border-foreground/10 shadow-2xl dashboard-preview-3d cursor-pointer w-full"
+        className="relative rounded-2xl overflow-hidden bg-background shadow-2xl dashboard-preview-3d cursor-pointer w-full"
       >
         {/* Inner darkening borders */}
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent z-10 pointer-events-none" />
