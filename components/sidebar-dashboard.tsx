@@ -53,7 +53,7 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
   ]
 
   // Categories that should be collapsed by default
-  const defaultCollapsed = ['Checkout', 'Integrações']
+  const defaultCollapsed = ['Checkout']
   const STORAGE_KEY = 'sidebar_collapsed_categories'
 
   // Find which category contains the current page
