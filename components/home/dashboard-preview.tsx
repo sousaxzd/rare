@@ -78,10 +78,10 @@ export function DashboardPreview() {
           rotateX,
           rotateY,
           transformStyle: 'preserve-3d',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 107, 53, 0.1)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(128, 128, 128, 0.15)',
           perspective: '1000px'
         }}
-        className="relative rounded-2xl overflow-hidden bg-background shadow-2xl dashboard-preview-3d cursor-pointer w-full"
+        className="relative rounded-2xl overflow-hidden bg-background border border-neutral-700/30 shadow-2xl dashboard-preview-3d cursor-pointer w-full"
       >
         {/* Inner darkening borders */}
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent z-10 pointer-events-none" />
