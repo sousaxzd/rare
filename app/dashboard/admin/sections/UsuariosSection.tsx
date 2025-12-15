@@ -220,11 +220,11 @@ export function UsuariosSection() {
           <div className="p-4 rounded-xl bg-foreground/5 border border-foreground/10">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                <FontAwesomeIcon icon={faReceipt} className="text-orange-500" />
+                <FontAwesomeIcon icon={faArrowUp} className="text-orange-500" />
               </div>
-              <span className="text-foreground/70 text-sm">Movimentado</span>
+              <span className="text-foreground/70 text-sm">Total Sacado</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">{formatCurrency((selectedUser.statistics?.totalReceived || 0) + (selectedUser.statistics?.totalWithdrawn || 0))}</p>
+            <p className="text-2xl font-bold text-foreground">{formatCurrency(selectedUser.statistics?.totalWithdrawn || 0)}</p>
           </div>
         </div>
 

@@ -118,7 +118,7 @@ export function BenefitsPrivacySection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="flex flex-wrap gap-3"
+              className="flex gap-2 sm:gap-3"
             >
               <Button
                 className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm px-5"

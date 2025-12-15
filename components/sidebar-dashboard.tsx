@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faReceipt, faArrowUp, faSignOutAlt, faPlug, faUsers, faKey, faExternalLink, faXmark, faBullseye, faChartLine, faArrowDown, faExchangeAlt, faGear, faLayerGroup, faWrench } from '@fortawesome/free-solid-svg-icons'
+import { faHome, faReceipt, faArrowUp, faSignOutAlt, faStore, faRobot, faBrush, faDollar, faFolder, faTag, faBox, faPlug, faUsers, faKey, faExternalLink, faXmark, faBullseye, faChartLine, faArrowDown, faExchangeAlt, faGear, faLayerGroup, faWrench, faChevronDown } from '@fortawesome/free-solid-svg-icons'
 import { faDiscord } from '@fortawesome/free-brands-svg-icons'
 import { RippleButton } from './ripple-button'
 import { Separator } from '@/components/ui/separator'
@@ -29,7 +29,7 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
         { id: 'resumo', label: 'Resumo', icon: faChartLine, href: '/dashboard/summary' },
         { id: 'extrato', label: 'Extrato', icon: faReceipt, href: '/dashboard/transactions' },
         { id: 'metas', label: 'Metas', icon: faBullseye, href: '/dashboard/goals' },
-        { id: 'afiliados', label: 'Programa de Afiliados', icon: faUsers, href: '/dashboard/affiliates-program' },
+        { id: 'afiliados', label: 'Programa de Afiliados', icon: faDollar, href: '/dashboard/affiliates-program' },
       ]
     },
     {
@@ -40,12 +40,24 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
         { id: 'depositar', label: 'Depositar', icon: faArrowDown, href: '/dashboard/deposit' },
       ]
     },
+    // {
+    //   title: 'Checkout',
+    //   icon: faStore,
+    //   items: [
+    //     { id: 'personalização', label: 'Personalização', icon: faBrush, href: '/dashboard/checkout/personalization' },
+    //     { id: 'clientes', label: 'Clientes', icon: faUsers, href: '/dashboard/checkout/customers' },
+    //     { id: 'categorias', label: 'Categorias', icon: faFolder, href: '/dashboard/categories' },
+    //     { id: 'produtos', label: 'Produtos', icon: faBox, href: '/dashboard/checkout/products' },
+    //     { id: 'cupons', label: 'Cupons', icon: faTag, href: '/dashboard/checkout/cupons' },
+    //   ]
+    // },
     {
       title: 'Integrações',
       icon: faPlug,
       items: [
         { id: 'credenciais', label: 'Credenciais', icon: faKey, href: '/dashboard/credentials' },
         { id: 'docs', label: 'Ver Documentação', icon: faExternalLink, href: 'https://docs.visionwallet.com.br', external: true },
+        { id: 'discord', label: 'Discord Bot', icon: faRobot, href: 'https://discord.com/oauth2/authorize?client_id=1448484905414561832&permissions=8&scope=bot%20applications.commands', external: true },
       ]
     },
     {
@@ -57,6 +69,80 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
     }
   ]
 
+  // Categories that should be collapsed by default
+  const defaultCollapsed = ['Checkout', 'Integrações']
+  const STORAGE_KEY = 'sidebar_collapsed_categories'
+
+  // Find which category contains the current page
+  const findCategoryForPath = (path: string) => {
+    for (const category of categories) {
+      if (category.items.some(item => !item.external && item.href === path)) {
+        return category.title
+      }
+    }
+    return null
+  }
+
+  // Initialize collapsed state from sessionStorage or defaults
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(() => {
+    // Try to load from sessionStorage first
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved) as string[]
+          const savedSet = new Set(parsed)
+          // Still expand if current page is in a collapsed category
+          const currentCategory = findCategoryForPath(pathname)
+          if (currentCategory && savedSet.has(currentCategory)) {
+            savedSet.delete(currentCategory)
+          }
+          return savedSet
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+    }
+
+    // Default: expand if current page is in that category
+    const currentCategory = findCategoryForPath(pathname)
+    const initialCollapsed = new Set(defaultCollapsed)
+    if (currentCategory && initialCollapsed.has(currentCategory)) {
+      initialCollapsed.delete(currentCategory)
+    }
+    return initialCollapsed
+  })
+
+  // Save to sessionStorage whenever collapsed state changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify([...collapsedCategories]))
+    }
+  }, [collapsedCategories])
+
+  // Effect to expand category when navigating to a page within it
+  useEffect(() => {
+    const currentCategory = findCategoryForPath(pathname)
+    if (currentCategory && collapsedCategories.has(currentCategory)) {
+      setCollapsedCategories(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(currentCategory)
+        return newSet
+      })
+    }
+  }, [pathname])
+
+  const toggleCategory = (title: string) => {
+    setCollapsedCategories(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(title)) {
+        newSet.delete(title)
+      } else {
+        newSet.add(title)
+      }
+      return newSet
+    })
+  }
   const handleLogout = async () => {
     await logout()
   }
@@ -104,51 +190,73 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
         <nav
           className="flex-1 overflow-y-auto px-4 pt-4 pb-6 relative border-r border-foreground/10 space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         >
-          {categories.map((category) => (
-            <div key={category.title} className="space-y-1">
-              <div className="px-4 mb-2 flex items-center gap-2 text-xs font-semibold text-foreground/50 uppercase tracking-wider">
-                <FontAwesomeIcon icon={category.icon} className="w-3 h-3" />
-                <span>{category.title}</span>
-              </div>
+          {categories.map((category) => {
+            const isCollapsed = collapsedCategories.has(category.title)
+            const isCollapsible = !['Plataforma', 'Ajustes'].includes(category.title)
 
-              {category.items.map((item) => {
-                const isActive = pathname === item.href
+            return (
+              <div key={category.title} className="space-y-1">
+                {isCollapsible ? (
+                  <button
+                    onClick={() => toggleCategory(category.title)}
+                    className="w-full px-4 mb-2 flex items-center justify-between text-xs font-semibold text-foreground/50 uppercase tracking-wider hover:text-foreground/70 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FontAwesomeIcon icon={category.icon} className="w-3 h-3" />
+                      <span>{category.title}</span>
+                    </div>
+                    <FontAwesomeIcon
+                      icon={faChevronDown}
+                      className="w-3 h-3 transition-transform duration-200"
+                      style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}
+                    />
+                  </button>
+                ) : (
+                  <div className="px-4 mb-2 flex items-center gap-2 text-xs font-semibold text-foreground/50 uppercase tracking-wider">
+                    <FontAwesomeIcon icon={category.icon} className="w-3 h-3" />
+                    <span>{category.title}</span>
+                  </div>
+                )}
 
-                if (item.external) {
+                {(!isCollapsible || !isCollapsed) && category.items.map((item) => {
+                  const isActive = pathname === item.href
+
+                  if (item.external) {
+                    return (
+                      <a
+                        key={item.id}
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => onOpenChange(false)}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-foreground/5 transition-colors group text-foreground/70 hover:text-foreground rounded-xl"
+                      >
+                        <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
+                        <span>{item.label}</span>
+                      </a>
+                    )
+                  }
+
                   return (
-                    <a
+                    <RippleButton
                       key={item.id}
-                      href={item.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => onOpenChange(false)}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-foreground/5 transition-colors group text-foreground/70 hover:text-foreground rounded-xl"
+                      onClick={() => router.push(item.href)}
+                      className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-all relative group rounded-xl ${isActive
+                        ? 'text-primary font-medium'
+                        : 'text-foreground/70 hover:text-foreground hover:bg-foreground/5'
+                        }`}
                     >
+                      {isActive && (
+                        <div className="absolute left-2 top-1/2 -translate-y-1/2 h-5 w-1 border-2 border-primary border-r-0 rounded-l-full bg-transparent" />
+                      )}
                       <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
                       <span>{item.label}</span>
-                    </a>
+                    </RippleButton>
                   )
-                }
-
-                return (
-                  <RippleButton
-                    key={item.id}
-                    onClick={() => router.push(item.href)}
-                    className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-all relative group rounded-xl ${isActive
-                      ? 'text-primary font-medium'
-                      : 'text-foreground/70 hover:text-foreground hover:bg-foreground/5'
-                      }`}
-                  >
-                    {isActive && (
-                      <div className="absolute left-2 top-1/2 -translate-y-1/2 h-5 w-1 border-2 border-primary border-r-0 rounded-l-full bg-transparent" />
-                    )}
-                    <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
-                    <span>{item.label}</span>
-                  </RippleButton>
-                )
-              })}
-            </div>
-          ))}
+                })}
+              </div>
+            )
+          })}
         </nav>
 
         {/* Footer */}

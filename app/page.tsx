@@ -7,6 +7,7 @@ import { CTASection } from '@/components/home/cta'
 import { BenefitsSecuritySection } from '@/components/home/benefits-security'
 import { BenefitsPrivacySection } from '@/components/home/benefits-privacy'
 import { BenefitsPraticiadeSection } from '@/components/home/benefits-praticidade'
+import { BenefitsCheckoutSection } from '@/components/home/benefits-checkout'
 import { SecurityFeaturesSection } from '@/components/home/security-features'
 import { DashboardPreview } from '@/components/home/dashboard-preview'
 import { StatsSection } from '@/components/home/stats-section'
@@ -24,15 +25,17 @@ export default function Home() {
         <StatsSection />
       </ErrorBoundary>
 
-      <BenefitsPrivacySection />
+      <BenefitsPrivacySection />     {/* Direita */}
 
-      <BenefitsSecuritySection />
+      <SecurityFeaturesSection />    {/* Esquerda */}
 
-      <BenefitsPraticiadeSection />
+      <BenefitsPraticiadeSection />  {/* Direita */}
 
-      <SecurityFeaturesSection />
+      <BenefitsSecuritySection />    {/* Esquerda */}
 
-      <DiscordBotSection />
+      {/* <BenefitsCheckoutSection /> */} {/* Esquerda */}
+
+      <DiscordBotSection />           {/* Direita */}
 
       <CTASection />
     </main>

@@ -588,10 +588,10 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
                 {showBalance && walletBalance ? (
                   <>
                     <span className="text-4xl lg:text-5xl font-bold text-foreground">
-                      R$ {Math.floor(walletBalance.balance.total / 100).toLocaleString('pt-BR')}
+                      R$ {walletBalance.balance.total < 0 ? '-' : ''}{Math.floor(Math.abs(walletBalance.balance.total) / 100).toLocaleString('pt-BR')}
                     </span>
                     <span className="text-lg lg:text-xl font-bold text-foreground/70 ml-0.5">
-                      ,{String(walletBalance.balance.total % 100).padStart(2, '0')}
+                      ,{String(Math.abs(walletBalance.balance.total) % 100).padStart(2, '0')}
                     </span>
                   </>
                 ) : (
