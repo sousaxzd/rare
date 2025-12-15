@@ -25,17 +25,17 @@ export default function Home() {
         <StatsSection />
       </ErrorBoundary>
 
-      <SecurityFeaturesSection />
+      <SecurityFeaturesSection /> {/* Esquerda */}
 
-      <BenefitsPrivacySection />
+      <BenefitsPrivacySection /> {/* Esquerda */}
 
-      <BenefitsSecuritySection />
+      <BenefitsSecuritySection /> {/* Esquerda */}
 
-      <BenefitsPraticiadeSection />
+      <BenefitsPraticiadeSection /> {/* Direita */}
 
-      <BenefitsCheckoutSection />
+      {/* <BenefitsCheckoutSection /> */} {/* Esquerda */}
 
-      <DiscordBotSection />
+      <DiscordBotSection /> {/* Direita */}
 
       <CTASection />
     </main>
