@@ -78,34 +78,29 @@ export function DashboardPreview() {
           rotateX,
           rotateY,
           transformStyle: 'preserve-3d',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 107, 53, 0.1)',
           perspective: '1000px'
         }}
-        className="relative overflow-hidden dashboard-preview-3d cursor-pointer w-full"
+        className="relative rounded-2xl overflow-hidden bg-background border border-foreground/10 shadow-2xl dashboard-preview-3d cursor-pointer w-full"
       >
+        {/* Inner darkening borders */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/60 z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/40 via-transparent to-background/40 z-10 pointer-events-none" />
+
         {/* Image - ocupa toda largura do container */}
-        <div className="relative w-full overflow-hidden">
+        <div className="relative w-full bg-foreground/5 overflow-hidden">
           <img
-            src="/banner wallet.svg"
-            alt="Vision Wallet Banner"
+            src="/preview.png"
+            alt="Dashboard Preview"
             className="w-full h-auto object-contain select-none relative z-0"
             draggable={false}
           />
 
-          {/* Vignette effect - escuro concentrado nas bordas */}
-          <div
-            className="absolute inset-0 z-20 pointer-events-none"
-            style={{
-              background: 'radial-gradient(ellipse at center, transparent 60%, hsl(var(--background) / 0.4) 80%, hsl(var(--background) / 0.8) 95%, hsl(var(--background)) 100%)'
-            }}
-          />
-
-          {/* Bordas escuras - top/bottom */}
-          <div className="absolute top-0 left-0 right-0 h-20 md:h-32 bg-gradient-to-b from-background via-background/50 to-transparent z-20 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 right-0 h-20 md:h-32 bg-gradient-to-t from-background via-background/50 to-transparent z-20 pointer-events-none" />
-
-          {/* Bordas escuras - left/right */}
-          <div className="absolute top-0 bottom-0 left-0 w-16 md:w-28 bg-gradient-to-r from-background via-background/40 to-transparent z-20 pointer-events-none" />
-          <div className="absolute top-0 bottom-0 right-0 w-16 md:w-28 bg-gradient-to-l from-background via-background/40 to-transparent z-20 pointer-events-none" />
+          {/* Additional overlay effects */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-20 pointer-events-none opacity-60" />
+          <div className="absolute top-0 left-0 right-0 h-16 md:h-32 bg-gradient-to-b from-background to-transparent z-20 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-16 md:h-32 bg-gradient-to-t from-background to-transparent z-20 pointer-events-none" />
         </div>
       </motion.div>
     </motion.section>
