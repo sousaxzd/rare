@@ -251,11 +251,14 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
               onOpenChange(false)
               router.push('/dashboard/settings')
             }}
-            className={`w-full flex items-center gap-3 px-4 py-2 rounded-xl transition-colors ${pathname === '/dashboard/settings'
-              ? 'text-primary font-medium bg-foreground/5'
+            className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-all relative group rounded-xl ${pathname === '/dashboard/settings'
+              ? 'text-primary font-medium'
               : 'text-foreground/70 hover:text-foreground hover:bg-foreground/5'
               }`}
           >
+            {pathname === '/dashboard/settings' && (
+              <div className="absolute left-2 top-1/2 -translate-y-1/2 h-5 w-1 border-2 border-primary border-r-0 rounded-l-full bg-transparent" />
+            )}
             <FontAwesomeIcon icon={faGear} className="w-4 h-4" />
             <span className="text-sm font-medium">Configurações</span>
           </RippleButton>

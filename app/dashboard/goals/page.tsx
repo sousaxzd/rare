@@ -138,7 +138,10 @@ export default function GoalsPage() {
                   </p>
                 </div>
               </div>
-              <RippleButton className="whitespace-nowrap px-8 py-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+              <RippleButton
+                onClick={() => window.open('https://discord.gg/9vBqJj45gV', '_blank')}
+                className="whitespace-nowrap px-4 py-2 text-sm bg-primary text-primary-foreground font-medium rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+              >
                 Solicitar Prêmio
               </RippleButton>
             </div>
