@@ -142,8 +142,7 @@ export default function SummaryPage() {
         break
     }
 
-    // Calcular saldo inicial: saldo atual - entradas do período + saídas do período
-    // Isso nos dá o saldo que existia antes do período filtrado
+    // Calcular entradas e saídas do período
     const totalIncome = filteredTransactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0)
@@ -152,9 +151,17 @@ export default function SummaryPage() {
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0))
 
-    const initialBalance = balance !== null
-      ? Math.max(0, balance - totalIncome + totalExpense)
-      : 0
+    // Calcular saldo inicial: soma de todas as transações ANTES do período filtrado
+    // Isso nos dá o saldo que existia no início do período
+    const transactionsBeforePeriod = allTransactions.filter(t => t.date < startDate)
+    const incomeBeforePeriod = transactionsBeforePeriod
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0)
+    const expenseBeforePeriod = Math.abs(transactionsBeforePeriod
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0))
+
+    const initialBalance = incomeBeforePeriod - expenseBeforePeriod
 
     const transactionVolume = totalIncome + totalExpense
     const totalTransactions = filteredTransactions.length
@@ -196,7 +203,7 @@ export default function SummaryPage() {
       totalFees,
       totalWithdrawn: totalExpense,
     }
-  }, [filteredTransactions, balance, payments, withdraws, periodFilter])
+  }, [filteredTransactions, balance, payments, withdraws, periodFilter, allTransactions])
 
   // Preparar dados para o gráfico
   const chartData = useMemo(() => {
