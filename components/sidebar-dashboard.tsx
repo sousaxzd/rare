@@ -49,13 +49,7 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
         { id: 'discord', label: 'Discord Bot', icon: faRobot, href: 'https://discord.com/oauth2/authorize?client_id=1448484905414561832&permissions=8&scope=bot%20applications.commands', external: true },
       ]
     },
-    {
-      title: 'Minha Conta',
-      icon: faUser,
-      items: [
-        { id: 'config', label: 'Configurações', icon: faGear, href: '/dashboard/settings' },
-      ]
-    }
+
   ]
 
   // Categories that should be collapsed by default
@@ -181,7 +175,7 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
         >
           {categories.map((category) => {
             const isCollapsed = collapsedCategories.has(category.title)
-            const isCollapsible = !['Plataforma', 'Minha Conta'].includes(category.title)
+            const isCollapsible = !['Plataforma'].includes(category.title)
 
             return (
               <div key={category.title} className="space-y-1">
@@ -252,6 +246,20 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
         <div className="p-4 border-r border-foreground/10 space-y-2">
           <Separator className="bg-foreground/10 mb-2" />
 
+          <RippleButton
+            onClick={() => {
+              onOpenChange(false)
+              router.push('/dashboard/settings')
+            }}
+            className={`w-full flex items-center gap-3 px-4 py-2 rounded-xl transition-colors ${pathname === '/dashboard/settings'
+              ? 'text-primary font-medium bg-foreground/5'
+              : 'text-foreground/70 hover:text-foreground hover:bg-foreground/5'
+              }`}
+          >
+            <FontAwesomeIcon icon={faGear} className="w-4 h-4" />
+            <span className="text-sm font-medium">Configurações</span>
+          </RippleButton>
+
           <a
             href="https://discord.gg/9vBqJj45gV"
             target="_blank"
@@ -260,7 +268,7 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
             className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-foreground/70 hover:text-[#5865F2] hover:bg-[#5865F2]/10 transition-colors"
           >
             <FontAwesomeIcon icon={faDiscord} className="w-4 h-4" />
-            <span className="text-sm font-medium">Comunidade no Discord</span>
+            <span className="text-sm font-medium">Suporte no Discord</span>
           </a>
 
           <RippleButton
