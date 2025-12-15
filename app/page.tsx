@@ -25,13 +25,13 @@ export default function Home() {
         <StatsSection />
       </ErrorBoundary>
 
-      <SecurityFeaturesSection /> {/* Esquerda */}
-
       <BenefitsPrivacySection /> {/* Esquerda */}
 
-      <BenefitsSecuritySection /> {/* Esquerda */}
+      <SecurityFeaturesSection /> {/* Esquerda */}
 
       <BenefitsPraticiadeSection /> {/* Direita */}
+
+      <BenefitsSecuritySection /> {/* Esquerda */}
 
       {/* <BenefitsCheckoutSection /> */} {/* Esquerda */}
 
