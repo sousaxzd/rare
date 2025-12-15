@@ -7,7 +7,7 @@ import { DashboardHeader } from '@/components/dashboard-header'
 import { RippleButton } from '@/components/ripple-button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
-import { format, subDays, startOfDay, endOfDay, startOfYear, parseISO, eachDayOfInterval, isSameDay } from 'date-fns'
+import { format, subDays, startOfDay, endOfDay, startOfYear, parseISO, eachDayOfInterval, isSameDay, eachHourOfInterval, isSameHour } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { listPayments, listWithdraws, getBalance } from '@/lib/wallet'
 import { useAuth } from '@/hooks/useAuth'
@@ -202,49 +202,59 @@ export default function SummaryPage() {
   const chartData = useMemo(() => {
     const now = new Date()
     let startDate: Date
+    let points: Date[] = []
 
-    switch (periodFilter) {
-      case 'today':
-        startDate = startOfDay(now)
-        break
-      case '7days':
-        startDate = startOfDay(subDays(now, 7))
-        break
-      case '30days':
-        startDate = startOfDay(subDays(now, 30))
-        break
-      case 'year':
-        startDate = startOfYear(now)
-        break
-      case 'all':
-        if (allTransactions.length > 0) {
-          startDate = startOfDay(allTransactions[0].date)
-        } else {
-          startDate = startOfDay(subDays(now, 30))
-        }
-        break
-    }
-
-    if (startDate > now) startDate = startOfDay(now)
-
-    let days: Date[] = []
     try {
-      days = eachDayOfInterval({ start: startDate, end: now })
+      if (periodFilter === 'today') {
+        startDate = startOfDay(now)
+        points = eachHourOfInterval({ start: startDate, end: now })
+      } else {
+        switch (periodFilter) {
+          case '7days':
+            startDate = startOfDay(subDays(now, 7))
+            break
+          case '30days':
+            startDate = startOfDay(subDays(now, 30))
+            break
+          case 'year':
+            startDate = startOfYear(now)
+            break
+          case 'all':
+            if (allTransactions.length > 0) {
+              startDate = startOfDay(allTransactions[0].date)
+            } else {
+              startDate = startOfDay(subDays(now, 30))
+            }
+            break
+          default:
+            startDate = startOfDay(subDays(now, 30))
+        }
+
+        if (startDate > now) startDate = startOfDay(now)
+        points = eachDayOfInterval({ start: startDate, end: now })
+      }
     } catch (e) {
-      days = [now]
+      console.error('Erro ao gerar pontos do gráfico:', e)
+      points = [now]
     }
 
     let runningBalance = stats.initialBalance
 
-    return days.map(day => {
-      const displayDate = format(day, 'dd/MM', { locale: ptBR })
+    return points.map(point => {
+      const isTodayMode = periodFilter === 'today'
 
-      const dayTransactions = filteredTransactions.filter(t => isSameDay(t.date, day))
+      const displayDate = isTodayMode
+        ? format(point, 'HH:mm', { locale: ptBR })
+        : format(point, 'dd/MM', { locale: ptBR })
+
+      const transactionsInPoint = filteredTransactions.filter(t =>
+        isTodayMode ? isSameHour(t.date, point) : isSameDay(t.date, point)
+      )
 
       let income = 0
       let expense = 0
 
-      dayTransactions.forEach(t => {
+      transactionsInPoint.forEach(t => {
         if (t.type === 'income') {
           income += t.amount
         } else {
@@ -256,7 +266,7 @@ export default function SummaryPage() {
 
       return {
         date: displayDate,
-        fullDate: day,
+        fullDate: point,
         income,
         expense,
         volume: income + expense,
