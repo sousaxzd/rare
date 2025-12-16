@@ -394,24 +394,60 @@ export default function CredentialsPage() {
 
             {/* Seção: Suas Credenciais */}
             <div className="mt-6 mb-8">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                <div>
-                  <h2 className="text-xl font-bold text-foreground mb-1">Suas Credenciais</h2>
-                  <p className="text-sm text-muted-foreground">Utilize estas credenciais para autenticar suas requisições à API.</p>
-                </div>
-                <RippleButton
-                  onClick={() => setShowCreateDialog(true)}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto"
-                >
-                  <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
-                  <span>Nova API Key</span>
-                </RippleButton>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4 mb-4">
+                {loading ? (
+                  <Skeleton className="h-10 w-36 rounded-lg" />
+                ) : (
+                  <RippleButton
+                    onClick={() => setShowCreateDialog(true)}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto"
+                  >
+                    <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
+                    <span>Nova API Key</span>
+                  </RippleButton>
+                )}
               </div>
 
               {loading ? (
                 <div className="space-y-4">
                   {[1, 2].map((i) => (
-                    <Skeleton key={i} className="h-32 w-full rounded-lg" />
+                    <div key={i} className="border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm p-4 sm:p-6">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          {/* Título e badge */}
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                            <Skeleton className="w-5 h-5 rounded" />
+                            <Skeleton className="h-6 w-40 rounded" />
+                          </div>
+
+                          <div className="space-y-3 mt-4">
+                            {/* Permissões */}
+                            <div>
+                              <Skeleton className="h-3 w-20 mb-2 rounded" />
+                              <div className="flex flex-wrap gap-2">
+                                <Skeleton className="h-6 w-24 rounded" />
+                                <Skeleton className="h-6 w-28 rounded" />
+                                <Skeleton className="h-6 w-20 rounded" />
+                              </div>
+                            </div>
+
+                            {/* Datas */}
+                            <div className="flex flex-col gap-1">
+                              <Skeleton className="h-3 w-48 rounded" />
+                              <Skeleton className="h-3 w-44 rounded" />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Botões de ação */}
+                        <div className="flex items-center gap-2 flex-shrink-0 sm:ml-4">
+                          <Skeleton className="w-9 h-9 rounded-lg" />
+                          <Skeleton className="w-9 h-9 rounded-lg" />
+                          <Skeleton className="w-9 h-9 rounded-lg" />
+                          <Skeleton className="w-9 h-9 rounded-lg" />
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               ) : (
@@ -519,52 +555,82 @@ export default function CredentialsPage() {
 
             {/* Seção: Seus IPs */}
             <div className="mb-8">
-              <div className="mb-4">
-                <h2 className="text-xl font-bold text-foreground mb-1">Seus IPs</h2>
-                <p className="text-sm text-muted-foreground">
-                  Adicione IPs autorizados para aumentar a segurança da sua integração. Apenas requisições provenientes destes IPs serão aceitas.
-                </p>
-              </div>
+              {loading ? (
+                <>
+                  <div className="mb-4">
+                    <Skeleton className="h-7 w-28 mb-2 rounded" />
+                    <Skeleton className="h-4 w-full max-w-xl rounded" />
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                    <Skeleton className="h-10 flex-1 rounded-lg" />
+                    <div className="flex gap-2 sm:gap-3">
+                      <Skeleton className="h-10 w-32 rounded-lg" />
+                      <Skeleton className="h-10 w-40 rounded-lg" />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="mb-4">
+                    <h2 className="text-xl font-bold text-foreground mb-1">Seus IPs</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Adicione IPs autorizados para aumentar a segurança da sua integração. Apenas requisições provenientes destes IPs serão aceitas.
+                    </p>
+                  </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                <Input
-                  type="text"
-                  value={newIP}
-                  onChange={(e) => setNewIP(e.target.value)}
-                  placeholder="Digite o IP para adicionar (ex: 192.168.1.1)"
-                  className="flex-1 min-w-0"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      handleAddIP()
-                    }
-                  }}
-                />
-                <div className="flex gap-2 sm:gap-3">
-                  <RippleButton
-                    onClick={handleAddIP}
-                    disabled={addingIP || !newIP.trim()}
-                    className="flex-1 sm:flex-initial px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    <FontAwesomeIcon icon={addingIP ? faSpinner : faPlus} className={addingIP ? 'animate-spin' : ''} />
-                    <span className="hidden sm:inline">Adicionar IP</span>
-                    <span className="sm:hidden">Adicionar</span>
-                  </RippleButton>
-                  <RippleButton
-                    onClick={handleClearAllIPs}
-                    disabled={authorizedIPs.some(ip => ip.ip === '0.0.0.0')}
-                    className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    <FontAwesomeIcon icon={faLock} className="w-4 h-4" />
-                    <span className="hidden sm:inline">Liberar Todos os IPs</span>
-                    <span className="sm:hidden">Liberar</span>
-                  </RippleButton>
-                </div>
-              </div>
+                  <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                    <Input
+                      type="text"
+                      value={newIP}
+                      onChange={(e) => setNewIP(e.target.value)}
+                      placeholder="Digite o IP para adicionar (ex: 192.168.1.1)"
+                      className="flex-1 min-w-0"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleAddIP()
+                        }
+                      }}
+                    />
+                    <div className="flex gap-2 sm:gap-3">
+                      <RippleButton
+                        onClick={handleAddIP}
+                        disabled={addingIP || !newIP.trim()}
+                        className="flex-1 sm:flex-initial px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        <FontAwesomeIcon icon={addingIP ? faSpinner : faPlus} className={addingIP ? 'animate-spin' : ''} />
+                        <span className="hidden sm:inline">Adicionar IP</span>
+                        <span className="sm:hidden">Adicionar</span>
+                      </RippleButton>
+                      <RippleButton
+                        onClick={handleClearAllIPs}
+                        disabled={authorizedIPs.some(ip => ip.ip === '0.0.0.0')}
+                        className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        <FontAwesomeIcon icon={faLock} className="w-4 h-4" />
+                        <span className="hidden sm:inline">Liberar Todos os IPs</span>
+                        <span className="sm:hidden">Liberar</span>
+                      </RippleButton>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {loading ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-12 w-full rounded-lg" />
-                  <Skeleton className="h-12 w-full rounded-lg" />
+                <div className="border border-foreground/10 rounded-lg overflow-hidden">
+                  {/* Header skeleton */}
+                  <div className="bg-foreground/5 px-3 sm:px-4 py-3 flex">
+                    <Skeleton className="h-4 w-12 rounded" />
+                    <Skeleton className="h-4 w-16 rounded ml-auto mr-16" />
+                    <Skeleton className="h-4 w-12 rounded" />
+                  </div>
+                  {/* Rows skeleton */}
+                  {[1, 2].map((i) => (
+                    <div key={i} className="px-3 sm:px-4 py-3 flex items-center border-t border-foreground/10">
+                      <Skeleton className="h-4 w-28 rounded" />
+                      <Skeleton className="h-6 w-14 rounded ml-auto mr-12" />
+                      <Skeleton className="h-8 w-8 rounded-lg" />
+                    </div>
+                  ))}
                 </div>
               ) : authorizedIPs.length === 0 ? (
                 <div className="p-6 rounded-lg bg-foreground/5 border border-foreground/10 text-center">
