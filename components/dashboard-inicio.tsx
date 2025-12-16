@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faWallet, faArrowUp, faArrowDown, faEye, faEyeSlash, faReceipt, faArrowRight, faPaperPlane, faInbox, faSpinner, faCopy, faCheck, faTimes, faTrash, faHandHoldingDollar } from '@fortawesome/free-solid-svg-icons'
+import { faWallet, faArrowUp, faArrowDown, faEye, faEyeSlash, faReceipt, faArrowRight, faPaperPlane, faInbox, faSpinner, faCopy, faCheck, faTimes, faTrash, faHandHoldingDollar, faExchangeAlt } from '@fortawesome/free-solid-svg-icons'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
 import { RippleButton } from './ripple-button'
@@ -478,14 +478,23 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
         )}
 
         {/* Saldo e Botões Skeleton */}
-        <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
-          <div className="flex items-center justify-between mb-6">
-            <Skeleton className="h-16 w-64" />
-            <Skeleton className="w-10 h-10 rounded-lg" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
+            <div className="flex items-center justify-between mb-6">
+              <Skeleton className="h-16 w-64" />
+              <Skeleton className="w-10 h-10 rounded-lg" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Skeleton className="h-12 w-full rounded-lg" />
+              <Skeleton className="h-12 w-full rounded-lg" />
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Skeleton className="h-12 w-full rounded-lg" />
-            <Skeleton className="h-12 w-full rounded-lg" />
+          <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10 flex flex-col justify-between">
+            <div className="mb-4">
+              <Skeleton className="h-6 w-48 mb-2" />
+              <Skeleton className="h-10 w-24" />
+            </div>
+            <Skeleton className="h-10 w-full rounded-lg" />
           </div>
         </div>
 
@@ -641,26 +650,29 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
 
         {/* Transações Completas */}
         <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10 flex flex-col justify-between">
-          <div className="flex items-center gap-2 text-muted-foreground mb-4">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-primary" />
-            </div>
+          <div className="flex items-center gap-2 text-muted-foreground mb-4 h-8">
+            <FontAwesomeIcon icon={faExchangeAlt} className="w-4 h-4" />
             <span className="text-sm font-medium">Transações Completas</span>
           </div>
 
-          <div className="flex items-baseline">
+          <div className="flex items-start mb-6">
             {walletLoading ? (
               <Skeleton className="h-10 w-24" />
-            ) : (
+            ) : showBalance ? (
               <span className="text-3xl lg:text-4xl font-bold text-foreground">
                 {walletBalance?.statistics?.totalCompletedTransactions || 0}
               </span>
+            ) : (
+              <span className="text-3xl lg:text-4xl font-bold text-foreground">••••••</span>
             )}
           </div>
 
-          <p className="text-xs text-muted-foreground mt-2">
-            Total de depósitos, transferências e recebimentos finalizados com sucesso.
-          </p>
+          <Link href="/dashboard/summary" className="w-full mt-auto">
+            <RippleButton className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-foreground/10 text-foreground hover:bg-primary hover:text-white border border-foreground/10 hover:border-primary transition-colors text-sm">
+              <span className="font-medium">Ver em detalhes</span>
+              <FontAwesomeIcon icon={faArrowRight} className="w-3.5 h-3.5" />
+            </RippleButton>
+          </Link>
         </div>
       </div>
 

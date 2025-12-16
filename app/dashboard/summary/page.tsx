@@ -307,18 +307,24 @@ export default function SummaryPage() {
 
             {/* Filtros de Período */}
             <div className="mt-6 flex flex-wrap gap-2">
-              {(Object.keys(periodLabels) as PeriodFilter[]).map((period) => (
-                <RippleButton
-                  key={period}
-                  onClick={() => setPeriodFilter(period)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${periodFilter === period
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-foreground/5 text-foreground/70 hover:bg-foreground/10 hover:text-foreground'
-                    }`}
-                >
-                  {periodLabels[period]}
-                </RippleButton>
-              ))}
+              {loading ? (
+                [...Array(5)].map((_, i) => (
+                  <Skeleton key={i} className="h-9 w-28 rounded-lg" />
+                ))
+              ) : (
+                (Object.keys(periodLabels) as PeriodFilter[]).map((period) => (
+                  <RippleButton
+                    key={period}
+                    onClick={() => setPeriodFilter(period)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${periodFilter === period
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-foreground/5 text-foreground/70 hover:bg-foreground/10 hover:text-foreground'
+                      }`}
+                  >
+                    {periodLabels[period]}
+                  </RippleButton>
+                ))
+              )}
             </div>
 
             {/* Cards de Estatísticas */}
@@ -406,7 +412,11 @@ export default function SummaryPage() {
 
             {/* Gráfico */}
             <div className="mt-6 border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm p-4 sm:p-6">
-              <h2 className="text-base sm:text-lg font-semibold text-foreground mb-4 sm:mb-6">Evolução Financeira</h2>
+              {loading ? (
+                <Skeleton className="h-7 w-48 mb-6 rounded-md" />
+              ) : (
+                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-4 sm:mb-6">Evolução Financeira</h2>
+              )}
 
               {loading ? (
                 <Skeleton className="h-[280px] sm:h-[400px] w-full rounded-lg" />
