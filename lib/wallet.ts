@@ -23,6 +23,7 @@ export interface BalanceData {
     completedPayments: number;
     pendingPayments: number;
     totalPayments: number;
+    totalCompletedTransactions?: number;
   };
   limits: {
     daily: number;

@@ -586,68 +586,81 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
         </div>
       )}
 
-      {/* Seção Principal: Saldo e Botões */}
-      <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
+      {/* Seção Principal: Saldo e Estatísticas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Saldo */}
-        <div className="flex items-center justify-between mb-6">
-          {walletLoading ? (
-            <Skeleton className="h-16 w-64" />
-          ) : (
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <FontAwesomeIcon icon={faWallet} className="w-4 h-4" />
-                <span className="text-sm font-medium">Saldo Disponível</span>
-              </div>
-              <div className="flex items-start">
-                {showBalance && walletBalance ? (
-                  <>
-                    <span className="text-4xl lg:text-5xl font-bold text-foreground">
-                      R$ {walletBalance.balance.total < 0 ? '-' : ''}{Math.floor(Math.abs(walletBalance.balance.total) / 100).toLocaleString('pt-BR')}
-                    </span>
-                    <span className="text-lg lg:text-xl font-bold text-foreground/70 ml-0.5">
-                      ,{String(Math.abs(walletBalance.balance.total) % 100).padStart(2, '0')}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-4xl lg:text-5xl font-bold text-foreground">••••••</span>
-                )}
-              </div>
+        <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10 relative overflow-hidden group">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <FontAwesomeIcon icon={faWallet} className="w-4 h-4" />
+              <span className="text-sm font-medium">Saldo Disponível</span>
             </div>
-          )}
-          <RippleButton
-            onClick={() => setShowBalance(!showBalance)}
-            className="p-2 hover:bg-muted rounded-lg transition-colors"
-          >
-            <FontAwesomeIcon
-              icon={showBalance ? faEye : faEyeSlash}
-              className="w-4 h-4 text-muted-foreground"
-            />
-          </RippleButton>
+            <RippleButton
+              onClick={() => setShowBalance(!showBalance)}
+              className="p-2 hover:bg-muted rounded-lg transition-colors z-10"
+            >
+              <FontAwesomeIcon
+                icon={showBalance ? faEye : faEyeSlash}
+                className="w-4 h-4 text-muted-foreground"
+              />
+            </RippleButton>
+          </div>
+
+          <div className="flex items-start mb-6">
+            {walletLoading ? (
+              <Skeleton className="h-10 w-48" />
+            ) : showBalance && walletBalance ? (
+              <div className="flex items-baseline">
+                <span className="text-3xl lg:text-4xl font-bold text-foreground">
+                  R$ {walletBalance.balance.total < 0 ? '-' : ''}{Math.floor(Math.abs(walletBalance.balance.total) / 100).toLocaleString('pt-BR')}
+                </span>
+                <span className="text-lg lg:text-xl font-bold text-foreground/70 ml-0.5">
+                  ,{String(Math.abs(walletBalance.balance.total) % 100).padStart(2, '0')}
+                </span>
+              </div>
+            ) : (
+              <span className="text-3xl lg:text-4xl font-bold text-foreground">••••••</span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Link href="/dashboard/transfer" className="w-full">
+              <RippleButton className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-foreground/10 text-foreground hover:bg-primary hover:text-white border border-foreground/10 hover:border-primary transition-colors text-sm">
+                <FontAwesomeIcon icon={faArrowUp} className="w-3.5 h-3.5" />
+                <span className="font-medium">Transferir</span>
+              </RippleButton>
+            </Link>
+            <Link href="/dashboard/deposit" className="w-full">
+              <RippleButton className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-foreground/10 text-foreground hover:bg-primary hover:text-white border border-foreground/10 hover:border-primary transition-colors text-sm">
+                <FontAwesomeIcon icon={faArrowDown} className="w-3.5 h-3.5" />
+                <span className="font-medium">Depositar</span>
+              </RippleButton>
+            </Link>
+          </div>
         </div>
 
-        {/* Botões */}
-        <div className="grid grid-cols-2 gap-4">
-          {walletLoading ? (
-            <>
-              <Skeleton className="h-12 w-full rounded-lg" />
-              <Skeleton className="h-12 w-full rounded-lg" />
-            </>
-          ) : (
-            <>
-              <Link href="/dashboard/transfer">
-                <RippleButton className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-foreground/10 text-foreground hover:bg-primary hover:text-white border border-foreground/10 hover:border-primary transition-colors">
-                  <FontAwesomeIcon icon={faArrowUp} className="w-4 h-4" />
-                  <span className="font-medium">Transferir</span>
-                </RippleButton>
-              </Link>
-              <Link href="/dashboard/deposit">
-                <RippleButton className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-foreground/10 text-foreground hover:bg-primary hover:text-white border border-foreground/10 hover:border-primary transition-colors">
-                  <FontAwesomeIcon icon={faArrowDown} className="w-4 h-4" />
-                  <span className="font-medium">Depositar</span>
-                </RippleButton>
-              </Link>
-            </>
-          )}
+        {/* Transações Completas */}
+        <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10 flex flex-col justify-between">
+          <div className="flex items-center gap-2 text-muted-foreground mb-4">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-primary" />
+            </div>
+            <span className="text-sm font-medium">Transações Completas</span>
+          </div>
+
+          <div className="flex items-baseline">
+            {walletLoading ? (
+              <Skeleton className="h-10 w-24" />
+            ) : (
+              <span className="text-3xl lg:text-4xl font-bold text-foreground">
+                {walletBalance?.statistics?.totalCompletedTransactions || 0}
+              </span>
+            )}
+          </div>
+
+          <p className="text-xs text-muted-foreground mt-2">
+            Total de depósitos, transferências e recebimentos finalizados com sucesso.
+          </p>
         </div>
       </div>
 
