@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
 import { format, subDays, startOfDay, endOfDay, startOfYear, parseISO, eachDayOfInterval, isSameDay, eachHourOfInterval, isSameHour } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { listPayments, listWithdraws, getBalance } from '@/lib/wallet'
+import { listPayments, listWithdraws, getBalance, listTransactions } from '@/lib/wallet'
 import { useAuth } from '@/hooks/useAuth'
 import { CalendarIcon, Wallet, TrendingUp, TrendingDown } from 'lucide-react'
 
@@ -38,15 +38,41 @@ export default function SummaryPage() {
     const loadData = async () => {
       setLoading(true)
       try {
-        // Buscar pagamentos e saques (sem limite para pegar todos)
-        const [paymentsRes, withdrawsRes, balanceRes] = await Promise.all([
-          listPayments({ limit: 1000 }),
-          listWithdraws({ limit: 1000 }),
+        // Buscar todas as transações (pagamentos, saques, transferências)
+        const [transactionsRes, balanceRes] = await Promise.all([
+          listTransactions({ limit: 1000 }),
           getBalance()
         ])
 
-        setPayments(paymentsRes.data.payments || [])
-        setWithdraws(withdrawsRes.data.withdraws || [])
+        const rawTransactions = transactionsRes.data.transactions || []
+
+        // Converter para o formato interno usado pela página
+        const mappedTransactions: Transaction[] = rawTransactions.map(t => {
+          const amountInReais = t.amount / 100
+
+          return {
+            id: t.id,
+            date: parseISO(t.date),
+            description: t.description,
+            // Para despesas, manter negativo conforme lógica existente da página
+            amount: t.type === 'expense' ? -amountInReais : amountInReais,
+            type: t.type,
+            status: t.status
+          }
+        })
+
+        // Filtrar apenas completadas/pagas
+        const completedTransactions = mappedTransactions.filter(t =>
+          t.status === 'COMPLETED' || t.status === 'PAID'
+        )
+
+        // Ordenar por data
+        completedTransactions.sort((a, b) => a.date.getTime() - b.date.getTime())
+
+        setPayments(completedTransactions) // Usando state 'payments' temporariamente para armazenar tudo ou refatorar state
+        setWithdraws([]) // Não usado mais separadamente
+
+        // Atualizar state de balance
         setBalance(balanceRes.data.balance.total / 100)
       } catch (error) {
         console.error('Erro ao carregar dados:', error)
@@ -58,41 +84,10 @@ export default function SummaryPage() {
     loadData()
   }, [])
 
-  // Converter pagamentos e saques em transações unificadas
+  // State simplificado: 'payments' agora contém todas as transações processadas
   const allTransactions = useMemo(() => {
-    const transactions: Transaction[] = []
-
-    // Adicionar pagamentos (entradas)
-    payments.forEach(payment => {
-      if (payment.status === 'COMPLETED' || payment.status === 'PAID') {
-        transactions.push({
-          id: payment.id,
-          date: parseISO(payment.createdAt),
-          description: payment.description || 'Pagamento recebido',
-          amount: (payment.netValue || payment.value) / 100,
-          type: 'income',
-          status: payment.status
-        })
-      }
-    })
-
-    // Adicionar saques (saídas)
-    withdraws.forEach(withdraw => {
-      if (withdraw.status === 'COMPLETED') {
-        transactions.push({
-          id: withdraw.id,
-          date: parseISO(withdraw.createdAt),
-          description: withdraw.description || 'Transferência realizada',
-          amount: -(withdraw.value / 100), // Negativo para saída
-          type: 'expense',
-          status: withdraw.status
-        })
-      }
-    })
-
-    // Ordenar por data (mais antigo primeiro)
-    return transactions.sort((a, b) => a.date.getTime() - b.date.getTime())
-  }, [payments, withdraws])
+    return payments // Já formatado e ordenado no useEffect
+  }, [payments])
 
   // Filtrar transações baseado no período selecionado
   const filteredTransactions = useMemo(() => {
