@@ -49,10 +49,12 @@ export default function SummaryPage() {
         // Converter para o formato interno usado pela página
         const mappedTransactions: Transaction[] = rawTransactions.map(t => {
           const amountInReais = t.amount / 100
+          // t.date pode ser Date ou string ISO dependendo da resposta
+          const dateValue = typeof t.date === 'string' ? parseISO(t.date) : new Date(t.date)
 
           return {
             id: t.id,
-            date: parseISO(t.date),
+            date: dateValue,
             description: t.description,
             // Para despesas, manter negativo conforme lógica existente da página
             amount: t.type === 'expense' ? -amountInReais : amountInReais,
@@ -162,30 +164,9 @@ export default function SummaryPage() {
     const totalTransactions = filteredTransactions.length
     const averageTicket = totalTransactions > 0 ? transactionVolume / totalTransactions : 0
 
-    // Calcular total de taxas pagas no período (pagamentos + saques)
-    const totalFeesFromPayments = payments
-      .filter(p => {
-        const pDate = parseISO(p.createdAt)
-        return pDate >= startDate && pDate <= endOfDay(now) && (p.status === 'COMPLETED' || p.status === 'PAID')
-      })
-      .reduce((sum, p) => sum + ((p.fee || 0) / 100), 0)
-
-    const totalFeesFromWithdraws = withdraws
-      .filter(w => {
-        const wDate = parseISO(w.createdAt)
-        return wDate >= startDate && wDate <= endOfDay(now) && w.status === 'COMPLETED'
-      })
-      .reduce((sum, w) => {
-        // Taxa do saque está no metadata ou pode ser calculada: value - sent
-        const fee = w.metadata?.fee
-          ? w.metadata.fee / 100
-          : w.value && w.metadata?.sent
-            ? (w.value - w.metadata.sent) / 100
-            : 0
-        return sum + fee
-      }, 0)
-
-    const totalFees = totalFeesFromPayments + totalFeesFromWithdraws
+    // Nota: taxas não estão disponíveis na resposta unificada de transações
+    // Para obter taxas, seria necessário buscar os dados originais separadamente
+    const totalFees = 0
 
     return {
       initialBalance,
@@ -198,7 +179,7 @@ export default function SummaryPage() {
       totalFees,
       totalWithdrawn: totalExpense,
     }
-  }, [filteredTransactions, balance, payments, withdraws, periodFilter, allTransactions])
+  }, [filteredTransactions, balance, periodFilter, allTransactions])
 
   // Preparar dados para o gráfico
   const chartData = useMemo(() => {
