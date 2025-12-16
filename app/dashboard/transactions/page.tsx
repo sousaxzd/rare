@@ -1,18 +1,18 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { SidebarDashboard } from '@/components/sidebar-dashboard'
 import { DashboardTopbar } from '@/components/dashboard-topbar'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCalendar, faFilePdf, faFileExcel, faDownload, faArrowUp, faArrowDown, faSpinner, faHandHoldingDollar } from '@fortawesome/free-solid-svg-icons'
+import { faCalendar, faFilePdf, faFileExcel, faArrowUp, faArrowDown, faHandHoldingDollar, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { RippleButton } from '@/components/ripple-button'
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TransactionDetailsModal } from '@/components/transaction-details-modal'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useWallet } from '@/components/providers/wallet-provider'
+import { listPayments, listWithdraws, listTransactions, Payment, Withdraw, Transaction as ApiTransaction } from '@/lib/wallet'
 
 interface Transaction {
   id: string
@@ -55,7 +55,6 @@ const getStatusBadge = (status: string) => {
 }
 
 export default function TransactionsPage() {
-  const { payments, withdraws, internalTransfers, loading: walletLoading, refreshWallet } = useWallet()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().getFullYear(), 0, 1))
   const [endDate, setEndDate] = useState<Date>(new Date())
@@ -66,16 +65,61 @@ export default function TransactionsPage() {
   const [selectedTransactionId, setSelectedTransactionId] = useState<string>('')
   const [selectedTransactionType, setSelectedTransactionType] = useState<'payment' | 'withdraw' | 'internal_transfer_sent' | 'internal_transfer_received' | 'commission'>('payment')
 
+  // Data state - fetch ALL transactions directly
+  const [allPayments, setAllPayments] = useState<Payment[]>([])
+  const [allWithdraws, setAllWithdraws] = useState<Withdraw[]>([])
+  const [allInternalTransfers, setAllInternalTransfers] = useState<ApiTransaction[]>([])
+  const [loading, setLoading] = useState(true)
+  const [totalCounts, setTotalCounts] = useState({ payments: 0, withdraws: 0, transactions: 0 })
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(25)
 
-  // Combinar e filtrar transações do WalletContext
+  // Fetch all data with higher limits
+  const fetchAllTransactions = useCallback(async () => {
+    setLoading(true)
+    try {
+      // Fetch with high limits to get all transactions
+      const [paymentsRes, withdrawsRes, transactionsRes] = await Promise.all([
+        listPayments({ limit: 1000 }),
+        listWithdraws({ limit: 1000 }),
+        listTransactions({ limit: 1000 })
+      ])
+
+      if (paymentsRes.success) {
+        setAllPayments(paymentsRes.data.payments)
+        setTotalCounts(prev => ({ ...prev, payments: paymentsRes.data.pagination.total }))
+      }
+      if (withdrawsRes.success) {
+        setAllWithdraws(withdrawsRes.data.withdraws)
+        setTotalCounts(prev => ({ ...prev, withdraws: withdrawsRes.data.pagination.total }))
+      }
+      if (transactionsRes.success) {
+        const internal = transactionsRes.data.transactions.filter(t =>
+          t.transactionType === 'internal_transfer_sent' || t.transactionType === 'internal_transfer_received'
+        )
+        setAllInternalTransfers(internal)
+        setTotalCounts(prev => ({ ...prev, transactions: transactionsRes.data.pagination.total }))
+      }
+    } catch (error) {
+      console.error('Erro ao carregar transações:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  // Load data on mount
+  useEffect(() => {
+    fetchAllTransactions()
+  }, [fetchAllTransactions])
+
+  // Combinar e filtrar transações
   const filteredTransactions = useMemo(() => {
     const allTransactions: Transaction[] = []
 
     // Adicionar pagamentos como receitas
-    payments
+    allPayments
       .filter(p => p.status === 'COMPLETED' || p.status === 'PAID' || p.status === 'PENDING' || p.status === 'CANCELLED' || p.status === 'FAILED' || p.status === 'ACTIVE')
       .forEach(p => {
         allTransactions.push({
@@ -90,7 +134,7 @@ export default function TransactionsPage() {
       })
 
     // Adicionar saques como despesas
-    withdraws
+    allWithdraws
       .forEach(w => {
         allTransactions.push({
           id: w.id,
@@ -104,11 +148,11 @@ export default function TransactionsPage() {
       })
 
     // Adicionar transferências internas
-    internalTransfers.forEach(t => {
+    allInternalTransfers.forEach(t => {
       allTransactions.push({
         id: t.id,
-        type: t.transactionType === 'internal_transfer_received' ? 'income' : 'expense',
-        transactionType: t.transactionType,
+        type: (t.transactionType === 'internal_transfer_received') ? 'income' : 'expense',
+        transactionType: t.transactionType as 'internal_transfer_sent' | 'internal_transfer_received',
         description: t.description || (t.transactionType === 'internal_transfer_received' ? 'Transferência recebida' : 'Transferência enviada'),
         amount: t.amount, // amount já vem em centavos do backend/provider
         date: t.date,
@@ -158,7 +202,7 @@ export default function TransactionsPage() {
     })
 
     return filtered
-  }, [payments, withdraws, internalTransfers, startDate, endDate, statusFilter, typeFilter])
+  }, [allPayments, allWithdraws, allInternalTransfers, startDate, endDate, statusFilter, typeFilter])
 
   // Paginação
   const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage)
@@ -176,7 +220,7 @@ export default function TransactionsPage() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        refreshWallet()
+        fetchAllTransactions()
       }
     }
 
@@ -184,7 +228,7 @@ export default function TransactionsPage() {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [refreshWallet])
+  }, [fetchAllTransactions])
 
   const handleExportPDF = () => {
     alert('Exportação PDF em desenvolvimento')
@@ -325,7 +369,7 @@ export default function TransactionsPage() {
             {/* Tabela de Transações */}
             <div className="mt-6 border border-foreground/10 rounded-xl bg-foreground/2 backdrop-blur-sm overflow-hidden">
               <div className="overflow-x-auto -mx-6 lg:mx-0 px-6 lg:px-0">
-                {walletLoading ? (
+                {loading ? (
                   <div className="p-6 space-y-4">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <div key={i} className="flex items-center gap-4">
@@ -425,33 +469,60 @@ export default function TransactionsPage() {
                     </table>
 
                     {/* Paginação */}
-                    {totalPages > 1 && (
-                      <div className="px-6 py-4 border-t border-foreground/10 flex items-center justify-between">
-                        <div className="text-sm text-foreground/60">
-                          Página {currentPage} de {totalPages}
+                    {filteredTransactions.length > 0 && (
+                      <div className="px-6 py-4 border-t border-foreground/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div className="text-sm text-foreground/60 text-center sm:text-left">
+                          Mostrando {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredTransactions.length)} de {filteredTransactions.length} transações
                         </div>
-                        <div className="flex items-center gap-2">
-                          <RippleButton
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                            className={`px-3 py-1 text-sm rounded-lg border transition-colors ${currentPage === 1
-                              ? 'border-foreground/10 text-foreground/40 cursor-not-allowed'
-                              : 'border-foreground/20 text-foreground hover:bg-foreground/10'
-                              }`}
-                          >
-                            Anterior
-                          </RippleButton>
-                          <RippleButton
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                            className={`px-3 py-1 text-sm rounded-lg border transition-colors ${currentPage === totalPages
-                              ? 'border-foreground/10 text-foreground/40 cursor-not-allowed'
-                              : 'border-foreground/20 text-foreground hover:bg-foreground/10'
-                              }`}
-                          >
-                            Próxima
-                          </RippleButton>
-                        </div>
+                        {totalPages > 1 && (
+                          <div className="flex items-center gap-2">
+                            <RippleButton
+                              onClick={() => handlePageChange(1)}
+                              disabled={currentPage === 1}
+                              className={`px-2 py-1 text-sm rounded-lg border transition-colors ${currentPage === 1
+                                ? 'border-foreground/10 text-foreground/40 cursor-not-allowed'
+                                : 'border-foreground/20 text-foreground hover:bg-foreground/10'
+                                }`}
+                            >
+                              <FontAwesomeIcon icon={faChevronLeft} className="w-3 h-3" />
+                              <FontAwesomeIcon icon={faChevronLeft} className="w-3 h-3 -ml-1" />
+                            </RippleButton>
+                            <RippleButton
+                              onClick={() => handlePageChange(currentPage - 1)}
+                              disabled={currentPage === 1}
+                              className={`px-3 py-1 text-sm rounded-lg border transition-colors ${currentPage === 1
+                                ? 'border-foreground/10 text-foreground/40 cursor-not-allowed'
+                                : 'border-foreground/20 text-foreground hover:bg-foreground/10'
+                                }`}
+                            >
+                              Anterior
+                            </RippleButton>
+                            <span className="text-sm text-foreground/60 px-2">
+                              {currentPage} / {totalPages}
+                            </span>
+                            <RippleButton
+                              onClick={() => handlePageChange(currentPage + 1)}
+                              disabled={currentPage === totalPages}
+                              className={`px-3 py-1 text-sm rounded-lg border transition-colors ${currentPage === totalPages
+                                ? 'border-foreground/10 text-foreground/40 cursor-not-allowed'
+                                : 'border-foreground/20 text-foreground hover:bg-foreground/10'
+                                }`}
+                            >
+                              Próxima
+                            </RippleButton>
+                            <RippleButton
+                              onClick={() => handlePageChange(totalPages)}
+                              disabled={currentPage === totalPages}
+                              className={`px-2 py-1 text-sm rounded-lg border transition-colors ${currentPage === totalPages
+                                ? 'border-foreground/10 text-foreground/40 cursor-not-allowed'
+                                : 'border-foreground/20 text-foreground hover:bg-foreground/10'
+                                }`}
+                            >
+                              <FontAwesomeIcon icon={faChevronRight} className="w-3 h-3" />
+                              <FontAwesomeIcon icon={faChevronRight} className="w-3 h-3 -ml-1" />
+                            </RippleButton>
+                          </div>
+                        )}
                       </div>
                     )}
                   </>
