@@ -33,7 +33,7 @@ interface TransactionDisplay {
 
 export function DashboardInicio({ loading: externalLoading }: DashboardInicioProps) {
   const { user, loading: authLoading } = useAuth()
-  const { balance: walletBalance, payments, withdraws, loading: walletLoading, refreshWallet } = useWallet()
+  const { balance: walletBalance, payments, withdraws, internalTransfers, loading: walletLoading, refreshWallet } = useWallet()
 
   const [showBalance, setShowBalance] = useState(true)
   const [aiInput, setAiInput] = useState('')
@@ -78,7 +78,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
 
   // Process transactions from WalletContext
   useEffect(() => {
-    if (!walletLoading && (payments.length > 0 || withdraws.length > 0)) {
+    if (!walletLoading && (payments.length > 0 || withdraws.length > 0 || internalTransfers.length > 0)) {
       // Combinar pagamentos e saques em uma lista de transações
       const allTransactions: TransactionDisplay[] = []
 
@@ -105,12 +105,26 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
             id: w.id,
             type: 'sent',
             transactionType: 'withdraw',
-            description: w.description || 'Saque realizado',
+            description: w.description || 'Transferência realizada',
             amount: w.value / 100,
             date: w.createdAt,
             status: w.status
           })
         })
+
+
+      // Adicionar transferências internas
+      internalTransfers.forEach(t => {
+        allTransactions.push({
+          id: t.id,
+          type: t.transactionType === 'internal_transfer_received' ? 'received' : 'sent',
+          transactionType: t.transactionType,
+          description: t.description || (t.transactionType === 'internal_transfer_received' ? 'Transferência recebida' : 'Transferência enviada'),
+          amount: t.amount / 100,
+          date: t.date,
+          status: t.status
+        })
+      })
 
       // Verificar novos pagamentos para notificações
       payments
@@ -140,7 +154,7 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
       }))
       setTransactions(sortedTransactions)
     }
-  }, [payments, withdraws, walletLoading])
+  }, [payments, withdraws, internalTransfers, walletLoading])
 
   const handleClearHistory = () => {
     setAiMessages([])

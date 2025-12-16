@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode } from 'react'
-import { getBalance, listPayments, listWithdraws, getUserData, BalanceData, Payment, Withdraw, UserData } from '@/lib/wallet'
+import { getBalance, listPayments, listWithdraws, getUserData, listTransactions, Transaction, BalanceData, Payment, Withdraw, UserData } from '@/lib/wallet'
 import { useAuth } from '@/hooks/useAuth'
 
 interface WalletContextType {
@@ -9,6 +9,7 @@ interface WalletContextType {
     userData: UserData | null
     payments: Payment[]
     withdraws: Withdraw[]
+    internalTransfers: Transaction[]
     loading: boolean
     refreshWallet: () => Promise<void>
 }
@@ -24,6 +25,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     const [userData, setUserData] = useState<UserData | null>(null)
     const [payments, setPayments] = useState<Payment[]>([])
     const [withdraws, setWithdraws] = useState<Withdraw[]>([])
+    const [internalTransfers, setInternalTransfers] = useState<Transaction[]>([])
     const [loading, setLoading] = useState(false)
 
     const fetchingRef = useRef(false)
@@ -37,17 +39,24 @@ export function WalletProvider({ children }: { children: ReactNode }) {
             fetchingRef.current = true
             if (showLoading) setLoading(true)
 
-            const [balanceRes, userDataRes, paymentsRes, withdrawsRes] = await Promise.all([
+            const [balanceRes, userDataRes, paymentsRes, withdrawsRes, transactionsRes] = await Promise.all([
                 getBalance(),
                 getUserData(),
                 listPayments({ limit: 20 }),
                 listWithdraws({ limit: 20 }),
+                listTransactions({ limit: 50 })
             ])
 
             if (balanceRes.success) setBalance(balanceRes.data)
             if (userDataRes.success) setUserData(userDataRes.data)
             if (paymentsRes.success) setPayments(paymentsRes.data.payments)
             if (withdrawsRes.success) setWithdraws(withdrawsRes.data.withdraws)
+            if (transactionsRes.success) {
+                const internal = transactionsRes.data.transactions.filter(t =>
+                    t.transactionType === 'internal_transfer_sent' || t.transactionType === 'internal_transfer_received'
+                )
+                setInternalTransfers(internal)
+            }
 
         } catch (error) {
             console.error('Erro ao carregar dados da carteira:', error)
@@ -122,6 +131,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
             userData,
             payments,
             withdraws,
+            internalTransfers,
             loading,
             refreshWallet
         }}>

@@ -1012,7 +1012,7 @@ export default function SettingsPage() {
 
                               <div className="flex items-center justify-between p-3 rounded-lg bg-foreground/5 border border-foreground/10">
                                 <div>
-                                  <p className="text-sm font-medium text-foreground">Saque Realizado</p>
+                                  <p className="text-sm font-medium text-foreground">Transferência Realizada</p>
                                   <p className="text-xs text-foreground/60">Notificar quando um saque for concluído</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">

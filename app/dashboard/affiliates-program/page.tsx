@@ -362,9 +362,6 @@ export default function AffiliatesPage() {
                                                     <FontAwesomeIcon icon={copied ? faCheck : faCopy} />
                                                 </RippleButton>
                                             </div>
-                                            <p className="text-xs text-muted-foreground">
-                                                * Usuários que se cadastrarem pelo seu link receberão 30 dias de plano Carbon gratuitamente.
-                                            </p>
                                         </CardContent>
                                     </Card>
 

@@ -55,7 +55,7 @@ const getStatusBadge = (status: string) => {
 }
 
 export default function TransactionsPage() {
-  const { payments, withdraws, loading: walletLoading, refreshWallet } = useWallet()
+  const { payments, withdraws, internalTransfers, loading: walletLoading, refreshWallet } = useWallet()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().getFullYear(), 0, 1))
   const [endDate, setEndDate] = useState<Date>(new Date())
@@ -103,6 +103,19 @@ export default function TransactionsPage() {
         })
       })
 
+    // Adicionar transferências internas
+    internalTransfers.forEach(t => {
+      allTransactions.push({
+        id: t.id,
+        type: t.transactionType === 'internal_transfer_received' ? 'income' : 'expense',
+        transactionType: t.transactionType,
+        description: t.description || (t.transactionType === 'internal_transfer_received' ? 'Transferência recebida' : 'Transferência enviada'),
+        amount: t.amount, // amount já vem em centavos do backend/provider
+        date: t.date,
+        status: t.status
+      })
+    })
+
     // Filtrar por data
     let filtered = allTransactions.filter(t => {
       try {
@@ -145,7 +158,7 @@ export default function TransactionsPage() {
     })
 
     return filtered
-  }, [payments, withdraws, startDate, endDate, statusFilter, typeFilter])
+  }, [payments, withdraws, internalTransfers, startDate, endDate, statusFilter, typeFilter])
 
   // Paginação
   const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage)

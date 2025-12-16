@@ -249,10 +249,12 @@ export default function TransferPage() {
         status={modalStatus}
         message={modalStatus === 'error' ? errorMessage : undefined}
         details={withdrawData ? {
-          amount: withdrawData.value,
-          fee: withdrawData.fee,
-          netAmount: withdrawData.sent,
-          transactionId: withdrawData.id
+          amount: withdrawData.value || withdrawData.amount,
+          fee: withdrawData.fee || 0,
+          netAmount: withdrawData.sent || withdrawData.amount,
+          transactionId: withdrawData.id,
+          recipientName: withdrawData.recipient?.name,
+          recipientEmail: withdrawData.recipient?.email
         } : undefined}
       />
       <SidebarDashboard open={sidebarOpen} onOpenChange={setSidebarOpen} />
@@ -320,10 +322,10 @@ export default function TransferPage() {
                       </div>
                       <div className="flex-1 space-y-2">
                         <p className="text-sm font-medium text-yellow-500">
-                          Saque em processamento
+                          Transferência em processamento
                         </p>
                         <p className="text-xs text-yellow-500/80">
-                          Você já possui um saque de <strong>R$ {(pendingWithdraw.value / 100).toFixed(2).replace('.', ',')}</strong> em processamento.
+                          Você já possui uma transferência de <strong>R$ {(pendingWithdraw.value / 100).toFixed(2).replace('.', ',')}</strong> em processamento.
                           Aguarde a conclusão antes de solicitar um novo saque.
                         </p>
                         <div className="flex items-center gap-2 text-xs text-yellow-500/60">
@@ -589,7 +591,7 @@ export default function TransferPage() {
                           <span>Processando...</span>
                         </>
                       ) : pendingWithdraw ? (
-                        <span>Aguarde o saque pendente</span>
+                        <span>Aguarde a transferência pendente</span>
                       ) : (
                         <>
                           <FontAwesomeIcon icon={faArrowUp} className="w-4 h-4" />

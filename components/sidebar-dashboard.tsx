@@ -212,7 +212,7 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={() => onOpenChange(false)}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-foreground/5 transition-colors group text-foreground/70 hover:text-foreground rounded-xl"
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-foreground/5 transition-colors group text-foreground/70 hover:text-foreground rounded-lg"
                       >
                         <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
                         <span>{item.label}</span>
@@ -224,14 +224,11 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
                     <RippleButton
                       key={item.id}
                       onClick={() => router.push(item.href)}
-                      className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-all relative group rounded-xl ${isActive
-                        ? 'text-primary font-medium'
+                      className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-all relative group rounded-lg ${isActive
+                        ? 'text-primary bg-foreground/5'
                         : 'text-foreground/70 hover:text-foreground hover:bg-foreground/5'
                         }`}
                     >
-                      {isActive && (
-                        <div className="absolute left-2 top-1/2 -translate-y-1/2 h-5 w-1 border-2 border-primary border-r-0 rounded-l-full bg-transparent" />
-                      )}
                       <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
                       <span>{item.label}</span>
                     </RippleButton>
@@ -251,14 +248,11 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
               onOpenChange(false)
               router.push('/dashboard/settings')
             }}
-            className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-all relative group rounded-xl ${pathname === '/dashboard/settings'
-              ? 'text-primary font-medium'
+            className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-all relative group rounded-lg ${pathname === '/dashboard/settings'
+              ? 'text-primary bg-foreground/5'
               : 'text-foreground/70 hover:text-foreground hover:bg-foreground/5'
               }`}
           >
-            {pathname === '/dashboard/settings' && (
-              <div className="absolute left-2 top-1/2 -translate-y-1/2 h-5 w-1 border-2 border-primary border-r-0 rounded-l-full bg-transparent" />
-            )}
             <FontAwesomeIcon icon={faGear} className="w-4 h-4" />
             <span className="text-sm font-medium">Configurações</span>
           </RippleButton>
@@ -268,7 +262,7 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => onOpenChange(false)}
-            className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-foreground/70 hover:text-[#5865F2] hover:bg-[#5865F2]/10 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-foreground/70 hover:text-[#5865F2] hover:bg-[#5865F2]/10 transition-colors"
           >
             <FontAwesomeIcon icon={faDiscord} className="w-4 h-4" />
             <span className="text-sm font-medium">Suporte no Discord</span>
@@ -279,7 +273,7 @@ export function SidebarDashboard({ open, onOpenChange }: SidebarDashboardProps) 
               onOpenChange(false)
               handleLogout()
             }}
-            className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors"
           >
             <FontAwesomeIcon icon={faSignOutAlt} className="w-4 h-4" />
             <span className="text-sm font-medium">Encerrar Sessão</span>

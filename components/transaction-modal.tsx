@@ -23,6 +23,8 @@ interface TransactionModalProps {
     fee?: number
     netAmount?: number
     transactionId?: string
+    recipientName?: string
+    recipientEmail?: string
   }
 }
 
@@ -47,9 +49,9 @@ export function TransactionModal({
 
   const getTitle = () => {
     if (title) return title
-    
+
     if (status === 'success') {
-      return type === 'deposit' ? 'Depósito Criado!' : 'Saque Realizado!'
+      return type === 'deposit' ? 'Depósito Criado!' : 'Transferência Realizada!'
     } else if (status === 'error') {
       return type === 'deposit' ? 'Erro ao Criar Depósito' : 'Erro ao Realizar Saque'
     } else {
@@ -59,11 +61,11 @@ export function TransactionModal({
 
   const getMessage = () => {
     if (message) return message
-    
+
     if (status === 'success') {
-      return type === 'deposit' 
+      return type === 'deposit'
         ? 'Seu QR Code PIX foi gerado com sucesso! Escaneie ou copie o código para pagar.'
-        : 'Seu saque foi processado com sucesso! O valor será transferido em instantes.'
+        : (details?.recipientName ? `Transferência para ${details.recipientName} realizada com sucesso!` : 'Sua transferência foi processada com sucesso!')
     } else if (status === 'error') {
       return 'Ocorreu um erro ao processar sua solicitação. Tente novamente.'
     } else {
@@ -82,24 +84,24 @@ export function TransactionModal({
           <div className="flex items-center justify-center mb-4">
             {status === 'success' && (
               <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
-                <FontAwesomeIcon 
-                  icon={faCheckCircle} 
+                <FontAwesomeIcon
+                  icon={faCheckCircle}
                   className="w-10 h-10 text-green-500"
                 />
               </div>
             )}
             {status === 'error' && (
               <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
-                <FontAwesomeIcon 
-                  icon={faTimesCircle} 
+                <FontAwesomeIcon
+                  icon={faTimesCircle}
                   className="w-10 h-10 text-red-500"
                 />
               </div>
             )}
             {status === 'loading' && (
               <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
-                <FontAwesomeIcon 
-                  icon={faSpinner} 
+                <FontAwesomeIcon
+                  icon={faSpinner}
                   className="w-10 h-10 text-primary animate-spin"
                 />
               </div>
@@ -139,6 +141,15 @@ export function TransactionModal({
                 </span>
               </div>
             )}
+            {details.recipientName && (
+              <div className="flex justify-between items-center pt-2 border-t border-foreground/10">
+                <span className="text-sm text-muted-foreground">Destinatário:</span>
+                <div className="text-right">
+                  <div className="text-sm font-bold text-foreground">{details.recipientName}</div>
+                  {details.recipientEmail && <div className="text-xs text-muted-foreground">{details.recipientEmail}</div>}
+                </div>
+              </div>
+            )}
             {details.transactionId && (
               <div className="flex justify-between items-center pt-2 border-t border-foreground/10">
                 <span className="text-xs text-muted-foreground">ID da transação:</span>
@@ -154,7 +165,7 @@ export function TransactionModal({
           <div className="mt-4">
             <button
               onClick={() => onOpenChange(false)}
-              className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors focus:outline-none focus:ring-0"
             >
               Fechar
             </button>

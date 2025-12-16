@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useWallet } from '@/components/providers/wallet-provider'
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import { faCopy, faCheckCircle, faTimesCircle, faClock, faSpinner } from '@forta
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { getPaymentById, getWithdrawById } from '@/lib/wallet'
+import { useState, useEffect } from 'react'
 
 interface TransactionDetailsModalProps {
   open: boolean
@@ -27,6 +28,7 @@ export function TransactionDetailsModal({
   transactionId,
   transactionType
 }: TransactionDetailsModalProps) {
+  const { internalTransfers } = useWallet()
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
   const [details, setDetails] = useState<any>(null)
@@ -46,13 +48,24 @@ export function TransactionDetailsModal({
       setLoading(true)
       setError(null)
 
-      // Para transferências internas, não temos endpoint de detalhes ainda
+      // For internal transfers, get details from wallet context
       if (transactionType === 'internal_transfer_sent' || transactionType === 'internal_transfer_received') {
-        setDetails({
-          id: transactionId,
-          status: 'COMPLETED',
-          type: transactionType
-        })
+        const tx = internalTransfers.find(t => t.id === transactionId)
+        if (tx) {
+          setDetails({
+            id: tx.id,
+            status: tx.status,
+            type: transactionType,
+            description: tx.description,
+            recipient: tx.originalData?.recipient,
+            sender: tx.originalData?.sender,
+            value: tx.amount,
+            netValue: tx.amount, // Sem taxa
+            createdAt: tx.date,
+          })
+        } else {
+          setDetails({ id: transactionId, status: 'UNKNOWN', type: transactionType })
+        }
         return
       }
 
@@ -166,8 +179,11 @@ export function TransactionDetailsModal({
             <div className="mt-6 space-y-4">
               {/* Informações principais */}
               <div className="p-4 sm:p-6 rounded-xl bg-foreground/5 border border-foreground/10 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 border-b border-foreground/10 gap-1">
-                  <span className="text-sm font-medium text-muted-foreground">Valor</span>
+                <div className={`flex flex-col sm:flex-row sm:justify-between sm:items-center ${transactionType === 'internal_transfer_sent' || transactionType === 'internal_transfer_received'
+                  ? ''
+                  : 'pb-3 border-b border-foreground/10'
+                  } gap-1`}>
+                  <span className="text-sm font-medium text-muted-foreground">Valor:</span>
                   <span className="text-2xl font-bold text-foreground">
                     {formatCurrency(details.value || details.netValue || 0)}
                   </span>
@@ -176,13 +192,13 @@ export function TransactionDetailsModal({
                 {(transactionType === 'payment' || transactionType === 'commission') && details.netValue && details.netValue !== details.value && (
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Taxa</span>
+                      <span className="text-sm text-muted-foreground">Taxa:</span>
                       <span className="text-sm text-foreground">
                         {formatCurrency((details.value || 0) - (details.netValue || 0))}
                       </span>
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t border-foreground/10">
-                      <span className="text-sm font-medium text-muted-foreground">Valor líquido</span>
+                      <span className="text-sm font-medium text-muted-foreground">Valor líquido:</span>
                       <span className="text-sm font-bold text-green-500">
                         {formatCurrency(details.netValue)}
                       </span>
@@ -210,13 +226,13 @@ export function TransactionDetailsModal({
                         return (
                           <>
                             <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">Taxa</span>
+                              <span className="text-sm text-muted-foreground">Taxa:</span>
                               <span className="text-sm text-foreground">
                                 {formatCurrency(fee)}
                               </span>
                             </div>
                             <div className="flex justify-between items-center pt-2 border-t border-foreground/10">
-                              <span className="text-sm font-medium text-muted-foreground">Valor enviado</span>
+                              <span className="text-sm font-medium text-muted-foreground">Valor enviado:</span>
                               <span className="text-sm font-bold text-green-500">
                                 {formatCurrency(sent)}
                               </span>
@@ -235,14 +251,14 @@ export function TransactionDetailsModal({
                 <h3 className="text-sm font-semibold text-foreground mb-3">Detalhes da Transação</h3>
 
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
-                  <span className="text-sm text-muted-foreground">ID da Transação</span>
+                  <span className="text-sm text-muted-foreground">ID da Transação:</span>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-mono text-foreground break-all sm:max-w-[180px] sm:truncate">
                       {details.id || details.transactionId || details.correlationID}
                     </span>
                     <button
                       onClick={() => copyToClipboard(details.id || details.transactionId || details.correlationID || '')}
-                      className="p-1 hover:bg-foreground/10 rounded transition-colors flex-shrink-0"
+                      className="p-1 hover:bg-foreground/10 rounded transition-colors flex-shrink-0 focus:outline-none focus:ring-0"
                       title="Copiar ID"
                     >
                       <FontAwesomeIcon
@@ -255,7 +271,7 @@ export function TransactionDetailsModal({
 
                 {details.description && (
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
-                    <span className="text-sm text-muted-foreground">Descrição</span>
+                    <span className="text-sm text-muted-foreground">Descrição:</span>
                     <span className="text-sm text-foreground sm:text-right sm:max-w-[60%] break-words">
                       {details.description}
                     </span>
@@ -264,14 +280,14 @@ export function TransactionDetailsModal({
 
                 {transactionType === 'withdraw' && details.pixKey && (
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
-                    <span className="text-sm text-muted-foreground">Chave PIX</span>
+                    <span className="text-sm text-muted-foreground">Chave PIX:</span>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-foreground break-all sm:max-w-[180px] sm:truncate">
                         {details.pixKey}
                       </span>
                       <button
                         onClick={() => copyToClipboard(details.pixKey)}
-                        className="p-1 hover:bg-foreground/10 rounded transition-colors flex-shrink-0"
+                        className="p-1 hover:bg-foreground/10 rounded transition-colors flex-shrink-0 focus:outline-none focus:ring-0"
                         title="Copiar chave PIX"
                       >
                         <FontAwesomeIcon
@@ -285,15 +301,34 @@ export function TransactionDetailsModal({
 
                 {transactionType === 'withdraw' && details.pixKeyType && (
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
-                    <span className="text-sm text-muted-foreground">Tipo de Chave PIX</span>
+                    <span className="text-sm text-muted-foreground">Tipo de Chave PIX:</span>
                     <span className="text-sm text-foreground">
                       {details.pixKeyType}
                     </span>
                   </div>
                 )}
 
+                {/* Sender/Recipient for Internal Transfers */}
+                {transactionType === 'internal_transfer_sent' && details.recipient && (
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                    <span className="text-sm text-muted-foreground">Destinatário:</span>
+                    <div className="text-sm text-foreground sm:text-right">
+                      {details.recipient.name} <span className="text-muted-foreground">({details.recipient.email})</span>
+                    </div>
+                  </div>
+                )}
+
+                {transactionType === 'internal_transfer_received' && details.sender && (
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                    <span className="text-sm text-muted-foreground">Remetente:</span>
+                    <div className="text-sm text-foreground sm:text-right">
+                      {details.sender.name} <span className="text-muted-foreground">({details.sender.email})</span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
-                  <span className="text-sm text-muted-foreground">Data de criação</span>
+                  <span className="text-sm text-muted-foreground">Data de criação:</span>
                   <span className="text-sm text-foreground">
                     {formatDate(details.createdAt)}
                   </span>
@@ -301,7 +336,7 @@ export function TransactionDetailsModal({
 
                 {details.updatedAt && details.updatedAt !== details.createdAt && (
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
-                    <span className="text-sm text-muted-foreground">Última atualização</span>
+                    <span className="text-sm text-muted-foreground">Última atualização:</span>
                     <span className="text-sm text-foreground">
                       {formatDate(details.updatedAt)}
                     </span>
@@ -310,7 +345,7 @@ export function TransactionDetailsModal({
 
                 {details.completedAt && (
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
-                    <span className="text-sm text-muted-foreground">Data de conclusão</span>
+                    <span className="text-sm text-muted-foreground">Data de conclusão:</span>
                     <span className="text-sm text-foreground">
                       {formatDate(details.completedAt)}
                     </span>
@@ -319,7 +354,7 @@ export function TransactionDetailsModal({
 
                 {details.failedAt && (
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
-                    <span className="text-sm text-muted-foreground">Data de falha</span>
+                    <span className="text-sm text-muted-foreground">Data de falha:</span>
                     <span className="text-sm text-foreground">
                       {formatDate(details.failedAt)}
                     </span>
@@ -328,7 +363,7 @@ export function TransactionDetailsModal({
 
                 {details.failureReason && (
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
-                    <span className="text-sm text-muted-foreground">Motivo da falha</span>
+                    <span className="text-sm text-muted-foreground">Motivo da falha:</span>
                     <span className="text-sm text-red-500 sm:text-right sm:max-w-[60%] break-words">
                       {details.failureReason}
                     </span>
@@ -349,7 +384,7 @@ export function TransactionDetailsModal({
                   </div>
                   {details.copyPaste && (
                     <div className="space-y-2">
-                      <label className="text-sm text-muted-foreground">Código PIX (Copia e Cola)</label>
+                      <label className="text-sm text-muted-foreground">Código PIX (Copia e Cola):</label>
                       <div className="flex gap-2">
                         <input
                           type="text"
@@ -359,7 +394,7 @@ export function TransactionDetailsModal({
                         />
                         <button
                           onClick={() => copyToClipboard(details.copyPaste)}
-                          className="px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex-shrink-0"
+                          className="px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex-shrink-0 focus:outline-none focus:ring-0"
                           title="Copiar código PIX"
                         >
                           <FontAwesomeIcon

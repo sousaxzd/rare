@@ -82,7 +82,7 @@ export default function SummaryPage() {
         transactions.push({
           id: withdraw.id,
           date: parseISO(withdraw.createdAt),
-          description: withdraw.description || 'Saque realizado',
+          description: withdraw.description || 'Transferência realizada',
           amount: -(withdraw.value / 100), // Negativo para saída
           type: 'expense',
           status: withdraw.status

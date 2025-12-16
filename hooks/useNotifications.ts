@@ -204,7 +204,7 @@ export function useNotifications() {
     if (!preferences.withdrawCompleted) return
 
     await showNotification('✅ Saque Realizado', {
-      body: description || `Seu saque de R$ ${(amount / 100).toFixed(2).replace('.', ',')} foi realizado`,
+      body: description || `Sua transferência de R$ ${(amount / 100).toFixed(2).replace('.', ',')} foi realizado`,
       tag: 'withdraw-completed',
       data: {
         url: '/dashboard/transactions',
