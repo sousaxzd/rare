@@ -736,9 +736,9 @@ export function DashboardInicio({ loading: externalLoading }: DashboardInicioPro
                         : transaction.status === 'PENDING'
                           ? (transaction.type === 'received' ? 'Depósito pendente' : 'Transferência pendente')
                           : transaction.transactionType === 'internal_transfer_received'
-                            ? 'Transferência interna recebida'
+                            ? 'Depósito interno'
                             : transaction.transactionType === 'internal_transfer_sent'
-                              ? 'Transferência interna enviada'
+                              ? 'Transferência interna'
                               : transaction.transactionType === 'commission'
                                 ? 'Comissão de Afiliado'
                                 : (transaction.type === 'received' ? 'Depósito' : 'Transferência')

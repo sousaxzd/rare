@@ -28,7 +28,7 @@ export function DashboardHeader({ loading = false }: DashboardHeaderProps) {
       const hour = new Date().getHours()
       setIsDaytime(hour >= 6 && hour < 18)
     }
-    
+
     updateTimeOfDay()
     // Atualizar a cada minuto para manter sincronizado
     const interval = setInterval(updateTimeOfDay, 60000)
@@ -66,20 +66,25 @@ export function DashboardHeader({ loading = false }: DashboardHeaderProps) {
       href: '/dashboard/deposit',
       description: 'Adicione dinheiro à sua conta',
     },
+    {
+      label: 'Suas Credenciais',
+      href: '/dashboard/credentials',
+      description: 'Utilize estas credenciais para autenticar suas requisições à API.',
+    },
   ]
 
   const activeTab = tabs.find((tab) => pathname === tab.href || (tab.href === '/dashboard' && pathname === '/dashboard'))
-  
+
   // Handle settings page
   const isSettings = pathname === '/dashboard/settings'
   const isDashboard = pathname === '/dashboard'
-  
+
   // Obter primeiro nome do usuário
   const getFirstName = (fullName: string | undefined) => {
     if (!fullName) return ''
     return fullName.split(' ')[0]
   }
-  
+
   const firstName = getFirstName(user?.fullName)
   let greeting = 'Bom dia'
   const currentHour = new Date().getHours()
@@ -89,14 +94,14 @@ export function DashboardHeader({ loading = false }: DashboardHeaderProps) {
     greeting = 'Boa noite'
   }
   const timeIcon = isDaytime ? faSun : faMoon
-  
-  const displayTitle = isSettings 
-    ? 'Configurações' 
+
+  const displayTitle = isSettings
+    ? 'Configurações'
     : isDashboard && firstName
       ? `${greeting}, ${firstName}!`
       : (activeTab?.label || 'Dashboard')
-  const displayDescription = isSettings 
-    ? 'Gerencie suas preferências e configurações' 
+  const displayDescription = isSettings
+    ? 'Gerencie suas preferências e configurações'
     : (activeTab?.description || 'Gerencie sua conta Vision Wallet')
 
   return (
@@ -110,10 +115,10 @@ export function DashboardHeader({ loading = false }: DashboardHeaderProps) {
         ) : (
           <>
             <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">{displayTitle}</h1>
+              <h1 className="text-2xl font-bold">{displayTitle}</h1>
               {isDashboard && firstName && (
-                <FontAwesomeIcon 
-                  icon={timeIcon} 
+                <FontAwesomeIcon
+                  icon={timeIcon}
                   className={`w-8 h-8 ${isDaytime ? 'text-yellow-500' : 'text-blue-400'}`}
                 />
               )}

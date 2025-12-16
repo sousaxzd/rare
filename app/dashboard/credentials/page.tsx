@@ -390,23 +390,7 @@ export default function CredentialsPage() {
 
         <main data-dashboard className="flex-1 overflow-auto">
           <div className="p-6 lg:p-8 w-full">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-foreground mb-2">Gerenciamento de Credenciais</h1>
-              <p className="text-foreground/70 text-sm">Gerencie suas credenciais de API e configure IPs autorizados.</p>
-            </div>
-
-            {/* Aviso Importante */}
-            <div className="mb-6 p-4 rounded-lg bg-primary/20 border border-primary/30">
-              <div className="flex items-start gap-3">
-                <FontAwesomeIcon icon={faInfoCircle} className="w-5 h-5 text-primary mt-0.5" />
-                <div>
-                  <h3 className="font-bold text-foreground mb-1">Importante</h3>
-                  <p className="text-sm text-foreground/90">
-                    Suas credenciais de API são confidenciais. Não compartilhe com terceiros e armazene-as de forma segura.
-                  </p>
-                </div>
-              </div>
-            </div>
+            <DashboardHeader loading={loading} />
 
             {/* Seção: Suas Credenciais */}
             <div className="mt-6 mb-8">
@@ -625,60 +609,6 @@ export default function CredentialsPage() {
               )}
             </div>
 
-            <Separator className="my-8" />
-
-            {/* Seção: Informações de Segurança */}
-            <div className="mb-8">
-              <h2 className="text-xl font-bold text-foreground mb-6">Informações de Segurança</h2>
-              <p className="text-sm text-muted-foreground mb-6">Recomendações para manter suas credenciais seguras</p>
-
-              <div className="space-y-6">
-                {/* Restrição de IP */}
-                <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
-                      <FontAwesomeIcon icon={faShieldHalved} className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-foreground mb-2">Restrição de IP</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Adicione apenas os IPs dos servidores que farão requisições à API. Isso aumenta significativamente a segurança das suas credenciais.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Rotação de Credenciais */}
-                <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
-                      <FontAwesomeIcon icon={faRotate} className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-foreground mb-2">Rotação de Credenciais</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Recomendamos gerar novas credenciais periodicamente para aumentar a segurança da sua integração.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Webhooks */}
-                <div className="p-6 rounded-xl bg-foreground/5 border border-foreground/10">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
-                      <FontAwesomeIcon icon={faLink} className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-foreground mb-2">Webhooks</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Configure um endpoint de webhook para receber notificações em tempo real sobre transações e eventos da sua conta.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </main>
       </div>

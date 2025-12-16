@@ -186,11 +186,19 @@ export default function SummaryPage() {
     const now = new Date()
     let startDate: Date
     let points: Date[] = []
+    let mode: 'hour' | 'day' | 'month' = 'day'
 
     try {
       if (periodFilter === 'today') {
         startDate = startOfDay(now)
         points = eachHourOfInterval({ start: startDate, end: now })
+        mode = 'hour'
+      } else if (periodFilter === 'year') {
+        startDate = startOfYear(now)
+        // Usar meses para o filtro de ano
+        const { eachMonthOfInterval } = require('date-fns')
+        points = eachMonthOfInterval({ start: startDate, end: now })
+        mode = 'month'
       } else {
         switch (periodFilter) {
           case '7days':
@@ -198,9 +206,6 @@ export default function SummaryPage() {
             break
           case '30days':
             startDate = startOfDay(subDays(now, 30))
-            break
-          case 'year':
-            startDate = startOfYear(now)
             break
           case 'all':
             if (allTransactions.length > 0) {
@@ -215,6 +220,7 @@ export default function SummaryPage() {
 
         if (startDate > now) startDate = startOfDay(now)
         points = eachDayOfInterval({ start: startDate, end: now })
+        mode = 'day'
       }
     } catch (e) {
       console.error('Erro ao gerar pontos do gráfico:', e)
@@ -224,15 +230,22 @@ export default function SummaryPage() {
     let runningBalance = stats.initialBalance
 
     return points.map(point => {
-      const isTodayMode = periodFilter === 'today'
+      let displayDate: string
+      if (mode === 'hour') {
+        displayDate = format(point, 'HH:mm', { locale: ptBR })
+      } else if (mode === 'month') {
+        displayDate = format(point, 'MMM/yy', { locale: ptBR })
+      } else {
+        displayDate = format(point, 'dd/MM', { locale: ptBR })
+      }
 
-      const displayDate = isTodayMode
-        ? format(point, 'HH:mm', { locale: ptBR })
-        : format(point, 'dd/MM', { locale: ptBR })
-
-      const transactionsInPoint = filteredTransactions.filter(t =>
-        isTodayMode ? isSameHour(t.date, point) : isSameDay(t.date, point)
-      )
+      // Filtrar transações do ponto
+      const { isSameMonth } = require('date-fns')
+      const transactionsInPoint = filteredTransactions.filter(t => {
+        if (mode === 'hour') return isSameHour(t.date, point)
+        if (mode === 'month') return isSameMonth(t.date, point)
+        return isSameDay(t.date, point)
+      })
 
       let income = 0
       let expense = 0
