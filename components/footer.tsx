@@ -31,7 +31,7 @@ export function Footer() {
             </Link>
           </div>
           <div className="flex flex-col gap-2">
-            <p className="text-foreground/60 text-[12px]">© 2025 Rare Mush. Todos os direitos reservados.</p>
+            <p className="text-foreground/60 text-[12px]">© 2026 Rare Mush. Todos os direitos reservados.</p>
             <div className="flex flex-col gap-0.5">
               <p className="text-foreground/60 text-[12px]">
                 Comunidade administrada por <span className="font-semibold">RARIDADES</span>
