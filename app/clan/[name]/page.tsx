@@ -170,7 +170,7 @@ const CLAN_INFO: Record<string, { fullName: string; invite: string; icon: string
     fullName: 'CHK',
     invite: 'https://discord.gg/GkDdp9TqYJ',
     icon: 'https://cdn.discordapp.com/icons/1395499598830764062/4e20e96a794e43049e4d5b2efdf14a1d.png?size=2048',
-    banner: 'https://cdn.discordapp.com/attachments/1443008207638364170/1450299303389171903/content.png?ex=698d2d7b&is=698bdbfb&hm=b59de4c5341aac02f888fd5deb8d36acd688ea59daff9fc827f59e03f8afcb3b&',
+    banner: 'https://cdn.discordapp.com/attachments/1443008207638364170/1450299303389171903/content.png?ex=698e7efb&is=698d2d7b&hm=8aa20a2d70141de76f3f083ef3a95d3a81dcc44fe3191b5cce6862c15e1275d2&',
   },
   'hail': {
     fullName: 'HAIL',
