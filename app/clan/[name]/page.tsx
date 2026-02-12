@@ -54,6 +54,7 @@ const SUBS = ['605916743675805696', '924123297334046730', '808757023029985301']
 
 const CHK_OWNER = ['1033809425946919093']
 const HAIL_OWNER = ['924123297334046730']
+const LIGHT_OWNER = ['274968360306081794']
 
 // Conteúdo específico de cada clã
 const CLAN_CONTENT: Record<string, {
@@ -197,6 +198,9 @@ export default function ClanPage() {
   const clanContent = CLAN_CONTENT[clanName] || CLAN_CONTENT['light']
   const ownerIds = clanName === 'chk' ? CHK_OWNER : clanName === 'hail' ? HAIL_OWNER : OWNERS
   const subIds = clanName === 'light' ? SUBS : clanName === 'jeme' ? SUBS : []
+  
+  // Para HAIL, mostrar também o dono da LIGHT
+  const additionalOwnerIds = clanName === 'hail' ? LIGHT_OWNER : []
 
   useEffect(() => {
     loadMembers()
@@ -209,7 +213,7 @@ export default function ClanPage() {
     setLoading(true)
     try {
       // Carregar dados do Discord via nossa API
-      const allDiscordIds = [...ownerIds, ...subIds]
+      const allDiscordIds = [...ownerIds, ...additionalOwnerIds, ...subIds]
       console.log('Loading members for IDs:', allDiscordIds)
       const discordData: Record<string, DiscordUser> = {}
       
@@ -391,8 +395,23 @@ export default function ClanPage() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="flex justify-center"
             >
-              <div className="w-full max-w-md">
+              <div className={`w-full grid gap-6 ${clanName === 'hail' ? 'grid-cols-1 md:grid-cols-2 max-w-4xl' : 'max-w-md'}`}>
                 {ownerIds.map(userId => {
+                  const user = discordUsers[userId]
+                  if (!user) return null
+                  return (
+                    <DiscordUserCard 
+                      key={userId} 
+                      user={user} 
+                      getAvatarUrl={getAvatarUrl} 
+                      getBannerUrl={getBannerUrl} 
+                      getStatusColor={getStatusColor}
+                      getStatusText={getStatusText}
+                      role="OWNER" 
+                    />
+                  )
+                })}
+                {additionalOwnerIds.map(userId => {
                   const user = discordUsers[userId]
                   if (!user) return null
                   return (
