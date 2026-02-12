@@ -53,7 +53,7 @@ export function BenefitsSection() {
         </h1>
         <div className="flex flex-col gap-1">
           <p className="text-foreground/70 text-sm md:text-base max-w-xl leading-relaxed">
-            A Vision Wallet oferece tudo que você precisa para operar com total discrição. Venda sem usar seu nome, sem receber meds ou bloqueios. Sua liberdade financeira começa aqui.
+            O LightClan oferece tudo que você precisa para se conectar com outros gamers e criadores. Junte-se à comunidade e faça parte do clã.
           </p>
           <Link
             href="/pricing"

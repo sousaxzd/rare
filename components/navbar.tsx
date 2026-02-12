@@ -23,13 +23,19 @@ export function Navbar() {
           {/* Logo - Left */}
           <div className="flex items-center flex-shrink-0">
             <Link href="/" className="flex items-center gap-3">
-              <Logo size={38} width={38} height={38} />
+              <img 
+                src="https://cdn.discordapp.com/attachments/1469478776206393345/1471283379285655685/New-Project_1__1_.png?ex=698e5eec&is=698d0d6c&hm=8ed7e7068d9f805ff3cc78379824252d0e7076a8da72142c4b025ac99c98b10d&" 
+                alt="Rare Mush Logo" 
+                width={38} 
+                height={38}
+                className="rounded-lg"
+              />
               <div className="flex flex-col leading-[15px]">
                 <span className="text-foreground/90 font-normal font-sans text-[13px]">
-                  Vision
+                  Rare
                 </span>
                 <span className="text-foreground/60 font-normal font-sans text-[12px]">
-                  Wallet
+                  Mush
                 </span>
               </div>
             </Link>
@@ -55,7 +61,7 @@ export function Navbar() {
                     >
                       <span>{item.label}</span>
                       <span className={`pointer-events-none absolute -bottom-0.5 left-2 right-2 h-[1.5px] rounded-full transition-all duration-200 ${
-                        isActive ? 'bg-primary opacity-100' : 'bg-primary/70 opacity-0'
+                        isActive ? 'bg-[#FFD700] opacity-100' : 'bg-[#FFD700]/70 opacity-0'
                       }`} />
                     </Link>
                   </li>
@@ -97,7 +103,7 @@ export function Navbar() {
                   onClick={() => setIsMenuOpen(false)}
                   className={`text-base font-medium transition-colors ${
                     isActive
-                      ? 'text-primary'
+                      ? 'text-[#FFD700]'
                       : 'text-foreground/70 hover:text-foreground'
                   }`}
                 >

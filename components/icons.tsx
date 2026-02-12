@@ -21,11 +21,11 @@ export const Logo: React.FC<IconSvgProps> = ({
 
   return (
     <img
-      src="/icon.svg"
-      alt="Vision Wallet Logo"
+      src="/icon-temp.gif"
+      alt="LightClan Logo"
       width={logoWidth}
       height={logoHeight}
-      className={className}
+      className={`rounded-full ${className}`}
       {...props}
     />
   )

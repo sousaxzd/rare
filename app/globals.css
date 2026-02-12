@@ -4,26 +4,26 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Tema laranja para Vision Wallet */
+  /* Tema dourado para Rare Mush */
   --background: #08090A;
   --foreground: #FAFAFA;
   --card: #0F1011;
   --card-foreground: #FAFAFA;
   --popover: #0F1011;
   --popover-foreground: #FAFAFA;
-  --primary: #ff6400;
-  --primary-foreground: #FAFAFA;
+  --primary: #F59E0B;
+  --primary-foreground: #000000;
   --secondary: #1A1B1E;
   --secondary-foreground: #FAFAFA;
   --muted: #2A2B2E;
   --muted-foreground: #A0A0A0;
-  --accent: #ff6400;
-  --accent-foreground: #FAFAFA;
+  --accent: #F59E0B;
+  --accent-foreground: #000000;
   --destructive: #EF4444;
   --destructive-foreground: #FAFAFA;
   --border: #2A2B2E;
   --input: #1A1B1E;
-  --ring: #ff6400;
+  --ring: #F59E0B;
   --chart-1: #10B981;
   --chart-2: #3B82F6;
   --chart-3: #8B5CF6;
@@ -32,35 +32,35 @@
   --radius: 0.75rem;
   --sidebar: #08090A;
   --sidebar-foreground: #FAFAFA;
-  --sidebar-primary: #ff6400;
-  --sidebar-primary-foreground: #FAFAFA;
+  --sidebar-primary: #F59E0B;
+  --sidebar-primary-foreground: #000000;
   --sidebar-accent: #1A1B1E;
   --sidebar-accent-foreground: #FAFAFA;
   --sidebar-border: #2A2B2E;
-  --sidebar-ring: #ff6400;
+  --sidebar-ring: #F59E0B;
 }
 
 .dark {
-  /* Modo escuro mantém tema laranja */
+  /* Modo escuro mantém tema dourado */
   --background: #08090A;
   --foreground: #FAFAFA;
   --card: #0F1011;
   --card-foreground: #FAFAFA;
   --popover: #0F1011;
   --popover-foreground: #FAFAFA;
-  --primary: #ff6400;
-  --primary-foreground: #FAFAFA;
+  --primary: #F59E0B;
+  --primary-foreground: #000000;
   --secondary: #1A1B1E;
   --secondary-foreground: #FAFAFA;
   --muted: #2A2B2E;
   --muted-foreground: #A0A0A0;
-  --accent: #ff6400;
-  --accent-foreground: #FAFAFA;
+  --accent: #F59E0B;
+  --accent-foreground: #000000;
   --destructive: #EF4444;
   --destructive-foreground: #FAFAFA;
   --border: #2A2B2E;
   --input: #1A1B1E;
-  --ring: #ff6400;
+  --ring: #F59E0B;
   --chart-1: #10B981;
   --chart-2: #3B82F6;
   --chart-3: #8B5CF6;
@@ -68,12 +68,12 @@
   --chart-5: #EC4899;
   --sidebar: #08090A;
   --sidebar-foreground: #FAFAFA;
-  --sidebar-primary: #ff6400;
-  --sidebar-primary-foreground: #FAFAFA;
+  --sidebar-primary: #F59E0B;
+  --sidebar-primary-foreground: #000000;
   --sidebar-accent: #1A1B1E;
   --sidebar-accent-foreground: #FAFAFA;
   --sidebar-border: #2A2B2E;
-  --sidebar-ring: #ff6400;
+  --sidebar-ring: #F59E0B;
 }
 
 @theme inline {
@@ -171,5 +171,22 @@
 
   [data-dashboard]::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* Custom Utilities */
+@layer utilities {
+  .bg-gradient-radial {
+    background-image: radial-gradient(var(--tw-gradient-stops));
+  }
+}
+
+/* Float Animation */
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, -30px);
   }
 }

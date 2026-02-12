@@ -1,13 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Disable Turbopack explicitly
+  turbo: false,
   typescript: {
     ignoreBuildErrors: true,
   },
   images: {
     unoptimized: true,
-  },
-  turbopack: {
-    root: process.cwd(),
   },
   // Melhorar tratamento de erros durante build
   reactStrictMode: true,

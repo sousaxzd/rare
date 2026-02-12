@@ -21,7 +21,7 @@ export default function SetCookieAndRedirect({ code, name }: { code: string, nam
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-gray-950 text-white">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500 mb-4"></div>
-            <p className="text-gray-400">Redirecionando para Vision Wallet...</p>
+            <p className="text-gray-400">Redirecionando para LightClan...</p>
             {name && <p className="text-sm text-emerald-500 mt-2">Convite de {name}</p>}
         </div>
     )

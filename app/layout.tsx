@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
 
 // Font Awesome configuration to prevent icon flash on page load
 import { config } from '@fortawesome/fontawesome-svg-core'
@@ -16,23 +15,23 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_URL || 'https://visionwallet.com.br'),
-  title: 'Vision Wallet - Sua carteira digital completa',
-  description: 'A solução definitiva para pagamentos via PIX: receba e envie dinheiro de forma rápida, segura e totalmente anônima, sem idade mínima, sem bloqueios e sem MEDs. Crie sua conta gratuitamente agora mesmo, sem precisar enviar documentos — simples, direto e sem burocracia. Sem idade minima e sem bloqueios ou MEDs.',
-  generator: 'Vision Group Ltda',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_URL || 'https://raremush.com.br'),
+  title: 'Rare Mush - Raridades do MushMC',
+  description: 'A comunidade definitiva para gamers e criadores de conteúdo. Conecte-se, compartilhe e cresça junto com outros membros. Junte-se ao clã agora mesmo!',
+  generator: 'Rare Mush',
   manifest: '/manifest.json',
   icons: {
     icon: [
       {
-        url: '/favicon.svg',
-        type: 'image/svg+xml',
+        url: 'https://cdn.discordapp.com/attachments/1469478776206393345/1471283379285655685/New-Project_1__1_.png?ex=698e5eec&is=698d0d6c&hm=8ed7e7068d9f805ff3cc78379824252d0e7076a8da72142c4b025ac99c98b10d&',
+        type: 'image/png',
         sizes: 'any',
       },
     ],
     apple: [
       {
-        url: '/favicon.svg',
-        type: 'image/svg+xml',
+        url: 'https://cdn.discordapp.com/attachments/1469478776206393345/1471283379285655685/New-Project_1__1_.png?ex=698e5eec&is=698d0d6c&hm=8ed7e7068d9f805ff3cc78379824252d0e7076a8da72142c4b025ac99c98b10d&',
+        type: 'image/png',
         sizes: 'any',
       },
     ],
@@ -40,33 +39,33 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Vision Wallet',
+    title: 'Rare Mush',
   },
   openGraph: {
-    title: 'Vision Wallet - Sua carteira digital completa',
-    description: 'A solução definitiva para pagamentos via PIX: receba e envie dinheiro de forma rápida, segura e totalmente anônima, sem idade mínima, sem bloqueios e sem MEDs. Crie sua conta gratuitamente agora mesmo, sem precisar enviar documentos — simples, direto e sem burocracia.',
+    title: 'Rare Mush - Raridades do MushMC',
+    description: 'A comunidade definitiva para gamers e criadores de conteúdo. Conecte-se, compartilhe e cresça junto com outros membros.',
     type: 'website',
     images: [
       {
         url: '/site.png',
         width: 1200,
         height: 630,
-        alt: 'Vision Wallet',
+        alt: 'Rare Mush',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Vision Wallet - Sua carteira digital completa',
-    description: 'A solução definitiva para pagamentos via PIX: receba e envie dinheiro de forma rápida, segura e totalmente anônima, sem idade mínima, sem bloqueios e sem MEDs. Crie sua conta gratuitamente agora mesmo, sem precisar enviar documentos — simples, direto e sem burocracia.',
+    title: 'Rare Mush - Raridades do MushMC',
+    description: 'A comunidade definitiva para gamers e criadores de conteúdo. Conecte-se, compartilhe e cresça junto com outros membros.',
     images: ['/site.png'],
   },
 }
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f97316' },
-    { media: '(prefers-color-scheme: dark)', color: '#f97316' },
+    { media: '(prefers-color-scheme: light)', color: '#F59E0B' },
+    { media: '(prefers-color-scheme: dark)', color: '#F59E0B' },
   ],
 }
 
@@ -95,7 +94,6 @@ export default function RootLayout({
               </TooltipProvider>
             </WalletProvider>
           </AuthProvider>
-          <Analytics />
         </ErrorBoundary>
         <GlobalErrorHandler />
       </body>

@@ -46,7 +46,7 @@ export function FeaturesSection() {
             <span className="text-primary font-semibold text-[12px]">Por que escolher</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground">
-            Por que escolher a Vision Wallet?
+            Por que escolher o LightClan?
           </h1>
           <div className="flex flex-col gap-1">
             <p className="text-foreground/70 text-sm md:text-base max-w-xl leading-relaxed">
@@ -118,7 +118,7 @@ export function FeaturesSection() {
                       </p>
                     </div>
                   </div>
-                  <div className="h-[40%] w-full rounded-md bg-[repeating-linear-gradient(45deg,rgba(255,107,53,0.10)_0,rgba(255,107,53,0.10)_1,transparent_1px,transparent_8px)] mt-3" />
+                  <div className="h-[40%] w-full rounded-md bg-[repeating-linear-gradient(45deg,rgba(245,158,11,0.10)_0,rgba(245,158,11,0.10)_1,transparent_1px,transparent_8px)] mt-3" />
                 </div>
               </div>
 

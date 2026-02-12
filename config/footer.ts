@@ -1,37 +1,11 @@
-export const footer = [
-  {
-    category: 'Informações',
+export const footerLinks = {
+  product: {
+    title: 'Comunidade',
     links: [
       {
-        label: 'Preços e planos',
-        href: '/pricing',
-      },
-      {
-        label: 'Documentação',
-        href: 'https://docs.visionwallet.com.br',
-      },
-      {
-        label: 'Termos de uso',
-        href: '/terms',
-      },
-      {
-        label: 'Suporte',
-        href: '#',
+        label: 'Discord',
+        href: 'https://discord.gg/wHVKdnBU2x',
       },
     ],
   },
-  {
-    category: 'Conta',
-    links: [
-      {
-        label: 'Dashboard',
-        href: '/dashboard',
-      },
-      {
-        label: 'Login',
-        href: '/login',
-      },
-    ],
-  },
-]
-
+}

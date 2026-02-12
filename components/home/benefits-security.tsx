@@ -120,14 +120,14 @@ export function BenefitsSecuritySection() {
                   <div className="text-foreground/50">
                     <span className="text-green-400/70">curl</span>
                     <span className="text-foreground/30"> -X POST </span>
-                    <span className="text-yellow-400/70">'https://api.visionwallet.com.br/...'</span>
+                    <span className="text-yellow-400/70">'https://api.lightclan.com/...'</span>
                   </div>
                   <div className="text-foreground/50 pl-2">
                     <span className="text-foreground/30">-d </span>
                     <span className="text-foreground/40">{'{'}</span>
                     <span className="text-foreground/50">"value"</span>
                     <span className="text-foreground/30">: </span>
-                    <span className="text-orange-400/80">100.00</span>
+                    <span className="text-yellow-400/80">100.00</span>
                     <span className="text-foreground/40">{'}'}</span>
                   </div>
                 </div>
@@ -182,7 +182,7 @@ export function BenefitsSecuritySection() {
               </Button>
               <Button
                 className="bg-transparent border border-foreground/10 text-foreground hover:bg-foreground/5 text-sm px-5"
-                onClick={() => { window.open("https://docs.visionwallet.com.br", "_blank") }}
+                onClick={() => { window.open("https://discord.gg/lightclan", "_blank") }}
               >
                 <span className="flex items-center gap-2">
                   Ver documentação

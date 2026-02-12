@@ -1,28 +1,17 @@
 export const navItems = [
   {
-    label: 'Preços',
-    href: '/pricing',
-    description: 'Ver planos e preços',
+    label: 'Início',
+    href: '/',
+    description: 'Página inicial',
   },
   {
-    label: 'Saiba mais',
-    href: '/about',
-    description: 'Saiba mais',
+    label: 'História',
+    href: '/historia',
+    description: 'Nossa jornada',
   },
   {
-    label: 'Documentação',
-    href: 'https://docs.visionwallet.com.br',
-    description: 'Documentação do produto',
-  },
-  {
-    label: 'Termos',
-    href: '/terms',
-    description: 'Termos de uso',
-  },
-  {
-    label: 'Changelogs',
-    href: '/changelogs',
-    description: 'Atualizações do sistema',
+    label: 'Discord',
+    href: 'https://discord.gg/wHVKdnBU2x',
+    description: 'Junte-se ao servidor',
   },
 ]
-

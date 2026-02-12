@@ -1,31 +1,33 @@
 'use client'
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faRobot, faTicket, faCartShopping, faBolt, faUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
-import { faDiscord } from '@fortawesome/free-brands-svg-icons'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
-const features = [
+const servers = [
     {
-        icon: faRobot,
-        title: 'Automação Total',
-        description: 'Receba pagamentos e faça transferências automaticamente.',
+        name: 'Light',
+        icon: 'https://cdn.discordapp.com/icons/1464288982627127358/a_a0a71f52f17a972bb922120e788e8270.gif?size=2048',
+        banner: 'https://cdn.discordapp.com/splashes/1464288982627127358/ee9b44b15955c1d7ec0823a8c6f3a85b.png?size=2048',
+        invite: 'https://discord.gg/rGVzQ5KQYj',
     },
     {
-        icon: faCartShopping,
-        title: 'Vendas Automáticas',
-        description: 'Sistema completo de vendas de produtos e serviços.',
+        name: 'CHK',
+        icon: 'https://cdn.discordapp.com/icons/1395499598830764062/4e20e96a794e43049e4d5b2efdf14a1d.png?size=2048',
+        banner: 'https://cdn.discordapp.com/attachments/1443008207638364170/1450299303389171903/content.png?ex=698d2d7b&is=698bdbfb&hm=b59de4c5341aac02f888fd5deb8d36acd688ea59daff9fc827f59e03f8afcb3b&',
+        invite: 'https://discord.gg/GkDdp9TqYJ',
     },
     {
-        icon: faTicket,
-        title: 'Gestão de Tickets',
-        description: 'Organize o suporte da sua comunidade no Discord.',
+        name: 'HAIL',
+        icon: 'https://cdn.discordapp.com/icons/1458571578899173661/88bd398ad03380370505e48cf9652544.png?size=2048',
+        banner: 'https://cdn.discordapp.com/attachments/1469478776206393345/1471267066383434064/New-Project_3_.png?ex=698e4fbb&is=698cfe3b&hm=6e1f62ae131d688962e4c277684df4160831242467f79e0852786adf642817b1&',
+        invite: 'https://discord.gg/vt3Y64fT',
     },
     {
-        icon: faBolt,
-        title: 'Totalmente Gratuito',
-        description: 'Sem taxas mensais ou custos ocultos para usar o bot.',
+        name: 'JEME',
+        icon: 'https://cdn.discordapp.com/icons/1070492659795361882/bec2b3219c3aba8655fb3f29fc2f9d11.png?size=2048',
+        banner: 'https://media.discordapp.net/attachments/1427016766223024255/1457228022930215013/bem_vindo.png?ex=698d55da&is=698c045a&hm=a4c39daa6bc4b661d33f1506fc0739ae39dc26f1fb126e9d6c91bec5f8249c04&=&format=webp&quality=lossless&width=1448&height=568',
+        invite: 'https://discord.gg/ydCZWt4TRS',
     },
 ]
 
@@ -36,125 +38,74 @@ export function DiscordBotSection() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.6 }}
-            className="relative mt-8 mb-8 py-8 md:mt-12 md:mb-16 md:py-16"
+            className="relative mt-8 mb-8 py-16 md:mt-12 md:mb-16 md:py-24"
         >
-            <div className="relative z-10">
-                {/* Split layout: Content left, Image right */}
-                <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-
-                    {/* Left side - Content */}
-                    <div className="flex-1 lg:max-w-[55%]">
-                        {/* Header */}
+            <div className="relative z-10 container mx-auto px-6">
+                {/* Server Badges */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5 }}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                >
+                    {servers.map((server, index) => (
                         <motion.div
+                            key={index}
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            transition={{ duration: 0.5 }}
-                            className="inline-flex items-center gap-3 mb-5"
+                            transition={{ duration: 0.5, delay: index * 0.1 }}
+                            className="group relative overflow-hidden rounded-2xl bg-background border border-foreground/10 hover:border-[#FFD700]/30 transition-all duration-300 hover:shadow-lg hover:shadow-[#FFD700]/5"
                         >
-                            <span className="w-8 h-px bg-primary/30" />
-                            <span className="text-primary text-xs font-medium uppercase tracking-[0.2em]">Integração</span>
-                        </motion.div>
-
-                        <motion.h2
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6, delay: 0.1 }}
-                            className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground leading-tight mb-5"
-                        >
-                            Potencialize seu{' '}
-                            <span className="relative inline-block">
-                                <span className="text-primary">Discord</span>
-                                <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-primary to-primary/30 rounded-full" />
-                            </span>
-                        </motion.h2>
-
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                            className="text-foreground/50 text-base md:text-lg max-w-xl mb-10"
-                        >
-                            Nosso bot exclusivo transforma seu servidor em uma potência financeira.
-                            Gerencie vendas, tickets e transações PIX diretamente do seu chat,
-                            com logs detalhados e segurança total.
-                        </motion.p>
-
-                        {/* Features grid - 2x2 */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: 0.3 }}
-                            className="grid grid-cols-2 gap-6 mb-8"
-                        >
-                            {features.map((feature, index) => (
-                                <div
-                                    key={index}
-                                    className="flex items-start gap-3"
-                                >
-                                    <FontAwesomeIcon
-                                        icon={feature.icon}
-                                        className="text-primary text-xl mt-0.5"
+                            {/* Banner */}
+                            <div className="relative h-32 overflow-hidden bg-gradient-to-br from-[#FFD700]/20 to-[#FFD700]/5">
+                                {server.banner ? (
+                                    <img
+                                        src={server.banner}
+                                        alt={`${server.name} banner`}
+                                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
                                     />
-                                    <div>
-                                        <h3 className="text-foreground text-sm font-semibold mb-0.5">
-                                            {feature.title}
-                                        </h3>
-                                        <p className="text-foreground/40 text-xs leading-relaxed">
-                                            {feature.description}
-                                        </p>
-                                    </div>
+                                ) : (
+                                    <div className="w-full h-full bg-gradient-to-br from-[#FFD700]/30 to-[#FFD700]/10" />
+                                )}
+                            </div>
+
+                            {/* Icon */}
+                            <div className="absolute top-20 left-1/2 -translate-x-1/2">
+                                <div className="w-20 h-20 rounded-full border-4 border-background overflow-hidden shadow-xl">
+                                    <img
+                                        src={server.icon}
+                                        alt={`${server.name} icon`}
+                                        className="w-full h-full object-cover"
+                                    />
                                 </div>
-                            ))}
-                        </motion.div>
+                            </div>
 
-                        {/* CTA */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: 0.4 }}
-                            className="flex gap-3"
-                        >
-                            <Button
-                                className="bg-[#5865F2] text-white hover:bg-[#4752C4] text-sm px-5 border-none"
-                                onClick={() => { window.open("https://discord.com/api/oauth2/authorize?client_id=1448484905414561832&permissions=8&scope=bot%20applications.commands", "_blank") }}
-                            >
-                                <span className="flex items-center gap-2">
-                                    <FontAwesomeIcon icon={faDiscord} className="text-lg" />
-                                    Adicionar Bot
-                                </span>
-                            </Button>
-                            <Button
-                                className="bg-transparent border border-foreground/10 text-foreground hover:bg-foreground/5 text-sm px-5"
-                                onClick={() => { window.open("https://discord.gg/9vBqJj45gV", "_blank") }}
-                            >
-                                <span className="flex items-center gap-2">
-                                    Comunidade Discord
-                                    <FontAwesomeIcon icon={faUpRightFromSquare} className="text-[10px]" />
-                                </span>
-                            </Button>
-                        </motion.div>
-                    </div>
+                            {/* Content */}
+                            <div className="pt-14 pb-6 px-6 text-center">
+                                <h3 className="text-foreground text-xl font-bold mb-4">
+                                    {server.name}
+                                </h3>
 
-                    {/* Right side - Illustration */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 40 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.7, delay: 0.3 }}
-                        className="flex-1 hidden lg:flex justify-center lg:justify-end"
-                    >
-                        <img
-                            src="/undraw_chat-bot_c8iw.svg"
-                            alt="Discord Bot Vision Wallet"
-                            className="w-full max-w-sm lg:max-w-md h-auto"
-                        />
-                    </motion.div>
-                </div>
+                                {/* Buttons */}
+                                <div className="flex flex-col gap-2">
+                                    <Button
+                                        className="w-full bg-[#FFD700] text-black hover:bg-[#FFD700]/90 text-sm font-semibold"
+                                        onClick={() => window.open(server.invite, '_blank')}
+                                    >
+                                        Entrar no Servidor
+                                    </Button>
+                                    <Link href={`/clan/${server.name.toLowerCase()}`} className="w-full">
+                                        <Button className="w-full bg-transparent border border-foreground/10 text-foreground hover:bg-foreground/5 text-sm">
+                                            Conhecer {server.name}
+                                        </Button>
+                                    </Link>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </motion.div>
             </div>
         </motion.section>
     )
