@@ -11,10 +11,9 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [isUnlocked, setIsUnlocked] = useState(false)
   const [showUnlockButton, setShowUnlockButton] = useState(false)
 
-  // Verificar se já foi desbloqueado anteriormente
+  // Verificar se está logado
   useEffect(() => {
-    const unlocked = localStorage.getItem('site_unlocked')
-    if (unlocked === 'true' || user) {
+    if (user) {
       setIsUnlocked(true)
     } else {
       // Mostrar botão após 1 segundo
@@ -24,7 +23,6 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   const handleUnlock = () => {
     setIsUnlocked(true)
-    localStorage.setItem('site_unlocked', 'true')
   }
 
   // Mostrar loading enquanto verifica autenticação
