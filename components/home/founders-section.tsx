@@ -143,85 +143,109 @@ export function FoundersSection() {
               const defaultBanner = 'https://cdn.discordapp.com/attachments/1469478776206393345/1471283645716107526/New-Project_2__1_.png?ex=698e5f2c&is=698d0dac&hm=556127ec08971cc94abfeb7a4e6f82a997d9c49ca662bd3b9d9791bbffb1140a&'
               
               return (
-                <div key={userId} className="group relative overflow-hidden rounded-2xl bg-background border border-foreground/10 hover:border-[#FFD700]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[#FFD700]/10">
+                <div key={userId} className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-background via-background to-background/50 border border-foreground/10 hover:border-[#FFD700]/50 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#FFD700]/20">
+                  {/* Glow Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#FFD700]/0 via-[#FFD700]/0 to-[#FFD700]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
                   {/* Banner */}
-                  <div className="relative h-24 overflow-hidden bg-gradient-to-br from-[#FFD700]/20 to-[#FFD700]/5">
+                  <div className="relative h-28 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#FFD700]/30 via-[#FFD700]/10 to-transparent" />
                     {bannerUrl ? (
-                      <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                      <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                     ) : user.accentColor ? (
                       <div 
-                        className="w-full h-full" 
-                        style={{ backgroundColor: `#${user.accentColor.toString(16).padStart(6, '0')}` }}
+                        className="w-full h-full group-hover:scale-110 transition-transform duration-500" 
+                        style={{ 
+                          background: `linear-gradient(135deg, #${user.accentColor.toString(16).padStart(6, '0')}dd, #${user.accentColor.toString(16).padStart(6, '0')}44)`
+                        }}
                       />
                     ) : (
-                      <img src={defaultBanner} alt="Banner" className="w-full h-full object-cover" />
+                      <img src={defaultBanner} alt="Banner" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                     )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
                   </div>
 
                   {/* Avatar */}
-                  <div className="absolute top-16 left-1/2 -translate-x-1/2">
-                    <div className="relative w-20 h-20 rounded-full border-4 border-background overflow-hidden shadow-xl">
-                      <img src={getAvatarUrl(user)} alt={displayName} className="w-full h-full object-cover" />
-                      {/* Status Indicator */}
-                      <div className={`absolute bottom-0 right-0 w-6 h-6 rounded-full border-[3px] border-background ${getStatusColor(user.status)}`} />
+                  <div className="absolute top-16 left-1/2 -translate-x-1/2 z-10">
+                    <div className="relative">
+                      {/* Glow ring */}
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#FFD700] to-[#FFD700]/30 blur-md opacity-0 group-hover:opacity-60 transition-opacity duration-500" />
+                      
+                      <div className="relative w-24 h-24 rounded-full border-4 border-background overflow-hidden shadow-2xl ring-2 ring-[#FFD700]/20 group-hover:ring-[#FFD700]/60 transition-all duration-500">
+                        <img src={getAvatarUrl(user)} alt={displayName} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                        
+                        {/* Status Indicator with glow */}
+                        <div className="absolute bottom-1 right-1">
+                          <div className={`w-6 h-6 rounded-full border-[3px] border-background ${getStatusColor(user.status)} shadow-lg`}>
+                            <div className={`absolute inset-0 rounded-full ${getStatusColor(user.status)} blur-sm opacity-75`} />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
                   {/* Badge */}
-                  <div className="absolute top-2 right-2">
-                    <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-[#FFD700]/20 text-[#FFD700] border border-[#FFD700]/30 backdrop-blur-sm">
-                      FUNDADOR
-                    </span>
+                  <div className="absolute top-3 right-3 z-10">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-[#FFD700] blur-md opacity-50" />
+                      <span className="relative px-3 py-1.5 rounded-full text-[10px] font-bold bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black border border-[#FFD700]/50 shadow-lg backdrop-blur-sm">
+                        ⭐ RARIDADE
+                      </span>
+                    </div>
                   </div>
 
                   {/* Content */}
-                  <div className="pt-14 pb-4 px-4 text-center">
-                    <h4 className="text-foreground font-bold text-base mb-1 truncate">
+                  <div className="relative pt-16 pb-5 px-5 text-center">
+                    <h4 className="text-foreground font-bold text-lg mb-1 truncate group-hover:text-[#FFD700] transition-colors duration-300">
                       {displayName}
                     </h4>
-                    <p className="text-foreground/60 text-xs mb-3 truncate">
+                    <p className="text-foreground/50 text-xs mb-4 truncate">
                       @{user.username}
                     </p>
                     
                     {/* Custom Status */}
                     {user.activities.find(a => a.type === 4) && (
-                      <div className="mb-2 p-2 rounded-lg bg-foreground/5 border border-foreground/10">
-                        <p className="text-xs text-foreground/80 truncate">
-                          {user.activities.find(a => a.type === 4)?.state}
+                      <div className="mb-3 p-2.5 rounded-xl bg-gradient-to-br from-foreground/10 to-foreground/5 border border-foreground/10 backdrop-blur-sm">
+                        <p className="text-xs text-foreground/90 truncate">
+                          💭 {user.activities.find(a => a.type === 4)?.state}
                         </p>
                       </div>
                     )}
                     
                     {/* Playing */}
                     {user.activities.filter(a => a.type === 0).length > 0 && (
-                      <div className="mb-2 p-2 rounded-lg bg-foreground/5 border border-foreground/10">
-                        <p className="text-[10px] text-foreground/50 mb-0.5">Jogando</p>
+                      <div className="mb-3 p-2.5 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 border border-purple-500/20 backdrop-blur-sm">
+                        <p className="text-[10px] text-purple-400 mb-1 font-semibold uppercase tracking-wider">🎮 Jogando</p>
                         <p className="text-xs text-foreground font-medium truncate">{user.activities.filter(a => a.type === 0)[0].name}</p>
                       </div>
                     )}
 
                     {/* Spotify */}
                     {user.spotify && (
-                      <div className="mb-2 p-2 rounded-lg bg-[#1DB954]/10 border border-[#1DB954]/20">
-                        <p className="text-[10px] text-[#1DB954] mb-0.5">Spotify</p>
+                      <div className="mb-3 p-2.5 rounded-xl bg-gradient-to-br from-[#1DB954]/20 to-[#1DB954]/5 border border-[#1DB954]/30 backdrop-blur-sm">
+                        <p className="text-[10px] text-[#1DB954] mb-1 font-semibold uppercase tracking-wider">🎵 Spotify</p>
                         <p className="text-xs text-foreground font-medium truncate">{user.spotify.song}</p>
+                        <p className="text-[10px] text-foreground/50 truncate mt-0.5">{user.spotify.artist}</p>
                       </div>
                     )}
                     
                     {/* Badges */}
                     {user.badges.length > 0 && (
-                      <div className="flex flex-wrap gap-1 justify-center mt-2">
-                        {user.badges.slice(0, 4).map((badge, index) => {
+                      <div className="flex flex-wrap gap-2 justify-center mt-4 pt-3 border-t border-foreground/10">
+                        {user.badges.slice(0, 5).map((badge, index) => {
                           const iconUrl = BADGE_ICONS[badge]
                           return iconUrl ? (
                             <div key={index} className="relative group/badge">
-                              <img 
-                                src={iconUrl} 
-                                alt={badge}
-                                className="w-5 h-5 hover:scale-110 transition-transform"
-                                title={badge}
-                              />
-                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-background/95 border border-foreground/10 rounded text-[10px] text-foreground whitespace-nowrap opacity-0 group-hover/badge:opacity-100 transition-opacity pointer-events-none z-10">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-[#FFD700] blur-sm opacity-0 group-hover/badge:opacity-50 transition-opacity" />
+                                <img 
+                                  src={iconUrl} 
+                                  alt={badge}
+                                  className="relative w-6 h-6 hover:scale-125 transition-transform duration-300 drop-shadow-lg"
+                                  title={badge}
+                                />
+                              </div>
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-background/95 border border-[#FFD700]/30 rounded-lg text-[10px] text-foreground whitespace-nowrap opacity-0 group-hover/badge:opacity-100 transition-opacity pointer-events-none z-20 shadow-xl">
                                 {badge}
                               </div>
                             </div>

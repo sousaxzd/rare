@@ -469,106 +469,139 @@ function DiscordUserCard({ user, getAvatarUrl, getBannerUrl, getStatusColor, get
   const defaultBanner = 'https://cdn.discordapp.com/attachments/1469478776206393345/1471283645716107526/New-Project_2__1_.png?ex=698e5f2c&is=698d0dac&hm=556127ec08971cc94abfeb7a4e6f82a997d9c49ca662bd3b9d9791bbffb1140a&'
   
   return (
-    <div className="group relative overflow-hidden rounded-2xl bg-background border border-foreground/10 hover:border-[#FFD700]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[#FFD700]/10">
+    <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-background via-background to-background/50 border border-foreground/10 hover:border-[#FFD700]/50 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#FFD700]/20">
+      {/* Glow Effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#FFD700]/0 via-[#FFD700]/0 to-[#FFD700]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      
       {/* Banner */}
-      <div className="relative h-32 overflow-hidden bg-gradient-to-br from-[#FFD700]/20 to-[#FFD700]/5">
+      <div className="relative h-40 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FFD700]/30 via-[#FFD700]/10 to-transparent" />
         {bannerUrl ? (
-          <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+          <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
         ) : user.accentColor ? (
           <div 
-            className="w-full h-full" 
-            style={{ backgroundColor: `#${user.accentColor.toString(16).padStart(6, '0')}` }}
+            className="w-full h-full group-hover:scale-110 transition-transform duration-500" 
+            style={{ 
+              background: `linear-gradient(135deg, #${user.accentColor.toString(16).padStart(6, '0')}dd, #${user.accentColor.toString(16).padStart(6, '0')}44)`
+            }}
           />
         ) : (
-          <img src={defaultBanner} alt="Banner" className="w-full h-full object-cover" />
+          <img src={defaultBanner} alt="Banner" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
         )}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
       </div>
 
       {/* Avatar com Status */}
-      <div className="absolute top-20 left-6">
-        <div className="relative w-24 h-24 rounded-full border-4 border-background overflow-hidden shadow-xl">
-          <img src={getAvatarUrl(user)} alt={displayName} className="w-full h-full object-cover" />
-          {/* Status Indicator - Discord Style */}
-          <div className={`absolute bottom-0 right-0 w-7 h-7 rounded-full border-[3px] border-background ${getStatusColor(user.status)}`} />
+      <div className="absolute top-24 left-8 z-10">
+        <div className="relative">
+          {/* Glow ring */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#FFD700] to-[#FFD700]/30 blur-lg opacity-0 group-hover:opacity-70 transition-opacity duration-500" />
+          
+          <div className="relative w-32 h-32 rounded-full border-4 border-background overflow-hidden shadow-2xl ring-4 ring-[#FFD700]/30 group-hover:ring-[#FFD700]/70 transition-all duration-500">
+            <img src={getAvatarUrl(user)} alt={displayName} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+            
+            {/* Status Indicator with glow */}
+            <div className="absolute bottom-2 right-2">
+              <div className={`w-9 h-9 rounded-full border-4 border-background ${getStatusColor(user.status)} shadow-xl`}>
+                <div className={`absolute inset-0 rounded-full ${getStatusColor(user.status)} blur-md opacity-75`} />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Role Badge */}
-      <div className="absolute top-4 right-4">
-        <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#FFD700]/20 text-[#FFD700] border border-[#FFD700]/30 backdrop-blur-sm">
-          {role}
-        </span>
+      <div className="absolute top-5 right-5 z-10">
+        <div className="relative">
+          <div className="absolute inset-0 bg-[#FFD700] blur-lg opacity-60" />
+          <span className="relative px-4 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black border-2 border-[#FFD700]/50 shadow-xl backdrop-blur-sm flex items-center gap-2">
+            <span className="text-base">👑</span>
+            FUNDADOR
+          </span>
+        </div>
       </div>
 
       {/* Content */}
-      <div className="pt-16 pb-6 px-6">
-        <h4 className="text-foreground font-bold text-xl mb-1">
+      <div className="relative pt-20 pb-7 px-8">
+        <h4 className="text-foreground font-bold text-2xl mb-2 group-hover:text-[#FFD700] transition-colors duration-300">
           {displayName}
         </h4>
-        <p className="text-foreground/60 text-sm mb-1">
+        <p className="text-foreground/50 text-sm mb-2">
           @{user.username}
         </p>
-        <p className="text-foreground/40 text-xs mb-4">
-          {getStatusText(user.status)}
-        </p>
+        <div className="flex items-center gap-2 mb-5">
+          <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(user.status)}`} />
+          <p className="text-foreground/60 text-xs font-medium">
+            {getStatusText(user.status)}
+          </p>
+        </div>
         
         {/* Custom Status */}
         {user.activities.find(a => a.type === 4) && (
-          <div className="mb-4 p-3 rounded-lg bg-foreground/5 border border-foreground/10">
-            <p className="text-sm text-foreground/80 flex items-center gap-2">
-              {user.activities.find(a => a.type === 4)?.state && (
-                <>
-                  {user.activities.find(a => a.type === 4)?.state}
-                </>
-              )}
+          <div className="mb-4 p-4 rounded-xl bg-gradient-to-br from-foreground/10 to-foreground/5 border border-foreground/10 backdrop-blur-sm">
+            <p className="text-sm text-foreground/90 flex items-center gap-2">
+              <span className="text-lg">💭</span>
+              {user.activities.find(a => a.type === 4)?.state}
             </p>
           </div>
         )}
         
         {/* Atividade Atual (Jogos) */}
         {user.activities.filter(a => a.type === 0).length > 0 && (
-          <div className="mb-4 p-3 rounded-lg bg-foreground/5 border border-foreground/10">
-            <p className="text-xs text-foreground/50 mb-1">Jogando</p>
+          <div className="mb-4 p-4 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 border border-purple-500/20 backdrop-blur-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-lg">🎮</span>
+              <p className="text-xs text-purple-400 font-semibold uppercase tracking-wider">Jogando</p>
+            </div>
             <p className="text-sm text-foreground font-medium">{user.activities.filter(a => a.type === 0)[0].name}</p>
             {user.activities.filter(a => a.type === 0)[0].details && (
-              <p className="text-xs text-foreground/60 mt-1">{user.activities.filter(a => a.type === 0)[0].details}</p>
+              <p className="text-xs text-foreground/60 mt-2">{user.activities.filter(a => a.type === 0)[0].details}</p>
             )}
           </div>
         )}
 
         {/* Spotify */}
         {user.spotify && (
-          <div className="mb-4 p-3 rounded-lg bg-[#1DB954]/10 border border-[#1DB954]/20">
-            <p className="text-xs text-[#1DB954] mb-1">Ouvindo no Spotify</p>
+          <div className="mb-4 p-4 rounded-xl bg-gradient-to-br from-[#1DB954]/20 to-[#1DB954]/5 border border-[#1DB954]/30 backdrop-blur-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-lg">🎵</span>
+              <p className="text-xs text-[#1DB954] font-semibold uppercase tracking-wider">Ouvindo no Spotify</p>
+            </div>
             <p className="text-sm text-foreground font-medium truncate">{user.spotify.song}</p>
-            <p className="text-xs text-foreground/60 truncate">{user.spotify.artist}</p>
+            <p className="text-xs text-foreground/60 truncate mt-1">{user.spotify.artist}</p>
           </div>
         )}
         
         {/* Badges com ícones */}
         {user.badges.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {user.badges.map((badge, index) => {
-              const iconUrl = BADGE_ICONS[badge]
-              return iconUrl ? (
-                <div key={index} className="relative group/badge">
-                  <img 
-                    src={iconUrl} 
-                    alt={badge}
-                    className="w-6 h-6 hover:scale-110 transition-transform"
-                    title={badge}
-                  />
-                  {/* Tooltip */}
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-background/95 border border-foreground/10 rounded text-xs text-foreground whitespace-nowrap opacity-0 group-hover/badge:opacity-100 transition-opacity pointer-events-none z-10">
-                    {badge}
+          <div className="pt-4 border-t border-foreground/10">
+            <p className="text-xs text-foreground/40 uppercase tracking-wider mb-3 font-semibold">Badges do Discord</p>
+            <div className="flex flex-wrap gap-3">
+              {user.badges.map((badge, index) => {
+                const iconUrl = BADGE_ICONS[badge]
+                return iconUrl ? (
+                  <div key={index} className="relative group/badge">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-[#FFD700] blur-md opacity-0 group-hover/badge:opacity-60 transition-opacity" />
+                      <img 
+                        src={iconUrl} 
+                        alt={badge}
+                        className="relative w-7 h-7 hover:scale-125 transition-transform duration-300 drop-shadow-lg"
+                        title={badge}
+                      />
+                    </div>
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-3 py-2 bg-background/95 border border-[#FFD700]/30 rounded-lg text-xs text-foreground whitespace-nowrap opacity-0 group-hover/badge:opacity-100 transition-opacity pointer-events-none z-20 shadow-xl">
+                      {badge}
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <span key={index} className="text-xs px-2 py-1 rounded-full bg-[#FFD700]/10 text-[#FFD700]">
-                  {badge}
-                </span>
-              )
-            })}
+                ) : (
+                  <span key={index} className="text-xs px-3 py-1.5 rounded-full bg-[#FFD700]/10 text-[#FFD700] border border-[#FFD700]/20">
+                    {badge}
+                  </span>
+                )
+              })}
+            </div>
           </div>
         )}
       </div>
