@@ -2,6 +2,7 @@
 /node_modules
 /.pnp
 .pnp.js
+/bot/node_modules
 
 # testing
 /coverage
@@ -20,6 +21,8 @@
 .env.test.local
 .env.production.local
 .env.local
+.env
+/bot/.env
 
 npm-debug.log*
 yarn-debug.log*

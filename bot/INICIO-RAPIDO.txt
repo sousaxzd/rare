@@ -1,0 +1,44 @@
+╔══════════════════════════════════════════════════════════════╗
+║          BOT DISCORD - GERENCIADOR DE CARDS RARE             ║
+╚══════════════════════════════════════════════════════════════╝
+
+🚀 COMO INICIAR:
+
+   1. Abra o terminal nesta pasta (bot)
+   2. Execute: npm start
+   3. Aguarde a mensagem: "✅ Bot conectado"
+
+💬 COMANDOS NO DISCORD:
+
+   Adicionar usuário:
+   /add_card_rare iduser:1234567890
+
+   Remover usuário:
+   /remove_card_rare id:1234567890
+
+📋 O QUE O BOT FAZ:
+
+   ✓ Edita o arquivo founders-section.tsx
+   ✓ Adiciona/remove o ID do usuário
+   ✓ Faz git add, commit e push automaticamente
+   ✓ Atualiza o site
+
+🔍 COMO PEGAR ID DO DISCORD:
+
+   1. Ative Modo Desenvolvedor (Configurações → Avançado)
+   2. Clique direito no usuário → Copiar ID
+
+⚠️ IMPORTANTE:
+
+   - O bot precisa estar rodando para funcionar
+   - Git precisa estar configurado
+   - Você precisa ter permissões de push
+
+📚 MAIS INFORMAÇÕES:
+
+   Leia: INSTRUCOES-COMPLETAS.md
+   Teste: node test-bot.js
+
+╔══════════════════════════════════════════════════════════════╗
+║                    PRONTO PARA USAR! 🎉                      ║
+╚══════════════════════════════════════════════════════════════╝

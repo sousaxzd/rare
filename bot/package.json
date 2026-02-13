@@ -1,0 +1,24 @@
+{
+  "name": "rare-discord-bot",
+  "version": "1.0.0",
+  "description": "Bot Discord para gerenciar cards de usuários no site Rare",
+  "main": "discord-bot.js",
+  "scripts": {
+    "start": "node discord-bot.js",
+    "dev": "nodemon discord-bot.js"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "rare"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.6.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
