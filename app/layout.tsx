@@ -76,7 +76,6 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 // ...
 
 import { DevToolsBlocker } from '@/components/devtools-blocker'
-import { BotInitializer } from '@/components/bot-initializer'
 
 export default function RootLayout({
   children,
@@ -88,7 +87,6 @@ export default function RootLayout({
       <body className={`font-sans antialiased`} suppressHydrationWarning>
         <ErrorBoundary>
           <DevToolsBlocker />
-          <BotInitializer />
           <AuthProvider>
             <WalletProvider>
               <TooltipProvider>
